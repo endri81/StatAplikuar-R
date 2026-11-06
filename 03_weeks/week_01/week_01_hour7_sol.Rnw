@@ -1,0 +1,223 @@
+% ============================================================
+%  Java 1 · Ora 7 — Zgjidhjet e kuizit dhe të ushtrimeve
+% ============================================================
+
+\begin{frame}[label=sT1]{Zgjidhja: Teori 1}
+  \begin{enumerate}
+    \item R është gjuha dhe motori që bën llogaritjet; RStudio është mjedisi (IDE) që e drejton R-në me redaktor, panele dhe ndihmë. (4 pikë)
+    \item \texttt{install.packages()} shkarkon paketën nga CRAN një herë në kompjuter; \texttt{library()} e ngarkon në kujtesë në çdo seancë. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{qT1}
+\end{frame}
+
+\begin{frame}[label=sT2]{Zgjidhja: Teori 2}
+  \begin{enumerate}
+    \item $s^2=\dfrac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar x)^2$. (3 pikë)
+    \item Devijimet kanë shumë 0, prandaj vetëm $n-1$ prej tyre janë të lira. Me $n-1$, $s^2$ është vlerësues i pazhvendosur i $\sigma^2$. (3 pikë)
+    \item \texttt{var()} pjesëton me $n-1$. (2 pikë)
+  \end{enumerate}
+  \vfill\kthehu{qT2}
+\end{frame}
+
+\begin{frame}[fragile,label=sT3]{Zgjidhja: Teori 3}
+  \begin{enumerate}
+    \item Variabël cilësore me numër të kufizuar nivelesh, p.sh.\ \texttt{origin}: American, European, Japanese. (3 pikë)
+    \item Kodet janë etiketa, jo sasi: mesatarja e tyre ose ``Japonia = 3 $\times$ Amerika'' nuk kanë kuptim. (3 pikë)
+    \item Kodet e niveleve sipas renditjes alfabetike \texttt{"10" < "20" < "5"}: (3 pikë)
+  \end{enumerate}
+<<s-t3>>=
+as.numeric(factor(c("10", "20", "5")))
+@
+  \vfill\kthehu{qT3}
+\end{frame}
+
+\begin{frame}[label=sE1]{Zgjidhja: Ushtrimi 1}
+  \begin{enumerate}
+    \item $\bar x=(3+5+7+9+11)/5=35/5=7$. (2 pikë)
+    \item Devijimet: $-4,\ -2,\ 0,\ 2,\ 4$; shuma $=0$ \checkmark. (3 pikë)
+    \item Katrorët: $16+4+0+4+16=40$; \ $s^2=40/4=10$; \ $s=\sqrt{10}\approx3.162$. (5 pikë)
+  \end{enumerate}
+  \vfill\kthehu{qE1}
+\end{frame}
+
+\begin{frame}[fragile]{Zgjidhja: Ushtrimi 1 --- kontrolli me R}
+<<s-e1>>=
+x1 <- c(3, 5, 7, 9, 11)
+c(mean = mean(x1), var = var(x1), sd = round(sd(x1), 3))
+@
+  \vfill\kthehu{qE1}
+\end{frame}
+
+\begin{frame}[fragile,label=sE2]{Zgjidhja: Ushtrimi 2}
+<<s-e2>>=
+x <- c(4, 8, 15, 16, 23, 42)
+x[x > 10 & x < 30]
+which(x > 20)
+length(x[-(1:2)])
+x[7]
+@
+  \begin{itemize}
+    \item 2.5 pikë për çdo rresht. \texttt{x[7]} nuk jep gabim: jep \texttt{NA}.
+  \end{itemize}
+  \vfill\kthehu{qE2}
+\end{frame}
+
+\begin{frame}[label=sE3]{Zgjidhja: Ushtrimi 3}
+  \begin{enumerate}
+    \item Mbushje sipas kolonave: $\texttt{m}=\begin{pmatrix}1&3&5\\2&4&6\end{pmatrix}$. (2 pikë)
+    \item \texttt{m[2, 3]} $=6$; \ \texttt{dim(t(m))} $=3\ 2$. (2 pikë)
+    \item $\texttt{m}\,\texttt{m}^\top=\begin{pmatrix}1+9+25 & 2+12+30\\ 2+12+30 & 4+16+36\end{pmatrix}=\begin{pmatrix}35&44\\44&56\end{pmatrix}$. (4 pikë)
+    \item $(2\times3)(2\times3)$: kolonat e së parës (3) $\neq$ rreshtat e së dytës (2). (2 pikë)
+  \end{enumerate}
+  \vfill\kthehu{qE3}
+\end{frame}
+
+\begin{frame}[fragile]{Zgjidhja: Ushtrimi 3 --- kontrolli me R}
+<<s-e3, error=TRUE, results='markup'>>=
+m <- matrix(1:6, nrow = 2)
+m %*% t(m)
+m %*% m
+@
+  \vfill\kthehu{qE3}
+\end{frame}
+
+\begin{frame}[label=sE4]{Zgjidhja: Ushtrimi 4}
+  \begin{enumerate}
+    \item $z=(86-70)/8=2$. (2 pikë)
+    \item 95\% bien në $70\pm16$, pra 5\% jashtë; gjysma sipër: $P(X>86)\approx2.5\%$. (3 pikë)
+    \item \texttt{pnorm(86, mean = 70, sd = 8, lower.tail = FALSE)}. (2 pikë)
+    \item \texttt{qnorm(0.975, mean = 70, sd = 8)}. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{qE4}
+\end{frame}
+
+\begin{frame}[fragile]{Zgjidhja: Ushtrimi 4 --- kontrolli me R}
+<<s-e4>>=
+pnorm(86, mean = 70, sd = 8, lower.tail = FALSE)
+qnorm(0.975, mean = 70, sd = 8)
+@
+  \begin{itemize}
+    \item Vlera e saktë është 2.28\%; kufiri i 2.5\% më të mirëve është 85.68 pikë.
+  \end{itemize}
+  \vfill\kthehu{qE4}
+\end{frame}
+
+\begin{frame}[fragile,label=sE5]{Zgjidhja: Ushtrimi 5}
+  $E(X)=(10+30)/2=20$; \ $\operatorname{Var}(X)=20^2/12\approx33.33$; \ $\sigma\approx5.774$. (4 pikë)
+<<s-e5>>=
+set.seed(2026)                         # reproducible (2 points)
+serv <- runif(500, min = 10, max = 30) # 500 service times (2 points)
+c(mean = mean(serv), var = var(serv))  # compare with 20 and 33.33
+@
+  \begin{itemize}
+    \item Krahasimi: tabelë ``e vërteta kundrejt vlerësimit''. (2 pikë)
+  \end{itemize}
+  \vfill\kthehu{qE5}
+\end{frame}
+
+\begin{frame}[fragile,label=sE6]{Zgjidhja: Ushtrimi 6}
+<<s-e6, fig.show="hide">>=
+library(ggplot2)
+a7 <- read.csv(file.path(W01DATA, "Auto.csv"), na.strings = "?")
+colSums(is.na(a7))
+a7 <- na.omit(a7)
+round(tapply(a7$mpg, a7$cylinders, mean), 2)
+ggplot(a7, aes(x = factor(cylinders), y = mpg)) + geom_boxplot()
+@
+  \begin{itemize}
+    \item 2.5 pikë për çdo hap. Pa \texttt{factor()}, ggplot2 vizaton një boxplot të vetëm.
+  \end{itemize}
+  \vfill\kthehu{qE6}
+\end{frame}
+
+\begin{frame}[label=sE7]{Zgjidhja: Ushtrimi 7}
+  \footnotesize
+  \begin{enumerate}
+    \item \texttt{"data\textbackslash Auto.csv"}: \texttt{\textbackslash A} s'është sekuencë e vlefshme; përdor \texttt{"data/Auto.csv"}.
+    \item Mungon \texttt{na.strings = "?"}: \texttt{horsepower} lexohet si tekst.
+    \item \texttt{attach()}: kopje të fshehura; përdor \texttt{auto\$\dots}.
+    \item \texttt{origin = as.factor(origin)} krijon objekt global; tabela nuk ndryshon. Saktë: \texttt{auto\$origin <- factor(auto\$origin, labels = \dots)}.
+    \item \texttt{mean(horsepower)}: tekst/NA $\Rightarrow$ duhet \texttt{na.rm = TRUE} pas leximit të saktë.
+    \item \texttt{colour = "red"} brenda \texttt{aes()}: duhet te \texttt{geom\_point(colour = "red")}.
+    \item \texttt{geom\_point} pa kllapa: duhet \texttt{geom\_point()}.
+  \end{enumerate}
+  \normalsize 3 pikë për secilin nga 5 gabimet e para të gjetura (maksimumi 15).
+  \vfill\kthehu{qE7}
+\end{frame}
+
+\begin{frame}[fragile,label=sH1]{Zgjidhja: Shtëpi 1}
+<<s-h1>>=
+set.seed(1)
+temp <- rnorm(30, mean = 15, sd = 4)       # synthetic temperatures
+c(mean = mean(temp), sd = sd(temp), share_above_20 = mean(temp > 20))
+pnorm(20, mean = 15, sd = 4, lower.tail = FALSE)   # the truth
+@
+  \begin{itemize}
+    \item Me $n=30$, përqindja e mostrës mund të ndryshojë dukshëm nga e vërteta (rreth 10.6\%).
+  \end{itemize}
+  \vfill\kthehu{hH1}
+\end{frame}
+
+\begin{frame}[fragile,label=sH2]{Zgjidhja: Shtëpi 2}
+<<s-h2>>=
+adv7 <- read.csv(file.path(W01DATA, "Advertising.csv"))[, -1]
+high_tv <- adv7$TV > median(adv7$TV)
+round(tapply(adv7$sales, high_tv, mean), 2)   # FALSE = below, TRUE = above
+@
+  \vfill\kthehu{hH1}
+\end{frame}
+
+\begin{frame}[fragile,label=sH3]{Zgjidhja: Shtëpi 3}
+<<s-h3>>=
+cv <- function(x) 100 * sd(x) / mean(x)
+a7 <- na.omit(read.csv(file.path(W01DATA, "Auto.csv"), na.strings = "?"))
+round(c(mpg = cv(a7$mpg), weight = cv(a7$weight)), 1)
+@
+  \begin{itemize}
+    \item \texttt{mpg} ndryshon më shumë në terma relativë, edhe pse \texttt{weight} ka $s$ shumë më të madh.
+  \end{itemize}
+  \vfill\kthehu{hH3}
+\end{frame}
+
+\begin{frame}[fragile,label=sH4]{Zgjidhja: Shtëpi 4}
+<<s-h4, fig.height=2.0, fig.width=8, out.width="0.75\\textwidth">>=
+a7$origin <- factor(a7$origin, 1:3, c("American", "European", "Japanese"))
+ggplot(a7, aes(weight)) + geom_histogram(binwidth = 250) +
+  facet_wrap(~ origin) + theme_minimal()
+@
+  \begin{itemize}
+    \item Amerikanet shtrihen deri mbi 5\,000 paund; europianet dhe japonezet janë të përqendruara nën 3\,000.
+  \end{itemize}
+  \vfill\kthehu{hH3}
+\end{frame}
+
+\begin{frame}[fragile,label=sH5]{Zgjidhja: Shtëpi 5}
+  $A\mathbf b=\begin{pmatrix}2\cdot1+0\cdot2\\1\cdot1+3\cdot2\end{pmatrix}=\begin{pmatrix}2\\7\end{pmatrix}$, \quad
+  $A\circ A=\begin{pmatrix}4&0\\1&9\end{pmatrix}$.
+<<s-h5>>=
+A <- matrix(c(2, 1, 0, 3), nrow = 2); b <- c(1, 2)
+A %*% b
+A * A
+@
+  \vfill\kthehu{hH5}
+\end{frame}
+
+\begin{frame}[fragile,label=sH6]{Zgjidhja: Shtëpi 6}
+<<s-h6>>=
+a7$weight_kg <- a7$weight * 0.4536
+round(tapply(a7$weight_kg, a7$origin, mean), 0)
+@
+  \begin{itemize}
+    \item Shndërrimi linear: mesatarja në kg = 0.4536 $\times$ mesatarja në paund.
+  \end{itemize}
+  \vfill\kthehu{hH5}
+\end{frame}
+
+\begin{frame}[label=zgjCp7]{Përgjigjet: Checkpoint i Orës 7}
+  \begin{enumerate}
+    \item \texttt{str()}, \texttt{dim()}/\texttt{head()} dhe \texttt{colSums(is.na())}.
+    \item Boxplot: një variabël numerike sipas grupeve. Grafiku i shpërndarjes: dy variabla numerike.
+    \item Sepse e njohim të vërtetën: mund të kontrollojmë nëse metoda e gjen atë.
+  \end{enumerate}
+  \vfill\kthehu{cp7}
+\end{frame}

@@ -1,0 +1,395 @@
+% ============================================================
+%  Java 1 · Ora 7 — Konsolidimi
+%  Rezultatet: S4, S1, K1
+% ============================================================
+
+\section{Konsolidimi}
+
+\begin{frame}{Ora 7: Konsolidimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuizi në stilin e provimit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuizi: si funksionon}
+  \begin{itemize}
+    \item<1-> Struktura është si e provimit përfundimtar: \textbf{25\% teori, 75\% ushtrime}.
+    \item<2-> 3 pyetje teorike (25 pikë) + 7 ushtrime (75 pikë) = 100 pikë.
+    \item<3-> Koha: 40 minuta. Pa internet; R lejohet vetëm aty ku shkruhet.
+    \item<4-> Çdo pyetje ka butonin e zgjidhjes. Përdoreni \emph{pasi} të keni shkruar përgjigjen.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Shkruani gjithmonë arsyetimin, jo vetëm numrin: në provim pikët jepen edhe për hapat.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=qT1]{Teori 1 (8 pikë)}
+  \begin{Ushtrim}[(Teori 1)]
+    Shpjegoni dallimin midis:
+    \begin{enumerate}
+      \item R dhe RStudio;
+      \item \texttt{install.packages()} dhe \texttt{library()}.
+    \end{enumerate}
+    Për secilin, një fjali.
+  \end{Ushtrim}
+  \shkoTe{sT1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=qT2]{Teori 2 (8 pikë)}
+  \begin{Ushtrim}[(Teori 2)]
+    \begin{enumerate}
+      \item Shkruani formulën e variancës së mostrës $s^2$.
+      \item Pse pjesëtojmë me $n-1$ dhe jo me $n$?
+      \item Cilin nga të dy emëruesit përdor funksioni \texttt{var()} i R-së?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{sT2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=qT3]{Teori 3 (9 pikë)}
+  \begin{Ushtrim}[(Teori 3)]
+    \begin{enumerate}
+      \item Çfarë është një \emph{faktor} në R? Jepni një shembull nga të dhënat \texttt{Auto}.
+      \item Pse \texttt{origin} me kodet 1, 2, 3 nuk duhet trajtuar si numër?
+      \item Çfarë kthen \texttt{as.numeric(factor(c("10", "20", "5")))}? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{sT3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=qE1]{Ushtrimi 1 (10 pikë) --- pa ndihmën e PC}
+  \begin{Ushtrim}[(Ushtrimi 1)]
+    Jepen të dhënat $x = (3,\ 5,\ 7,\ 9,\ 11)$.
+    \begin{enumerate}
+      \item Llogaritni $\bar x$.
+      \item Llogaritni devijimet $x_i-\bar x$ dhe kontrolloni që shuma e tyre është 0.
+      \item Llogaritni $s^2$ dhe $s$ (3 shifra pas presjes).
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{sE1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[fragile,label=qE2]{Ushtrimi 2 (10 pikë) --- lexo kodin}
+<<q-e2, eval=FALSE>>=
+x <- c(4, 8, 15, 16, 23, 42)
+x[x > 10 & x < 30]
+which(x > 20)
+length(x[-(1:2)])
+x[7]
+@
+  \begin{Ushtrim}[(Ushtrimi 2)]
+    Pa ekzekutuar kodin, shkruani rezultatin e secilit nga katër rreshtat e fundit.
+  \end{Ushtrim}
+  \shkoTe{sE2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[fragile,label=qE3]{Ushtrimi 3 (10 pikë) --- matricat}
+<<q-e3, eval=FALSE>>=
+m <- matrix(1:6, nrow = 2)
+@
+  \begin{Ushtrim}[(Ushtrimi 3)]
+    \begin{enumerate}
+      \item Shkruani matricën \texttt{m} element pas elementi.
+      \item Sa është \texttt{m[2, 3]}? Sa është \texttt{dim(t(m))}?
+      \item Llogaritni pa ndihmën e PC \texttt{m \%*\% t(m)}.
+      \item Pse \texttt{m \%*\% m} jep gabim?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{sE3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=qE4]{Ushtrimi 4 (10 pikë) --- shpërndarja normale}
+  \begin{Ushtrim}[(Ushtrimi 4)]
+    Pikët e një testi ndjekin $X\sim N(70,\ 8^2)$.
+    \begin{enumerate}
+      \item Sa është vlera $z$ e një studenti me 86 pikë?
+      \item Me rregullin 68--95--99.7, vlerësoni $P(X > 86)$.
+      \item Shkruani komandën R që jep vlerën e saktë.
+      \item Shkruani komandën R që jep pikët mbi të cilat bie 2.5\% më e mirë e studentëve.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{sE4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=qE5]{Ushtrimi 5 (10 pikë) --- simulimi}
+  \begin{Ushtrim}[(Ushtrimi 5)]
+    Koha e shërbimit në një sportel është $X\sim U(10, 30)$ minuta.
+    \begin{enumerate}
+      \item Llogaritni $E(X)$, $\operatorname{Var}(X)$ dhe $\sigma$.
+      \item Shkruani kodin R që simulon 500 kohë shërbimi në mënyrë të riprodhueshme.
+      \item Si do të krahasonit vlerësimin me të vërtetën?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{sE5}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=qE6]{Ushtrimi 6 (10 pikë) --- importimi dhe grupet}
+  \begin{Ushtrim}[(Ushtrimi 6)]
+    Shkruani kodin R që:
+    \begin{enumerate}
+      \item lexon \texttt{Auto.csv} saktë (vlerat ``?'' janë \texttt{NA});
+      \item numëron vlerat që mungojnë në çdo kolonë dhe i heq ato rreshta;
+      \item llogarit \texttt{mpg} mesatar sipas numrit të cilindrave;
+      \item vizaton me ggplot2 boxplot-in e \texttt{mpg} sipas cilindrave.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{sE6}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[fragile,label=qE7]{Ushtrimi 7 (15 pikë) --- gjej gabimet}
+<<q-e7, eval=FALSE>>=
+auto <- read.csv("data\Auto.csv")
+attach(auto)
+origin = as.factor(origin)
+mean(horsepower)
+ggplot(auto, aes(weight, mpg, colour = "red")) + geom_point
+@
+  \begin{Ushtrim}[(Ushtrimi 7)]
+    Skripti ka të paktën \textbf{5 gabime} ose praktika të këqija. Gjeni dhe korrigjoni secilin.
+  \end{Ushtrim}
+  \shkoTe{sE7}{Zgjidhja}
+\end{frame}
+
+\begin{frame}{Tabela e pikëve}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Pjesa & Pyetjet & Pikët \\ \midrule
+    Teori (25\%) & T1, T2, T3 & 8 + 8 + 9 = 25 \\
+    Ushtrime (75\%) & U1--U6 & $6 \times 10 = 60$ \\
+     & U7 & 15 \\ \midrule
+    Gjithsej & 10 & 100 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Mbi 80: e keni zotëruar javën. Nën 50: përsëritni Orët 3 dhe 5 para Javës 2.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ushtrime për shtëpi}
+% ------------------------------------------------------------
+
+\begin{frame}[label=hH1]{Ushtrime për shtëpi 1--2}
+  \begin{Ushtrim}[(Shtëpi 1: simulim)]
+    Me \texttt{set.seed(1)}, gjeneroni 30 temperatura nga $N(15, 4^2)$ (sintetike).
+    Llogaritni $\bar x$, $s$ dhe përqindjen e vlerave mbi 20 °C.
+    Krahasojeni përqindjen me të vërtetën $P(X>20)$.
+  \end{Ushtrim}
+  \shkoTe{sH1}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 2: Advertising)]
+    Llogaritni shitjet mesatare për tregjet me buxhet TV mbi medianën dhe nën medianën.
+  \end{Ushtrim}
+  \shkoTe{sH2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=hH3]{Ushtrime për shtëpi 3--4}
+  \begin{Ushtrim}[(Shtëpi 3: funksion)]
+    Shkruani funksionin \texttt{cv(x)} që kthen koeficientin e variacionit $100\cdot s/\bar x$.
+    Llogaritni atë për \texttt{mpg} dhe \texttt{weight}. Cila variabël ndryshon më shumë në terma relativë?
+  \end{Ushtrim}
+  \shkoTe{sH3}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 4: grafik)]
+    Vizatoni histogramin e \texttt{weight} me një panel për çdo origjinë (\texttt{facet\_wrap}). Përshkruani dallimet me dy fjali.
+  \end{Ushtrim}
+  \shkoTe{sH4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=hH5]{Ushtrime për shtëpi 5--6}
+  \begin{Ushtrim}[(Shtëpi 5: pa ndihmën e PC)]
+    Jepen $A=\begin{pmatrix}2&0\\1&3\end{pmatrix}$ dhe $\mathbf b=\begin{pmatrix}1\\2\end{pmatrix}$.
+    Llogaritni $A\mathbf b$ dhe $A\circ A$ (element pas elementi). Kontrolloni në R.
+  \end{Ushtrim}
+  \shkoTe{sH5}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 6: njësitë)]
+    Shndërroni \texttt{weight} nga paund në kilogramë ($1$ lb $=0.4536$ kg).
+    Llogaritni peshën mesatare në kg sipas origjinës.
+  \end{Ushtrim}
+  \shkoTe{sH6}{Zgjidhja}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gabimet e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet e zakonshme: importimi dhe skedarët}
+  \begin{Gabim}[--- importimi]
+    \begin{itemize}
+      \item Harrohet \texttt{na.strings = "?"} $\Rightarrow$ kolona numerike lexohet si tekst.
+      \item Shtegu me \texttt{\textbackslash} në Windows $\Rightarrow$ gabim; përdor \texttt{/} ose \texttt{file.path()}.
+      \item \texttt{setwd()} me shteg absolut $\Rightarrow$ skripti s'punon në kompjuter tjetër.
+      \item \texttt{na.omit()} pa kontrolluar sa rreshta hiqen.
+    \end{itemize}
+  \end{Gabim}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: objektet dhe tipat}
+  \begin{Gabim}[--- objektet]
+    \begin{itemize}
+      \item \texttt{=} në vend të \texttt{==} në një krahasim.
+      \item \texttt{Total\_mpg} $\neq$ \texttt{total\_mpg}: R dallon shkronjat.
+      \item \texttt{as.numeric()} mbi faktor jep kodet, jo vlerat.
+      \item Emra funksionesh si emra objektesh: \texttt{mean <- 5}.
+    \end{itemize}
+  \end{Gabim}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: indeksimi dhe llogaritjet}
+  \begin{Gabim}[--- indeksimi]
+    \begin{itemize}
+      \item \texttt{x[-1:2]} në vend të \texttt{x[-(1:2)]}.
+      \item \texttt{x == NA} në vend të \texttt{is.na(x)}.
+      \item Paralajmërimi i riciklimit injorohet.
+      \item \texttt{*} në vend të \texttt{\%*\%} për prodhimin matricor.
+      \item $\overline{g(x)}$ ngatërrohet me $g(\bar x)$ për funksione jolineare.
+    \end{itemize}
+  \end{Gabim}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: grafikët dhe interpretimi}
+  \begin{Gabim}[--- grafikët]
+    \begin{itemize}
+      \item \texttt{attach()} $\Rightarrow$ kopje të fshehura dhe përplasje emrash.
+      \item Ngjyrë fikse brenda \texttt{aes()}.
+      \item \texttt{geom\_line()} mbi shumë vlera për çdo $x$.
+      \item Përfundime nga grupe me 3--4 vrojtime.
+      \item Korrelacioni lexohet si shkakësi.
+    \end{itemize}
+  \end{Gabim}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit para dorëzimit}
+  \begin{enumerate}
+    \item<1-> Skripti nis me \texttt{library()} dhe \texttt{set.seed()}.
+    \item<2-> Shtigjet janë relative; projekti ka skedar \texttt{.Rproj}.
+    \item<3-> Pas importimit: \texttt{str()} dhe \texttt{colSums(is.na())}.
+    \item<4-> Variablat cilësore janë faktorë me etiketa.
+    \item<5-> Skripti ekzekutohet nga e para pas \emph{Restart R}.
+    \item<6-> Çdo grafik ka etiketa të qarta; çdo përfundim ka edhe kufizimet.
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fletë-kujtesa}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë-kujtesa 1: mjedisi dhe objektet}
+  \footnotesize
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni R \\ \midrule
+    Instalo / ngarko paketën & \Rkey{install.packages("pkg")} / \Rkey{library(pkg)} \\
+    Ndihma & \Rkey{?mean}, \Rkey{help()}, \Rkey{example()} \\
+    Direktoria e punës & \Rkey{getwd()}, \Rkey{file.path()}, \Rkey{file.exists()} \\
+    Objektet në kujtesë & \Rkey{ls()}, \Rkey{rm()}, \Rkey{exists()} \\
+    Tipi i objektit & \Rkey{class()}, \Rkey{is.na()}, \Rkey{str()} \\
+    Faktori & \Rkey{factor(x, levels, labels)}, \Rkey{table()} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 2: vektorët dhe matricat}
+  \footnotesize
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni R \\ \midrule
+    Krijimi i vektorit & \Rkey{c()}, \Rkey{seq()}, \Rkey{rep()}, \texttt{a:b} \\
+    Indeksimi & \texttt{x[2]}, \texttt{x[-2]}, \texttt{x[x > 4]}, \Rkey{which()} \\
+    Përmbledhje & \Rkey{sum()}, \Rkey{cumsum()}, \Rkey{max()}, \Rkey{min()}, \Rkey{length()} \\
+    Matrica & \Rkey{matrix(v, nrow, byrow)}, \texttt{m[i, j]}, \Rkey{dim()} \\
+    Algjebra & \Rkey{t()}, \texttt{\%*\%}, \Rkey{cbind()}, \Rkey{rbind()} \\
+    Sipas rreshtave/kolonave & \Rkey{colMeans()}, \Rkey{rowSums()}, \Rkey{apply()} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 3: statistika dhe shpërndarjet}
+  \footnotesize
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni R \\ \midrule
+    Qendra dhe shpërndarja & \Rkey{mean()}, \Rkey{median()}, \Rkey{var()}, \Rkey{sd()}, \Rkey{summary()} \\
+    Vlerat që mungojnë & \Rkey{na.rm = TRUE}, \Rkey{na.omit()}, \Rkey{colSums(is.na())} \\
+    Riprodhueshmëria & \Rkey{set.seed()} \\
+    Uniforme & \Rkey{runif()}, \Rkey{punif()}, \Rkey{qunif()}, \Rkey{dunif()} \\
+    Normale & \Rkey{rnorm()}, \Rkey{pnorm()}, \Rkey{qnorm()}, \Rkey{dnorm()} \\
+    Funksion i vetë & \texttt{f <- function(x) \{ \dots \}}, \Rkey{sapply()} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 4: të dhënat dhe grafikët}
+  \footnotesize
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni R \\ \midrule
+    Importimi & \Rkey{read.csv(file, na.strings = "?")} \\
+    Pamja e parë & \Rkey{head()}, \Rkey{dim()}, \Rkey{names()}, \Rkey{str()} \\
+    Kolonat dhe rreshtat & \texttt{df\$x}, \Rkey{with()}, \Rkey{subset()} \\
+    Grupet & \Rkey{tapply()}, \Rkey{aggregate()}, \Rkey{prop.table()} \\
+    R bazë & \Rkey{plot()}, \Rkey{hist()}, \Rkey{boxplot(y \textasciitilde{} g)}, \Rkey{pairs()} \\
+    ggplot2 & \Rkey{ggplot(df, aes())} + \Rkey{geom\_point()}, \Rkey{geom\_histogram()}, \Rkey{geom\_boxplot()} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pamje e Javës 2}
+% ------------------------------------------------------------
+
+\begin{frame}{Java 2: statistikat përmbledhëse dhe EDA \LO{K1} \LO{S4}}
+  \begin{itemize}
+    \item<1-> Masat e tendencës qendrore: mesatarja, mediana, moda, mesatarja e prerë.
+    \item<2-> Masat e shpërndarjes: varianca, IQR, MAD, koeficienti i variacionit.
+    \item<3-> Forma: anshmëria (\emph{skewness}) dhe kurtoza.
+    \item<4-> Analiza eksploruese (EDA) e plotë, me vlerat e skajshme dhe të dhënat që mungojnë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Java 2: si lidhet me sot}
+  \begin{itemize}
+    \item<1-> Pamë që mesatarja e \texttt{mpg} është më e madhe se mediana: Java 2 e mat këtë me anshmërinë.
+    \item<2-> Pamë boxplot-in: Java 2 e ndërton nga zero, me $IQR$ dhe rregullin $1.5\cdot IQR$.
+    \item<3-> Pamë $\overline{g(x)}\neq g(\bar x)$: Java 2 shpjegon shndërrimet logaritmike.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Para Javës 2}
+  \begin{enumerate}
+    \item Zgjidhni 6 ushtrimet për shtëpi.
+    \item Krijoni projektin RStudio \texttt{StatAplikuar} me dosjet \texttt{data/} dhe \texttt{scripts/}.
+    \item Instaloni paketat: \texttt{ggplot2}, \texttt{dplyr}, \texttt{ISLR2}, \texttt{MASS}.
+    \item Lexoni ISLR, kapitulli 2 (\emph{Statistical Learning}), seksioni i laboratorit R.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Burime}
+  \footnotesize
+  \begin{itemize}
+    \item E.~Raço, E.~Llagami, K.~Haxhi, O.~Zaçaj, \emph{Teoria e Probabilitetit dhe Statistika Matematike me ilustrime në gjuhën R}, Kotti, 2021.
+    \item G.~James, D.~Witten, T.~Hastie, R.~Tibshirani, \emph{An Introduction to Statistical Learning}, Springer; \url{https://www.statlearning.com}.
+    \item N.~Lo, \emph{DS612 Data Mining with Business Applications (R)}, \url{https://github.com/NormanLo4319/DS612_Data_Mining_with_Business_Applications_R} (licencë MIT). Kodi i Orëve 3--5 bazohet te \texttt{DS612\_R-Code\_Lecture\_1.R}, i rishkruar.
+    \item Të dhënat: \texttt{Auto.csv}, \texttt{Advertising.csv} (ISLR, nëpërmjet repo-s DS612). Të dhënat sintetike janë shënuar në çdo slide.
+    \item H.~Wickham, \emph{ggplot2: Elegant Graphics for Data Analysis}, Springer.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp7]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 7}
+  \begin{enumerate}
+    \item Cilat janë tri komandat e para pas importimit të çdo tabele?
+    \item Kur përdoret boxplot dhe kur grafiku i shpërndarjes?
+    \item Pse të dhënat sintetike janë të dobishme për të mësuar statistikë?
+  \end{enumerate}
+  \shkoTe{zgjCp7}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje e Javës 1}
+  \begin{itemize}
+    \item Ora 1--2: statistika e aplikuar, R dhe RStudio, objektet dhe tipat.
+    \item Ora 3: vektorët, indeksimi, matricat.
+    \item Ora 4: rastësia, $U(a,b)$, $N(\mu,\sigma^2)$, vlerësimi kundrejt së vërtetës.
+    \item Ora 5--6: importimi, përmbledhja, grafikët; rasti \texttt{Auto} dhe \texttt{Advertising}.
+    \item Ora 7: kuizi, gabimet e zakonshme, fletë-kujtesa.
+  \end{itemize}
+  \begin{Keshille}Shihemi në Javën 2. Sillni laptopin me paketat e instaluara.\end{Keshille}
+\end{frame}

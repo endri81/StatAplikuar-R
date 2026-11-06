@@ -102,6 +102,7 @@ c(a == b, a == d)
     \onslide<2->{&= \frac{1}{b-a}\left[\frac{x^2}{2}\right]_a^b = \frac{b^2-a^2}{2(b-a)}} \\
     \onslide<3->{&= \frac{(b-a)(b+a)}{2(b-a)} = \frac{a+b}{2}}
   \end{align*}
+  \vspace{-6pt}
   \onslide<4->{
   \begin{Teoreme}[(Momentet e uniformes)]
     $E(X)=\frac{a+b}{2}$, \quad $\operatorname{Var}(X)=\frac{(b-a)^2}{12}$. \quad Për $U(0,1)$: $0.5$ dhe $1/12\approx 0.0833$.
