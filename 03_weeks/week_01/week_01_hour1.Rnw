@@ -1,0 +1,550 @@
+% ============================================================
+%  Java 1 · Ora 1 — Motivimi dhe hyrja në kurs
+%  Rezultatet: S4 (kryesor), S1, K1 (paraprak)
+% ============================================================
+
+\section{Motivimi dhe hyrja}
+
+\begin{frame}{Ora 1: Motivimi dhe hyrja në kurs}
+  \tableofcontents[currentsection,hideothersubsections]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mirë se vini}
+% ------------------------------------------------------------
+
+\begin{frame}{Mirë se vini në Statistikën e Aplikuar! \LO{S4}}
+  \begin{itemize}
+    \item<1-> 12 javë, një workshop 7-orësh çdo javë.
+    \item<2-> Çdo ditë: teori $\rightarrow$ kod R $\rightarrow$ të dhëna reale.
+    \item<3-> Ju punoni gjatë gjithë kohës: ushtrime çdo 5--8 slide.
+    \item<4-> Qëllimi: të ndërtoni, vlerësoni dhe interpretoni modele statistikore.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Mbani RStudio të hapur gjatë gjithë ditës.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Çfarë është statistika e aplikuar?}
+  \begin{Definicion}[(Statistika e aplikuar)]
+    Përdorimi i metodave të statistikës matematike për t'iu përgjigjur
+    pyetjeve reale me të dhëna reale.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Statistika matematike: \emph{pse} funksionon një metodë.
+    \pause
+    \item Statistika e aplikuar: \emph{kur} dhe \emph{si} ta përdorim.
+    \pause
+    \item Pse? Sepse e njëjta metodë mund të japë përfundime të gabuara nëse përdoret keq.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Cikli i një analize statistikore}
+  \centering
+  \begin{tikzpicture}[>=Stealth,node distance=0.55cm and 0.9cm,
+      st/.style={rectangle,rounded corners=3pt,draw=uptblue,fill=uptlight,thick,
+                 minimum width=2.3cm,minimum height=8mm,font=\footnotesize\bfseries,text=uptblue}]
+    \node[st] (q) {1. Pyetja};
+    \node[st,right=of q] (d) {2. Të dhënat};
+    \node[st,right=of d] (e) {3. Eksplorimi};
+    \node[st,below=1.2cm of e] (m) {4. Modeli};
+    \node[st,left=of m] (v) {5. Vlerësimi};
+    \node[st,left=of v] (c) {6. Vendimi};
+    \draw[->,uptmid,thick] (q)--(d);
+    \draw[->,uptmid,thick] (d)--(e);
+    \draw[->,uptmid,thick] (e)--(m);
+    \draw[->,uptmid,thick] (m)--(v);
+    \draw[->,uptmid,thick] (v)--(c);
+    \draw[->,accent,thick,dashed] (c)--node[left,font=\scriptsize,text=accent]{pyetje e re}(q);
+  \end{tikzpicture}
+  \vspace{4pt}
+  \begin{itemize}
+    \item Ky kurs mbulon çdo hap. R është mjeti për hapat 2--5.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pse R?}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      \begin{itemize}
+        \item<1-> Falas dhe me burim të hapur.
+        \item<2-> Mijëra paketa në \termi{CRAN}{Comprehensive R Archive Network}.
+        \item<3-> Grafika me cilësi botimi.
+      \end{itemize}
+    \column{0.5\textwidth}
+      \begin{itemize}
+        \item<4-> \termi{Riprodhueshmëri}{reproducibility}: kodi = receta e analizës.
+        \item<5-> Përdoret nga zyrat statistikore, universitetet dhe industria.
+      \end{itemize}
+  \end{columns}
+  \onslide<6->{\begin{Shembull}Këto slide janë prodhuar me R + knitr: çdo numër në to është llogaritur nga kodi.\end{Shembull}}
+\end{frame}
+
+\begin{frame}{Ku përdoret statistika e aplikuar?}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      \begin{block}{Statistika zyrtare}
+        INSTAT: anketat e familjeve, censi, tregu i punës.
+      \end{block}
+      \begin{block}{Inxhinieri}
+        Kontrolli i cilësisë, besueshmëria e materialeve.
+      \end{block}
+    \column{0.5\textwidth}
+      \begin{block}{Mjedisi}
+        Ndotja e tokës dhe e ujit, hartat e rrezikut (Java 12).
+      \end{block}
+      \begin{block}{Biznesi}
+        Shitjet, reklama, rreziku i kredisë (Javët 5--9).
+      \end{block}
+  \end{columns}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi motivues}
+% ------------------------------------------------------------
+
+\begin{frame}{Problemi motivues: konsumi i karburantit \LO{K1}}
+  \begin{itemize}
+    \item<1-> Pyetja: \textbf{cila makinë harxhon më pak karburant?}
+    \item<2-> Të dhënat \texttt{Auto}: 392 makina, modelet 1970--1982.
+    \item<3-> Variabli kryesor: \texttt{mpg} = milje për gallon (sa më i madh, aq më ekonomike).
+    \item<4-> Shpjeguesit: \texttt{horsepower}, \texttt{weight}, \texttt{cylinders}, \texttt{origin}, \dots
+  \end{itemize}
+  \onslide<5->{\footnotesize\textcolor{gray}{Të dhëna: reale (burimi: James et al., \emph{ISLR}; skedari \texttt{Auto.csv} nga repo-ja DS612).}}
+\end{frame}
+
+\begin{frame}[label=pyetjeMot1]{Parashiko!}
+  \begin{Parashiko}
+    Si ndryshon \texttt{mpg} kur rritet fuqia e motorit (\texttt{horsepower})?\\[3pt]
+    \textbf{A)} Rritet \quad \textbf{B)} Zvogëlohet \quad \textbf{C)} Nuk ndryshon
+  \end{Parashiko}
+  \pause
+  \begin{itemize}
+    \item Votoni me dorë. Pastaj e shohim me të dhënat.
+  \end{itemize}
+  \shkoTe{zgjMot1}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kodi R: leximi i të dhënave}
+<<auto-read>>=
+auto <- read.csv(file.path(W01DATA, "Auto.csv"),
+                 na.strings = "?")    # "?" marks missing values
+dim(auto)                             # rows, columns
+auto <- na.omit(auto)                 # drop rows with NA
+dim(auto)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Skedari ka \Sexpr{nrow(read.csv(file.path(W01DATA, "Auto.csv"), na.strings = "?"))} rreshta dhe \Sexpr{ncol(auto)} kolona.
+    \item<2-> Pas heqjes së vlerave që mungojnë mbeten \Sexpr{nrow(auto)} makina.
+    \item<3-> Pse? Në skedar, 5 vlera të \texttt{horsepower} janë shënuar me ``?''.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Pa \texttt{na.strings = "?"}, R e lexon \texttt{horsepower} si tekst, jo si numër.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile]{Kodi R: grafiku i parë}
+<<auto-plot-code, eval=FALSE>>=
+library(ggplot2)
+ggplot(auto, aes(x = horsepower, y = mpg)) +
+  geom_point(colour = "#2C5AA0", alpha = 0.6) +
+  labs(x = "Horsepower", y = "Miles per gallon (mpg)") +
+  theme_minimal()
+@
+  \begin{itemize}
+    \item Një rresht = një shtresë e grafikut. Gramatikën e ggplot2 e mësojmë në Orën 5.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: mpg kundrejt horsepower}
+<<auto-plot, echo=FALSE, fig.height=3.3>>=
+library(ggplot2)
+ggplot(auto, aes(x = horsepower, y = mpg)) +
+  geom_point(colour = "#2C5AA0", alpha = 0.6) +
+  labs(x = "Horsepower", y = "Miles per gallon (mpg)") +
+  theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon grafiku?}
+  \begin{itemize}
+    \item<1-> Lidhja është \textbf{negative}: më shumë fuqi $\Rightarrow$ më pak mpg.
+    \item<2-> Lidhja nuk është vijë e drejtë: duket \textbf{e lakuar}.
+    \item<3-> Shpërndarja e pikave është më e gjerë për fuqi të vogël.
+    \item<4-> Koeficienti i korrelacionit: $r = \Sexpr{fmt(cor(auto$horsepower, auto$mpg), 3)}$ (Java 3).
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Shiko gjithmonë grafikun para se të llogaritësh ndonjë numër.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Një dataset, shumë pyetje}
+  \centering
+  \begin{tikzpicture}[>=Stealth,
+      ds/.style={circle,draw=uptblue,fill=uptlight,thick,minimum size=1.7cm,font=\footnotesize\bfseries,text=uptblue},
+      qq/.style={rectangle,rounded corners=2pt,draw=uptmid,fill=white,minimum width=3.6cm,minimum height=7mm,font=\scriptsize,align=center}]
+    \node[ds] (a) {Auto};
+    \node[qq] (q1) at (-4.2, 1.3) {Sa e fortë është lidhja?\\\textcolor{accent}{Java 3: korrelacioni}};
+    \node[qq] (q2) at ( 4.2, 1.3) {A ndryshon sipas origjinës?\\\textcolor{accent}{Java 4: ANOVA}};
+    \node[qq] (q3) at (-4.2,-1.3) {Si e parashikojmë mpg?\\\textcolor{accent}{Javët 5--7: regresioni}};
+    \node[qq] (q4) at ( 4.2,-1.3) {Po nëse lidhja është e lakuar?\\\textcolor{accent}{Java 8: jolinear}};
+    \foreach \q in {q1,q2,q3,q4} \draw[->,uptmid,thick] (a)--(\q);
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Korrelacioni nuk është shkakësi}
+  \begin{Gabim}
+    ``Fuqia e lartë \emph{shkakton} konsum të lartë'' nuk del nga ky grafik.
+  \end{Gabim}
+  \pause
+  \begin{itemize}
+    \item Makinat e fuqishme janë zakonisht edhe \textbf{më të rënda}.
+    \pause
+    \item Pesha mund të jetë shkaku i vërtetë, ose të dyja bashkë.
+    \pause
+    \item Pse ka rëndësi? Një vendim (p.sh.\ një taksë mbi fuqinë) mund të mos japë efektin e pritur.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mendo -- Diskuto -- Ndaj}
+  \begin{Ushtrim}[(think--pair--share, 4 minuta)]
+    \begin{enumerate}
+      \item \textbf{Mendo} (1 min): ku keni parë të dhëna në punë ose në studime?
+      \item \textbf{Diskuto} (2 min): me shokun pranë, zgjidhni \emph{një} pyetje që do t'u përgjigjeshit me ato të dhëna.
+      \item \textbf{Ndaj} (1 min): dy çifte e prezantojnë pyetjen para klasës.
+    \end{enumerate}
+  \end{Ushtrim}
+  \begin{itemize}
+    \item Pyetjet tuaja mund të bëhen tema e detyrës së kursit.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Harta e kursit}
+% ------------------------------------------------------------
+
+\begin{frame}{Harta e kursit: 4 blloqe}
+  \centering
+  \begin{tikzpicture}[>=Stealth,
+      bl/.style={rectangle,rounded corners=3pt,draw=uptblue,thick,minimum width=2.8cm,minimum height=1.6cm,align=center,font=\scriptsize}]
+    \node[bl,fill=uptlight] (b1) at (0,0) {\textbf{R dhe EDA}\\Javët 1--2\\\LO{S4} \LO{K1}};
+    \node[bl,fill=uptlight] (b2) at (3.4,0) {\textbf{Lidhjet}\\Javët 3--4\\korrelacioni, ANOVA};
+    \node[bl,fill=orange!10] (b3) at (6.8,0) {\textbf{Modelet}\\Javët 5--9\\regresioni, klasifikimi};
+    \node[bl,fill=green!8] (b4) at (10.2,0) {\textbf{Hapësinore}\\Javët 10--12\\sf, terra, gstat};
+    \draw[->,uptmid,thick] (b1)--(b2);
+    \draw[->,uptmid,thick] (b2)--(b3);
+    \draw[->,uptmid,thick] (b3)--(b4);
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Çdo bllok mbështetet te i mëparshmi. Pse? Regresioni kërkon korrelacionin; kriging-u kërkon regresionin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Javët 1--6}
+  \footnotesize
+  \begin{tabular}{@{}clc@{}}
+    \toprule
+    Java & Tema & Rezultatet \\ \midrule
+    1 & Hyrje në R dhe RStudio; vizualizimi bazë & S4 \\
+    2 & Statistikat përmbledhëse dhe analiza eksploruese (EDA) & K1, S4 \\
+    3 & Korrelacioni: Pearson, Spearman, Kendall & K1 \\
+    4 & ANOVA njëfaktoriale dhe shumëfaktoriale, Tukey & K1, S3 \\
+    5 & Regresi i thjeshtë linear & K2, S2 \\
+    6 & Regresi i shumëfishtë, përzgjedhja, cross-validation & K2, S2, S3 \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Javët 7--12}
+  \footnotesize
+  \begin{tabular}{@{}clc@{}}
+    \toprule
+    Java & Tema & Rezultatet \\ \midrule
+    7 & Kontrolli i hipotezave dhe diagnostikimi i modelit & S3, C1 \\
+    8 & Regresi jolinear dhe regresi i fortë (robust) & K2, S2 \\
+    9 & Regresi logjistik dhe klasifikimi & K2, S3, C1 \\
+    10 & Sistemet koordinative, projeksionet, datumet & K3 \\
+    11 & Të dhënat raster dhe vektoriale, shapefile & K3, S4 \\
+    12 & Interpolimi hapësinor, DTM, Kriging + projekti final & K3, C1 \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Struktura e një dite workshop-i}
+  \centering
+  \begin{tikzpicture}[x=1.55cm,
+      hr/.style={rectangle,draw=white,thick,minimum width=1.55cm,minimum height=1.1cm,align=center,font=\scriptsize\bfseries,text=white}]
+    \node[hr,fill=uptblue] at (0,0) {Ora 1\\Motivimi};
+    \node[hr,fill=uptmid]  at (1,0) {Ora 2\\Teori I};
+    \node[hr,fill=okgreen] at (2,0) {Ora 3\\Lab I};
+    \node[hr,fill=uptmid]  at (3,0) {Ora 4\\Teori II};
+    \node[hr,fill=okgreen] at (4,0) {Ora 5\\Lab II};
+    \node[hr,fill=accent]  at (5,0) {Ora 6\\Rast studimi};
+    \node[hr,fill=uptblue] at (6,0) {Ora 7\\Konsolidim};
+  \end{tikzpicture}
+  \vspace{8pt}
+  \begin{itemize}
+    \item Blu: teori. Jeshile: laborator R. Portokalli: rast studimi.
+    \item Çdo orë mbyllet me një \textbf{Checkpoint} (3 pyetje) dhe një përmbledhje.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Si t'i lexoni slide-et}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      \begin{Definicion}Përkufizim i ri.\end{Definicion}
+      \begin{Ushtrim}Punë individuale ose në çift.\end{Ushtrim}
+      \begin{Parashiko}Mendo para se të ekzekutosh kodin.\end{Parashiko}
+    \column{0.5\textwidth}
+      \begin{Gabim}Gabim që e bëjnë shumë studentë.\end{Gabim}
+      \begin{itemize}
+        \item \Zgj{} në titull: material shtesë.
+        \item \Plotesues jashtë repo-s ISLR.
+        \item \LO{K2} = rezultati i të nxënit.
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rezultatet e të nxënit}
+% ------------------------------------------------------------
+
+\begin{frame}{Rezultatet e të nxënit: njohuri}
+  Në fund të kursit, studenti njeh:
+  \begin{itemize}
+    \item<1-> \LO{K1} korrelacionin midis variablave dhe metodat e analizës statistikore;
+    \item<2-> \LO{K2} regresionin e thjeshtë dhe të shumëfishtë linear, regresionin logjistik;
+    \item<3-> \LO{K3} metodat e analizës hapësinore, të interpolimit dhe të modelimit të të dhënave.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Rezultatet e të nxënit: aftësi dhe kompetenca}
+  Studenti është në gjendje:
+  \begin{itemize}
+    \item<1-> \LO{S1} të formalizojë dukuri me modele matematike dhe probabilitare;
+    \item<2-> \LO{S2} të ndërtojë modele parashikuese nga të dhënat;
+    \item<3-> \LO{S3} të vlerësojë modelet e gjeneruara nga të dhënat;
+    \item<4-> \LO{S4} të përdorë R për analiza statistikore;
+    \item<5-> \LO{C1} të identifikojë dhe ndërtojë modelet e duhura statistikore dhe të vlerësojë efiçencën e tyre.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeLO1]{Pyetje me zgjedhje}
+  \begin{Ushtrim}
+    Në Javën 12 do të ndërtoni në R një hartë kriging të ndotjes me zink.
+    Cilat rezultate i shërben kjo detyrë?\\[3pt]
+    \textbf{A)} K1 dhe S1 \quad \textbf{B)} K3 dhe S4 \quad \textbf{C)} K2 dhe S2
+  \end{Ushtrim}
+  \shkoTe{zgjLO1}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Vlerësimi dhe literatura}
+% ------------------------------------------------------------
+
+\begin{frame}{Si vlerësoheni?}
+  \begin{itemize}
+    \item<1-> \textbf{Provimi përfundimtar}: me shkrim, 3 orë, \textbf{85\%} e notës.
+    \begin{itemize}
+      \item 25\% pyetje teorike (konceptet bazë);
+      \item 75\% ushtrime (temat e seminareve dhe shembujt e detyrës).
+    \end{itemize}
+    \item<2-> \textbf{Detyra e kursit}: \textbf{15\%} e notës.
+    \item<3-> \textbf{Kushti për provim}: frekuentim i seminareve $\ge 75\%$ dhe rezultate pozitive në kontrollet gjatë semestrit.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}75\% e provimit janë ushtrime: praktika në R çdo javë është mënyra më e sigurt për ta kaluar.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Shembull: llogaritja e notës}
+  \[
+    N = 0.85\,P + 0.15\,D
+  \]
+  \pause
+  \begin{itemize}
+    \item $P$ = pikët e provimit (0--100); $D$ = pikët e detyrës (0--100).
+    \pause
+    \item Shembull: $P = 80$, $D = 90$.
+    \pause
+  \end{itemize}
+  \[
+    N = 0.85\cdot 80 + 0.15\cdot 90 = 68 + 13.5 = 81.5
+  \]
+\end{frame}
+
+\begin{frame}[label=ush1]{Radha jote!}
+  \begin{Ushtrim}[(pa ndihmën e PC)]
+    \begin{enumerate}
+      \item Studentja ka $P = 70$ dhe $D = 100$. Sa është nota $N$?
+      \item Studenti ka $D = 80$. Sa pikë i duhen në provim për $N = 60$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjUsh1}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Ngarkesa e punës}
+  \begin{tabular}{@{}lrrr@{}}
+    \toprule
+     & Leksion & Seminar & Gjithsej \\ \midrule
+    Kreditet (ECTS) & 4.5 & 3 & 7.5 \\
+    Orë në auditor & 48 & 30 & 78 \\
+    Orë jashtë auditorit & 57 & 42.5 & 99.5 \\
+    Orë gjithsej & 105 & 72.5 & 177.5 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Rreth $99.5 / 12 \approx 8.3$ orë punë individuale në javë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Literatura e detyrueshme}
+  \begin{itemize}
+    \item<1-> E.~Raço, E.~Llagami, K.~Haxhi, O.~Zaçaj, \emph{Teoria e Probabilitetit dhe Statistika Matematike me ilustrime në gjuhën R}, Kotti, 2021 (+ vëllimi i Ushtrimeve).
+    \item<2-> J.~Cohen, P.~Cohen, S.~G.~West, L.~S.~Aiken, \emph{Applied Multiple Regression/Correlation Analysis for the Behavioral Sciences}, LEA, 2003.
+    \item<3-> K.~Chang, \emph{Introduction to Geographic Information Systems}, McGraw-Hill, 2012.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Literatura e rekomanduar dhe kodi}
+  \begin{itemize}
+    \item<1-> G.~James, D.~Witten, T.~Hastie, R.~Tibshirani, \emph{An Introduction to Statistical Learning} (ISLR), Springer. PDF falas: \url{https://www.statlearning.com}.
+    \item<2-> Kodi bazë i laboratorëve: repo-ja \texttt{NormanLo4319/DS612\_Data\_Mining\_with\_Business\_Applications\_R} (licencë MIT), e bazuar në ISLR.
+    \item<3-> Temat që nuk janë në repo (ANOVA, robust, hapësinore) shënohen \Plotesues.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rifreskim i parakushteve}
+% ------------------------------------------------------------
+
+\begin{frame}{Parakushtet: çfarë duhet të dini}
+  \begin{itemize}
+    \item Analizë matematike: derivati, minimumi i një funksioni.
+    \item Algjebër lineare: vektorët, matricat, prodhimi i matricave.
+    \item Teori probabiliteti: ndryshorja e rastit, pritja, varianca.
+    \item Bazat e programimit: ndryshoret, ciklet, funksionet.
+  \end{itemize}
+  \begin{Keshille}Në 10 minutat në vijim rifreskojmë vetëm atë që na duhet sot.\end{Keshille}
+\end{frame}
+
+\begin{frame}{Matrica e të dhënave \LO{S1}}
+  \begin{columns}[c]
+    \column{0.52\textwidth}
+      \centering
+      \begin{tikzpicture}[cell/.style={draw=uptmid,minimum width=0.9cm,minimum height=0.5cm,font=\scriptsize}]
+        \foreach \j/\nm in {1/mpg,2/hp,3/weight} \node[font=\scriptsize\bfseries,text=uptblue] at (\j*0.9,0.55) {\nm};
+        \foreach \i in {1,2,3} \foreach \j in {1,2,3} \node[cell,fill=uptlight] at (\j*0.9,-\i*0.5+0.25) {$x_{\i\j}$};
+        \node[font=\scriptsize] at (1.8,-1.75) {$\vdots$};
+        \node[cell,fill=uptlight] at (0.9,-2.35) {$x_{n1}$};
+        \node[cell,fill=uptlight] at (1.8,-2.35) {$x_{n2}$};
+        \node[cell,fill=uptlight] at (2.7,-2.35) {$x_{n3}$};
+        \draw[->,accent,thick] (-0.3,-0.25)--(0.35,-0.25) node[pos=0,left,font=\scriptsize,text=accent]{vrojtimi 1};
+      \end{tikzpicture}
+    \column{0.46\textwidth}
+      \begin{itemize}
+        \item Rreshti $i$: një \termi{vrojtim}{observation}, p.sh.\ një makinë.
+        \item Kolona $j$: një \termi{variabël}{variable}.
+        \item $\mathbf{X}$ ka përmasë $n\times p$. Për Auto: $n = 392$.
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Ndryshorja e rastit: pritja dhe varianca}
+  \begin{Definicion}[(Pritja dhe varianca)]
+    Për ndryshoren e rastit $X$:
+    \[ \mu = E(X), \qquad \sigma^2 = \operatorname{Var}(X) = E\big[(X-\mu)^2\big] \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item $\mu$: qendra e shpërndarjes.
+    \pause
+    \item $\sigma^2$: sa larg qendrës bien vlerat, mesatarisht në katror.
+    \pause
+    \item $\mu$ dhe $\sigma^2$ janë \textbf{parametra}: zakonisht nuk i njohim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Nga popullata te mostra}
+  Kemi mostrën $x_1, x_2, \dots, x_n$.
+  \pause
+  \begin{align*}
+    \bar x &= \frac{1}{n}\sum_{i=1}^{n} x_i && \text{vlerëson } \mu \\
+    \onslide<3->{s^2 &= \frac{1}{n-1}\sum_{i=1}^{n} (x_i-\bar x)^2 && \text{vlerëson } \sigma^2} \\
+    \onslide<4->{s &= \sqrt{s^2} && \text{në njësitë e të dhënave}}
+  \end{align*}
+  \onslide<5->{\begin{Keshille}Pse $n-1$? Sepse $\sum (x_i-\bar x) = 0$: vetëm $n-1$ devijime janë të lira.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  Të dhënat: $x = (2,\ 4,\ 4,\ 5,\ 10)$, $n = 5$.
+  \pause
+  \begin{enumerate}
+    \item $\bar x = (2+4+4+5+10)/5 = 25/5 = 5$.
+    \pause
+    \item Devijimet $x_i-\bar x$: $-3,\ -1,\ -1,\ 0,\ 5$ \quad (shuma $=0$ \checkmark).
+    \pause
+    \item Katrorët: $9,\ 1,\ 1,\ 0,\ 25$; shuma $= 36$.
+    \pause
+    \item $s^2 = 36/(5-1) = 9$, \quad $s = 3$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<toy-check>>=
+x <- c(2, 4, 4, 5, 10)
+mean(x)    # sample mean
+var(x)     # sample variance, divides by n - 1
+sd(x)      # standard deviation
+@
+  \begin{itemize}
+    \item Të tre vlerat përputhen me llogaritjen pa ndihmën e PC.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: $n$ apo $n-1$?}
+<<toy-n>>=
+sum((x - mean(x))^2) / length(x)         # divides by n
+sum((x - mean(x))^2) / (length(x) - 1)   # divides by n - 1 = var(x)
+@
+  \begin{Gabim}\texttt{var()} në R pjesëton me $n-1$. Formula me $n$ jep \Sexpr{sum((x - mean(x))^2) / length(x)}, jo 9.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=ush2]{Radha jote!}
+  \begin{Ushtrim}[(pa ndihmën e PC, 3 minuta)]
+    Për $y = (1,\ 3,\ 3,\ 7,\ 6)$ llogarit:
+    \begin{enumerate}
+      \item mesataren $\bar y$;
+      \item variancën e mostrës $s^2$;
+      \item devijimin standard $s$ (me 3 shifra pas presjes).
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjUsh2}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=pyetjeZhv1]{Parashiko!}
+  \begin{Parashiko}
+    I shtojmë 10 çdo vlere të $x = (2,4,4,5,10)$. Çfarë ndodh me $s$?\\[3pt]
+    \textbf{A)} Rritet me 10 \quad \textbf{B)} Mbetet 3 \quad \textbf{C)} Shumëzohet me 10
+  \end{Parashiko}
+  \shkoTe{zgjZhv1}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp1]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 1}
+  \begin{enumerate}
+    \item Cilat janë 6 hapat e ciklit të një analize statistikore?
+    \item Pse vendosëm \texttt{na.strings = "?"} kur lexuam \texttt{Auto.csv}?
+    \item Pse \texttt{var(c(2, 4, 4, 5, 10))} jep 9 dhe jo 7.2?
+  \end{enumerate}
+  \shkoTe{zgjCp1}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 1}
+  \begin{itemize}
+    \item Statistika e aplikuar: nga pyetja reale te vendimi, me të dhëna.
+    \item R: falas, riprodhueshëm, me grafikë të fortë.
+    \item Auto: më shumë fuqi, më pak mpg; lidhja është negative dhe e lakuar.
+    \item Korrelacioni nuk është shkakësi.
+    \item $\bar x$, $s^2$ (me $n-1$) dhe $s$; R i jep me \Rkey{mean()}, \Rkey{var()}, \Rkey{sd()}.
+  \end{itemize}
+  \begin{Keshille}Ora 2: mjedisi R dhe RStudio, objektet dhe tipat e të dhënave.\end{Keshille}
+\end{frame}

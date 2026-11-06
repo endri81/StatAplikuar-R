@@ -1,0 +1,70 @@
+% ============================================================
+%  Java 1 · Ora 1 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjMot1]{Zgjidhja: Parashiko! (mpg dhe fuqia)}
+  \textbf{B)} Zvogëlohet.
+  \begin{itemize}
+    \item Grafiku tregon një lidhje negative: $r = \Sexpr{fmt(cor(auto$horsepower, auto$mpg), 3)}$.
+    \item Motori më i fuqishëm djeg më shumë karburant për milje.
+    \item Kujdes: kjo është lidhje, jo provë shkakësie.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMot1}
+\end{frame}
+
+\begin{frame}[label=zgjLO1]{Zgjidhja: pyetje me zgjedhje}
+  \textbf{B)} K3 dhe S4.
+  \begin{itemize}
+    \item K3: kriging-u është metodë e interpolimit hapësinor.
+    \item S4: harta ndërtohet në R (\texttt{gstat}).
+    \item A) dhe C) i përkasin korrelacionit dhe regresionit.
+  \end{itemize}
+  \vfill\kthehu{pyetjeLO1}
+\end{frame}
+
+\begin{frame}[label=zgjUsh1]{Zgjidhja: Radha jote! (nota)}
+  \begin{enumerate}
+    \item $N = 0.85\cdot 70 + 0.15\cdot 100 = 59.5 + 15 = 74.5$.
+    \item $60 = 0.85\,P + 0.15\cdot 80 \Rightarrow 0.85\,P = 48 \Rightarrow P = 48/0.85 \approx 56.47$.
+  \end{enumerate}
+  \begin{itemize}
+    \item Me pikë të plota: duhen të paktën \textbf{57} pikë në provim.
+  \end{itemize}
+  \vfill\kthehu{ush1}
+\end{frame}
+
+\begin{frame}[label=zgjUsh2]{Zgjidhja: Radha jote! (varianca)}
+  $y = (1,3,3,7,6)$, $n = 5$:
+  \begin{enumerate}
+    \item $\bar y = 20/5 = 4$.
+    \item Devijimet: $-3,-1,-1,3,2$; katrorët: $9,1,1,9,4$; shuma $=24$.
+    \item $s^2 = 24/4 = 6$, \quad $s = \sqrt 6 \approx 2.449$.
+  \end{enumerate}
+  \vfill\kthehu{ush2}
+\end{frame}
+
+\begin{frame}[fragile]{Zgjidhja: kontrolli me R}
+<<sol-ush2>>=
+y <- c(1, 3, 3, 7, 6)
+c(mean = mean(y), var = var(y), sd = round(sd(y), 3))
+@
+  \vfill\kthehu{ush2}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjZhv1]{Zgjidhja: Parashiko! (zhvendosja)}
+  \textbf{B)} Mbetet 3. Zhvendosja lëviz qendrën, jo shpërndarjen:
+  \[ (x_i + 10) - (\bar x + 10) = x_i - \bar x \]
+<<sol-shift>>=
+c(sd(x), sd(x + 10))
+@
+  \vfill\kthehu{pyetjeZhv1}
+\end{frame}
+
+\begin{frame}[label=zgjCp1]{Përgjigjet: Checkpoint i Orës 1}
+  \begin{enumerate}
+    \item Pyetja, të dhënat, eksplorimi, modeli, vlerësimi, vendimi.
+    \item Në skedar vlerat që mungojnë janë shënuar me ``?''. Pa këtë argument, \texttt{horsepower} lexohet si tekst.
+    \item \texttt{var()} pjesëton me $n-1 = 4$: $36/4 = 9$. Me $n = 5$ do të dilte $36/5 = 7.2$.
+  \end{enumerate}
+  \vfill\kthehu{cp1}
+\end{frame}
