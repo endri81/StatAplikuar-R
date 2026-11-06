@@ -1,0 +1,82 @@
+% ============================================================
+%  Java 1 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjNA5]{Zgjidhja: Parashiko (\texttt{na.omit})}
+  \textbf{B)} 392.
+  \begin{itemize}
+    \item Çdo \texttt{NA} është në një rresht tjetër: hiqen 5 rreshta, $397-5=392$.
+    \item Nëse dy \texttt{NA} do të ishin në të njëjtin rresht, do të hiqeshin vetëm 4 rreshta.
+  \end{itemize}
+  \vfill\kthehu{pyetjeNA5}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjDF]{Zgjidhja: Radha jote! (tabela)}
+<<sol-df>>=
+a5 <- na.omit(read.csv(file.path(W01DATA, "Auto.csv"), na.strings = "?"))
+mean(a5$mpg[a5$origin == 3])      # 3 = Japanese
+sum(a5$weight > 3000)
+a5$name[which.max(a5$weight)]
+@
+  \begin{itemize}
+    \item Me faktorin e Orës 5: \texttt{auto\$origin == "Japanese"}.
+  \end{itemize}
+  \vfill\kthehu{ushDF}
+\end{frame}
+
+\begin{frame}[label=zgjBox]{Zgjidhja: Parashiko (\texttt{plot} dhe faktori)}
+  \begin{itemize}
+    \item Jo, nuk janë të njëjtë.
+    \item \texttt{origin} si numër $\Rightarrow$ grafik shpërndarjeje: tri kolona pikash te 1, 2 dhe 3.
+    \item \texttt{origin} si faktor $\Rightarrow$ \texttt{plot()} vizaton \textbf{boxplot} për çdo nivel.
+    \item Funksioni është i njëjti; tipi i variablës vendos grafikun.
+  \end{itemize}
+  \vfill\kthehu{pyetjeBox}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjGab5]{Zgjidhja: Gjej gabimin (\texttt{pairs})}
+<<sol-pairs, error=TRUE>>=
+a5 <- na.omit(read.csv(file.path(W01DATA, "Auto.csv"), na.strings = "?"))
+try(pairs(a5), silent = FALSE)
+num_cols <- sapply(a5, is.numeric)   # TRUE for numeric columns
+names(a5)[!num_cols]
+@
+  \begin{itemize}
+    \item Kolona \texttt{name} është tekst. Në versionet e vjetra të R-së, \texttt{read.csv()} e kthente në faktor, prandaj skripti punonte.
+    \item Rregullimi: \texttt{pairs(a5[, num\_cols])}.
+  \end{itemize}
+  \vfill\kthehu{gjejGab5}
+\end{frame}
+
+\begin{frame}[label=zgjBin]{Zgjidhja: Ndrysho parametrin (\texttt{binwidth})}
+  \begin{itemize}
+    \item \texttt{binwidth = 0.5}: shumë shtylla të holla, me boshllëqe; forma ``zhurmon''.
+    \item \texttt{binwidth = 10}: vetëm 4--5 shtylla; anshmëria djathtas fshihet.
+    \item Një vlerë e mesme (2--3 mpg) tregon formën më qartë.
+    \item Nuk ka vlerë ``të saktë'': provo disa dhe raporto atë që nuk e shtrembëron formën.
+  \end{itemize}
+  \vfill\kthehu{ushBin}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjGG]{Zgjidhja: Radha jote! (ggplot2)}
+<<sol-gg, fig.height=2.2, out.width="0.5\\textwidth">>=
+a5 <- na.omit(read.csv(file.path(W01DATA, "Auto.csv"), na.strings = "?"))
+ggplot(a5, aes(horsepower, mpg, colour = factor(cylinders))) +
+  geom_point(alpha = 0.6) +
+  labs(x = "Horsepower", y = "mpg", colour = "Cylinders") +
+  theme_minimal()
+@
+  \begin{itemize}
+    \item Si numër, \texttt{cylinders} do të jepte shkallë ngjyrash të vazhdueshme; si faktor jep 5 ngjyra të dallueshme.
+  \end{itemize}
+  \vfill\kthehu{ushGG}
+\end{frame}
+
+\begin{frame}[label=zgjCp5]{Përgjigjet: Checkpoint i Orës 5}
+  \begin{enumerate}
+    \item Qelizat ``?'' janë tekst; një vektor ka një tip, ndaj gjithë kolona u bë tekst.
+    \item Krijon kopje të fshehura: ndryshimet nuk ruhen në tabelë dhe emrat përplasen.
+    \item Boxplot sipas grupit: \texttt{boxplot(y \textasciitilde{} g)} ose \texttt{geom\_boxplot()}.
+  \end{enumerate}
+  \vfill\kthehu{cp5}
+\end{frame}

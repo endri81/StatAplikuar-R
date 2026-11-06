@@ -1,0 +1,464 @@
+% ============================================================
+%  Java 1 · Ora 5 — Laborator II: importimi dhe vizualizimi
+%  Rezultatet: S4, K1 (paraprak)
+%  Burimi i kodit: DS612_R-Code_Lecture_1.R (rreshtat 141-175), rishkruar
+% ============================================================
+
+\section{Laborator II}
+
+\begin{frame}{Ora 5: Laborator II --- importimi dhe vizualizimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Importimi}
+% ------------------------------------------------------------
+
+\begin{frame}{Tabela e të dhënave: \texttt{data.frame} \LO{S4}}
+  \begin{Definicion}[(Data frame)]
+    Tabelë ku çdo kolonë është një vektor (një variabël) dhe të gjitha kolonat kanë të njëjtën gjatësi.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Ndryshe nga matrica: kolonat mund të kenë \textbf{tipa të ndryshëm}.
+    \pause
+    \item \texttt{mpg} është numerike, \texttt{name} është tekst: të dyja në të njëjtën tabelë.
+    \pause
+    \item Pse ka rëndësi? Të dhënat reale janë gjithmonë të përziera.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Nga vijnë të dhënat?}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Formati & Funksioni në R & Paketa \\ \midrule
+    CSV (\texttt{.csv}) & \texttt{read.csv()} & bazë \\
+    Excel (\texttt{.xlsx}) & \texttt{read\_excel()} & \texttt{readxl} \\
+    SPSS (\texttt{.sav}), Stata (\texttt{.dta}) & \texttt{read\_sav()}, \texttt{read\_dta()} & \texttt{haven} \\
+    Tekst me ndarës tjetër & \texttt{read.table(sep = ";")} & bazë \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item INSTAT dhe Eurostat i publikojnë tabelat kryesisht në CSV dhe Excel.
+    \item Sot punojmë me CSV: formati më i thjeshtë dhe më i qëndrueshëm.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Leximi pa kujdes}
+<<read-bad>>=
+bad <- read.csv(file.path(W01DATA, "Auto.csv"))   # no na.strings
+class(bad$horsepower)
+head(bad$horsepower)
+@
+  \begin{itemize}
+    \item \texttt{horsepower} duhet të jetë numër, por R e lexoi si tekst.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Në skedar ka 5 qeliza me ``?''. Një vlerë tekst e kthen gjithë kolonën në tekst.
+    \item<2-> Kujto Orën 3: një vektor ka vetëm një tip (\emph{coercion}).
+    \item<3-> Pasoja: \texttt{mean(bad\$horsepower)} jep paralajmërim dhe \texttt{NA}.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Pas çdo importimi, kontrollo tipin e çdo kolone me \texttt{str()}.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Leximi i saktë}
+<<read-good>>=
+auto <- read.csv(file.path(W01DATA, "Auto.csv"),
+                 na.strings = "?")        # "?" becomes NA
+str(auto)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Pamja e parë e tabelës}
+<<peek>>=
+dim(auto)              # rows, columns
+names(auto)            # column names
+head(auto[, 1:6], 3)   # first 3 rows, first 6 columns
+@
+\end{frame}
+
+\begin{frame}[fragile]{Ku mungojnë të dhënat?}
+<<na-count>>=
+colSums(is.na(auto))         # NA count per column
+which(is.na(auto$horsepower))  # row numbers
+@
+  \begin{itemize}
+    \item Vetëm \texttt{horsepower} ka vlera që mungojnë: 5 rreshta.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeNA5]{Parashiko para se ta ekzekutosh}
+<<na5-code, eval=FALSE>>=
+auto <- na.omit(auto)
+nrow(auto)
+@
+  \begin{Parashiko}
+    Tabela ka 397 rreshta dhe 5 vlera \texttt{NA}, të gjitha në rreshta të ndryshëm. Sa rreshta mbeten?\\[3pt]
+    \textbf{A)} 397 \quad \textbf{B)} 392 \quad \textbf{C)} 387
+  \end{Parashiko}
+  \shkoTe{zgjNA5}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Heqja e rreshtave me \texttt{NA}}
+<<na-omit>>=
+auto <- na.omit(auto)    # drop every row that has at least one NA
+nrow(auto)
+@
+  \begin{Gabim}\texttt{na.omit()} heq gjithë rreshtin, edhe kur \texttt{NA} është në një kolonë që nuk e përdor. Me shumë kolona, mund të humbasësh shumë të dhëna pa e kuptuar.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Përmbledhja dhe aksesi}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{summary()}: përmbledhja e shpejtë}
+<<summary>>=
+summary(auto[, c("mpg", "horsepower", "weight")])
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{mpg}: nga \Sexpr{min(auto$mpg)} deri \Sexpr{max(auto$mpg)}; mesatarja \Sexpr{fmt(mean(auto$mpg), 2)} $>$ mediana \Sexpr{fmt(median(auto$mpg), 2)}.
+    \item<2-> Mesatarja më e madhe se mediana: shpërndarja është e anuar djathtas (Java 2).
+    \item<3-> Gjashtë numra: minimumi, Q1, mediana, mesatarja, Q3, maksimumi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Aksesi i kolonave}
+<<access>>=
+mean(auto$mpg)            # $ : by name
+mean(auto[["mpg"]])       # [[ ]] : by name as text
+mean(auto[, "mpg"])       # [row, column] like a matrix
+with(auto, mean(mpg))     # evaluate inside the data frame
+@
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: \texttt{attach()}}
+<<attach-trap, eval=FALSE>>=
+attach(auto)                  # from the original script
+origin <- as.factor(origin)   # creates a NEW global object
+class(auto$origin)            # the data frame is unchanged: "integer"
+@
+  \begin{Gabim}
+    \texttt{attach()} krijon kopje të fshehura. Ndryshimet nuk shkojnë në tabelë dhe emrat përplasen me objekte të tjera.
+  \end{Gabim}
+  \begin{itemize}
+    \item Në këtë kurs: \textbf{asnjëherë} \texttt{attach()}. Përdor \texttt{\$} ose \texttt{with()}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Mënyra e saktë: kolona e re në tabelë}
+<<origin-factor>>=
+auto$origin <- factor(auto$origin, levels = 1:3,
+                      labels = c("American", "European", "Japanese"))
+table(auto$origin)
+@
+  \begin{itemize}
+    \item Ndryshimi ruhet \textbf{brenda} tabelës: çdo analizë pasuese e sheh.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Nënbashkësitë e rreshtave}
+<<subset>>=
+four <- auto[auto$cylinders == 4, ]     # rows where cylinders is 4
+nrow(four)
+light <- subset(auto, weight < 2000, select = c(name, mpg, weight))
+head(light, 3)
+@
+\end{frame}
+
+\begin{frame}[label=ushDF]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    Me tabelën \texttt{auto}:
+    \begin{enumerate}
+      \item Sa është \texttt{mpg} mesatar i makinave japoneze?
+      \item Sa makina peshojnë më shumë se 3\,000 paund?
+      \item Cila është makina më e rëndë? (Ndihmë: \texttt{which.max()}.)
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjDF}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Grafika me R bazë}
+% ------------------------------------------------------------
+
+\begin{frame}{Cilin grafik për cilat të dhëna?}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Të dhënat & Grafiku & R bazë \\ \midrule
+    1 variabël numerike & histogram, boxplot & \texttt{hist()}, \texttt{boxplot()} \\
+    2 variabla numerike & grafik shpërndarjeje & \texttt{plot(x, y)} \\
+    numerike sipas grupeve & boxplot sipas grupit & \texttt{boxplot(y \textasciitilde{} g)} \\
+    shumë variabla numerike & matricë grafikësh & \texttt{pairs()} \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Pyetja e parë para çdo grafiku: \textbf{çfarë tipi janë variablat?}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Grafiku i shpërndarjes: \texttt{mpg} kundrejt \texttt{weight}}
+<<scatter-base, fig.height=3>>=
+par(mar = c(4, 4, 1, 1))
+plot(auto$weight, auto$mpg, pch = 19, col = "#2C5AA066",
+     xlab = "Weight (lbs)", ylab = "mpg")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Lidhje negative: makina më e rëndë $\Rightarrow$ më pak mpg.
+    \item<2-> Pikat janë më të ngjeshura rreth një kurbe sesa te \texttt{horsepower}.
+    \item<3-> Korrelacioni: $r = \Sexpr{fmt(cor(auto$weight, auto$mpg), 3)}$, më i fortë se $\Sexpr{fmt(cor(auto$horsepower, auto$mpg), 3)}$ me fuqinë.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Ngjyra gjysmë-transparente (\texttt{"\#2C5AA066"}) tregon ku mbivendosen pikat.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Histogrami i \texttt{mpg}}
+<<hist-mpg, fig.height=2.6>>=
+par(mar = c(4, 4, 1, 1))
+hist(auto$mpg, breaks = 20, col = "#E8EEF7", border = "#2C5AA0",
+     main = "", xlab = "mpg")
+@
+  \begin{itemize}
+    \item Bishti djathtas është më i gjatë: pak makina shumë ekonomike.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeBox]{Parashiko para se ta ekzekutosh}
+<<box-q, eval=FALSE>>=
+origin_num <- as.integer(auto$origin)   # 1, 2, 3 as numbers
+plot(origin_num, auto$mpg)
+plot(auto$origin, auto$mpg)             # origin is a factor
+@
+  \begin{Parashiko}
+    \texttt{plot()} jep dy grafikë. A janë të njëjtë? Çfarë lloji ka secili?
+  \end{Parashiko}
+  \shkoTe{zgjBox}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{plot()} me \texttt{origin} si numër}
+<<plot-num, echo=FALSE, fig.height=3.1>>=
+par(mar = c(4, 4, 1, 1))
+origin_num <- as.integer(auto$origin)
+plot(origin_num, auto$mpg, pch = 19, col = "#2C5AA066",
+     xlab = "origin (as number)", ylab = "mpg")
+@
+\end{frame}
+
+\begin{frame}[fragile]{Boxplot sipas origjinës}
+<<box-base, fig.height=2.9>>=
+par(mar = c(4, 4, 1, 1))
+boxplot(mpg ~ origin, data = auto, col = "#E8EEF7",
+        border = "#2C5AA0", xlab = "Origin", ylab = "mpg")
+@
+\end{frame}
+
+\begin{frame}{Anatomia e një boxplot-i}
+  \begin{columns}[c]
+    \column{0.42\textwidth}
+      \centering
+      \begin{tikzpicture}[y=0.55cm]
+        \draw[uptblue,thick,fill=uptlight] (0,2) rectangle (1.4,4);
+        \draw[accent,very thick] (0,3.1)--(1.4,3.1);
+        \draw[uptblue,thick] (0.7,4)--(0.7,5.6) (0.45,5.6)--(0.95,5.6);
+        \draw[uptblue,thick] (0.7,2)--(0.7,0.6) (0.45,0.6)--(0.95,0.6);
+        \fill[warnred] (0.7,6.4) circle (2pt);
+        \node[font=\scriptsize,anchor=west] at (1.6,4) {Q3};
+        \node[font=\scriptsize,anchor=west,text=accent] at (1.6,3.1) {mediana};
+        \node[font=\scriptsize,anchor=west] at (1.6,2) {Q1};
+        \node[font=\scriptsize,anchor=west] at (1.6,5.6) {mustaqja};
+        \node[font=\scriptsize,anchor=west,text=warnred] at (1.6,6.4) {vlerë e skajshme};
+      \end{tikzpicture}
+    \column{0.56\textwidth}
+      \begin{itemize}
+        \item Kutia: 50\% e mesme e të dhënave, nga Q1 në Q3.
+        \item $IQR = Q3 - Q1$.
+        \item Mustaqet: deri te vlera më e largët brenda $1.5\cdot IQR$ nga kutia.
+        \item Pikat jashtë: vlera të skajshme (\emph{outliers}).
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon boxplot-i?}
+  \begin{itemize}
+    \item<1-> Mediana e \texttt{mpg}: American \Sexpr{fmt(median(auto$mpg[auto$origin == "American"]), 1)}, European \Sexpr{fmt(median(auto$mpg[auto$origin == "European"]), 1)}, Japanese \Sexpr{fmt(median(auto$mpg[auto$origin == "Japanese"]), 1)}.
+    \item<2-> Makinat japoneze janë mesatarisht më ekonomike.
+    \item<3-> A është dallimi i rëndësishëm statistikisht? Kjo është pyetja e ANOVA-s (Java 4).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Matrica e grafikëve: \texttt{pairs()}}
+<<pairs, fig.height=3.3, out.width="0.62\\textwidth">>=
+pairs(~ mpg + cylinders + acceleration + weight, data = auto,
+      pch = 19, col = "#2C5AA044", cex = 0.5)
+@
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab5]{Gjej gabimin!}
+<<pairs-bug, eval=FALSE>>=
+pairs(auto)       # from the original script
+@
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Në skriptin origjinal kjo komandë punonte. Në tabelën tonë, R ndalon me gabim.
+    Pse? Si rregullohet që të përfshihen të gjitha kolonat numerike?
+  \end{Ushtrim}
+  \shkoTe{zgjGab5}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{ggplot2}
+% ------------------------------------------------------------
+
+\begin{frame}{Gramatika e grafikës}
+  \centering
+  \begin{tikzpicture}[ly/.style={rectangle,draw=uptblue,thick,minimum width=6cm,minimum height=6mm,font=\footnotesize,anchor=west}]
+    \node[ly,fill=uptlight] at (0,0) {\textbf{1. data}: tabela \texttt{auto}};
+    \node[ly,fill=uptlight] at (0.4,0.75) {\textbf{2. aes}: \texttt{x = weight, y = mpg}};
+    \node[ly,fill=orange!15] at (0.8,1.5) {\textbf{3. geom}: pika, shtylla, kuti};
+    \node[ly,fill=white] at (1.2,2.25) {\textbf{4. labs, theme}: etiketat, pamja};
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Grafiku ndërtohet shtresë pas shtrese me \texttt{+}.
+    \item \texttt{aes()} lidh kolonat e tabelës me vetitë vizuale: pozicion, ngjyrë, madhësi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Grafiku i shpërndarjes me ggplot2}
+<<gg-scatter-code, eval=FALSE>>=
+library(ggplot2)
+ggplot(auto, aes(x = weight, y = mpg, colour = origin)) +  # data + aes
+  geom_point(alpha = 0.7) +                                 # geom
+  labs(x = "Weight (lbs)", y = "mpg", colour = "Origin") +  # labels
+  theme_minimal(base_size = 13)                             # theme
+@
+  \begin{itemize}
+    \item Ngjyra sipas \texttt{origin}: legjenda krijohet automatikisht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati}
+<<gg-scatter, echo=FALSE, fig.height=3.3>>=
+library(ggplot2)
+ggplot(auto, aes(x = weight, y = mpg, colour = origin)) +
+  geom_point(alpha = 0.7) +
+  labs(x = "Weight (lbs)", y = "mpg", colour = "Origin") +
+  theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Makinat japoneze dhe europiane janë kryesisht \textbf{të lehta}.
+    \item<2-> Pra mpg i lartë i makinave japoneze mund të vijë nga pesha, jo nga origjina.
+    \item<3-> Kjo quhet \termi{ngatërrim}{confounding}. E trajtojmë me regresionin e shumëfishtë (Java 6).
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Një variabël e tretë me ngjyrë shpesh ndryshon interpretimin e grafikut.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Histogrami me ggplot2}
+<<gg-hist, fig.height=2.7>>=
+ggplot(auto, aes(x = mpg)) +
+  geom_histogram(binwidth = 2, fill = "#E8EEF7", colour = "#2C5AA0") +
+  labs(x = "mpg", y = "Count") + theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Boxplot me ggplot2}
+<<gg-box, fig.height=2.7>>=
+ggplot(auto, aes(x = origin, y = mpg)) +
+  geom_boxplot(fill = "#E8EEF7", colour = "#2C5AA0") +
+  labs(x = "Origin", y = "mpg") + theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: ngjyra brenda \texttt{aes()}}
+<<gg-aes-trap, fig.height=2.2, out.width="0.55\\textwidth">>=
+ggplot(auto, aes(x = weight, y = mpg, colour = "blue")) +
+  geom_point()
+@
+  \begin{Gabim}Brenda \texttt{aes()}, \texttt{"blue"} trajtohet si variabël me një nivel. Ngjyra fikse shkon jashtë: \texttt{geom\_point(colour = "blue")}.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=ushBin]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(4 minuta)]
+    Te histogrami me ggplot2, ndrysho \texttt{binwidth}:
+    \begin{enumerate}
+      \item Parashiko: çfarë ndodh me \texttt{binwidth = 0.5}? Po me \texttt{binwidth = 10}?
+      \item Provo të dyja vlerat.
+      \item Cila vlerë tregon më mirë formën e shpërndarjes? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjBin}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Etiketat dhe ruajtja e grafikut}
+  \begin{itemize}
+    \item<1-> Etiketat e boshteve: \texttt{labs(x = , y = , title = )}.
+    \item<2-> Në këtë kurs, etiketat brenda grafikëve janë pa shkronja speciale (ASCII): \texttt{"Weight"}, jo ``Pesha (ë)''.
+    \item<3-> Pse? Disa pajisje grafike nuk i shfaqin saktë \texttt{ë} dhe \texttt{ç}.
+  \end{itemize}
+  \onslide<4->{
+  \begin{block}{Ruajtja}
+    \texttt{ggsave("mpg\_weight.pdf", width = 7, height = 4)} ruan grafikun e fundit.\\
+    Për Word: \texttt{ggsave("mpg\_weight.png", dpi = 300)}.
+  \end{block}}
+\end{frame}
+
+\begin{frame}{R bazë apo ggplot2?}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+     & R bazë & ggplot2 \\ \midrule
+    Shpejtësia për një grafik të thjeshtë & shumë e shpejtë & e shpejtë \\
+    Ngjyra sipas grupit, legjenda & me dorë & automatike \\
+    Shumë panele (\emph{facets}) & e vështirë & një rresht \\
+    Pamja për botim & kërkon punë & e mirë që në fillim \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Për eksplorim të shpejtë: R bazë. Për raporte dhe detyrën e kursit: ggplot2.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushGG]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    Ndërto me ggplot2 grafikun e \texttt{mpg} kundrejt \texttt{horsepower}:
+    \begin{enumerate}
+      \item ngjyra sipas numrit të cilindrave, si \textbf{faktor};
+      \item pika gjysmë-transparente;
+      \item etiketat \texttt{"Horsepower"}, \texttt{"mpg"}, \texttt{"Cylinders"}.
+    \end{enumerate}
+    Pse \texttt{cylinders} duhet kthyer në faktor?
+  \end{Ushtrim}
+  \shkoTe{zgjGG}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp5]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Pse \texttt{horsepower} u lexua si tekst pa \texttt{na.strings = "?"}?
+    \item Pse nuk përdorim \texttt{attach()}?
+    \item Cili grafik përdoret për një variabël numerike sipas grupeve?
+  \end{enumerate}
+  \shkoTe{zgjCp5}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item Importimi: \Rkey{read.csv()} me \texttt{na.strings}; kontroll me \Rkey{str()} dhe \Rkey{colSums(is.na())}.
+    \item Aksesi: \texttt{\$}, \texttt{[[ ]]}, \Rkey{with()}, \Rkey{subset()}; pa \texttt{attach()}.
+    \item Variablat cilësore: \Rkey{factor()} me etiketa, brenda tabelës.
+    \item R bazë: \Rkey{plot()}, \Rkey{hist()}, \Rkey{boxplot()}, \Rkey{pairs()}.
+    \item ggplot2: data + aes + geom + labs; ngjyra fikse jashtë \texttt{aes()}.
+  \end{itemize}
+  \begin{Keshille}Ora 6: rast studimi i plotë me \texttt{Auto} dhe \texttt{Advertising}.\end{Keshille}
+\end{frame}
