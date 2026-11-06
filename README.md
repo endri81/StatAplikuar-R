@@ -22,7 +22,7 @@ Titullari: Prof. Asoc. Dr. Endri Raço (eraco@fimif.edu.al)
 | Java | Tema | Rezultatet | Statusi |
 |---|---|---|---|
 | 01 | Hyrje në R dhe RStudio; vizualizimi bazë | S4 | ✅ gati (347 frame, 536 faqe PDF) |
-| 02 | Statistikat përmbledhëse dhe EDA | K1, S4 | 🔄 Ora 1 gati (36 slide) |
+| 02 | Statistikat përmbledhëse dhe EDA | K1, S4 | 🔄 Orët 1–2 gati (75 slide) |
 | 03 | Korrelacioni dhe bashkëshoqërimet | K1 | ⏳ |
 | 04 | ANOVA njëfaktoriale dhe shumëfaktoriale, Tukey | K1, S3 | ⏳ |
 | 05 | Regresi i thjeshtë linear | K2, S2 | ⏳ |

@@ -1,0 +1,52 @@
+% ============================================================
+%  Java 2 · Ora 2 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjLin]{Zgjidhja: Parashiko (transformimi linear)}
+  \textbf{B)} 99 dhe 16.5. Transformimi: $y = 1.1\,(x+10) = 11 + 1.1\,x$.
+  \begin{itemize}
+    \item $\bar y = 11 + 1.1\cdot80 = 99$.
+    \item $s_y = 1.1\cdot15 = 16.5$: shtesa prej 10 mijë nuk e ndryshon shpërndarjen; 10\% po.
+  \end{itemize}
+  \vfill\kthehu{pyetjeLin}
+\end{frame}
+
+\begin{frame}[label=zgjSpread]{Zgjidhja: Radha jote! (koha e udhëtimit)}
+  \begin{enumerate}
+    \item $\bar y = 133/7 = 19$; \ $\tilde y = y_{(4)} = 15$.
+    \item Distancat nga 15: $5,3,2,0,0,3,35$ $\to$ të renditura $0,0,2,3,3,5,35$; MAD $=3$.
+    \item $IQR = 16.5 - 12.5 = 4$.
+    \item Mediana (15) dhe IQR ose MAD: vlera 50 minuta e ngre mesataren mbi 6 nga 7 vrojtimet.
+  \end{enumerate}
+  \vfill\kthehu{ushSpread}
+\end{frame}
+
+\begin{frame}[fragile]{Zgjidhja: kontrolli me R}
+<<sol-spread>>=
+y <- c(10, 12, 13, 15, 15, 18, 50)
+c(mean = mean(y), median = median(y),
+  mad_raw = mad(y, constant = 1), iqr = IQR(y))
+@
+  \vfill\kthehu{ushSpread}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjQ]{Zgjidhja: Parashiko (9 tipat)}
+  \textbf{B)} Jo. Tipat 3 dhe 4 japin vlera të tjera:
+<<sol-q9>>=
+sapply(1:9, function(t) quantile(1:9, 0.5, type = t, names = FALSE))
+@
+  \begin{itemize}
+    \item Tipi 3 merr vlerën më të afërt çift; tipi 4 interpolon linearisht ECDF-në.
+    \item Edhe për medianën, përkufizimi ka rëndësi kur $n$ është i vogël.
+  \end{itemize}
+  \vfill\kthehu{pyetjeQ}
+\end{frame}
+
+\begin{frame}[label=zgjCp22]{Përgjigjet: Checkpoint i Orës 2}
+  \begin{enumerate}
+    \item Mesatarja: $\sum(x_i-c)^2$. Mediana: $\sum|x_i-c|$.
+    \item Të dyja shumëzohen me 3 (me $|b|$ në përgjithësi).
+    \item Që MAD-i të vlerësojë $\sigma$ për të dhëna normale: $1/z_{0.75}=1/0.6745\approx1.4826$.
+  \end{enumerate}
+  \vfill\kthehu{cp22}
+\end{frame}

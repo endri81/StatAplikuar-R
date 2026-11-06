@@ -1,0 +1,505 @@
+% ============================================================
+%  Java 2 · Ora 2 — Teori I: qendra, shpërndarja, qëndrueshmëria
+%  Rezultatet: K1, S1
+% ============================================================
+
+\section{Qendra dhe shpërndarja}
+
+\begin{frame}{Ora 2: Qendra, shpërndarja dhe qëndrueshmëria}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Masat e qendrës}
+% ------------------------------------------------------------
+
+\begin{frame}{Mesatarja aritmetike \LO{S1}}
+  \begin{Definicion}[(Mesatarja)]
+    \[ \bar x=\frac{1}{n}\sum_{i=1}^{n}x_i \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Përdor çdo vlerë: informacion i plotë.
+    \pause
+    \item Ka kuptim për shkallë intervalore dhe raporti.
+    \pause
+    \item Pika e dobët: një vlerë ekstreme e zhvendos shumë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mediana dhe statistikat e rendit}
+  \begin{Definicion}[(Statistikat e rendit)]
+    Vlerat e renditura: $x_{(1)}\le x_{(2)}\le\dots\le x_{(n)}$.
+  \end{Definicion}
+  \pause
+  \begin{Definicion}[(Mediana)]
+    \[ \tilde x=\begin{cases} x_{((n+1)/2)}, & n \text{ tek}\\[3pt] \tfrac12\big(x_{(n/2)}+x_{(n/2+1)}\big), & n \text{ çift}\end{cases} \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Përdor vetëm renditjen: ka kuptim edhe për shkallë rendore.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Moda}
+  \begin{Definicion}[(Moda)]
+    Vlera me frekuencën më të madhe.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item E vetmja masë qendre për variabla nominale: p.sh.\ gjendja civile më e shpeshtë.
+    \pause
+    \item Për të dhëna të vazhdueshme: maja e histogramit ose e dendësisë.
+    \pause
+    \item Një shpërndarje mund të ketë dy maja: \termi{bimodale}{bimodal}. Shpesh tregon dy grupe të përziera.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesatarja e prerë}
+  \begin{Definicion}[(Mesatarja e prerë $\alpha$)]
+    Hiq $\lfloor n\alpha\rfloor$ vlerat më të vogla dhe $\lfloor n\alpha\rfloor$ më të mëdha, pastaj llogarit mesataren.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item $\alpha=0$: mesatarja e zakonshme. $\alpha\to0.5$: mediana.
+    \pause
+    \item Kompromis: përdor shumicën e të dhënave, por injoron skajet.
+    \pause
+    \item Shembull i njohur: në disa sporte (p.sh.\ kërcimi me ski) hiqen nota më e lartë dhe më e ulët e gjyqtarëve.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  $x = (2,\ 3,\ 3,\ 4,\ 5,\ 6,\ 40)$, \ $n=7$.
+  \pause
+  \begin{enumerate}
+    \item Mesatarja: $63/7 = 9$.
+    \pause
+    \item Mediana: $x_{(4)} = 4$.
+    \pause
+    \item Moda: 3 (shfaqet dy herë).
+    \pause
+    \item Mesatarja e prerë 20\%: $\lfloor 7\cdot0.2\rfloor=1$. Hiq 2 dhe 40: $(3+3+4+5+6)/5 = 4.2$.
+  \end{enumerate}
+  \pause
+  \begin{itemize}
+    \item Vetëm mesatarja është ``tërhequr'' nga vlera 40.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<center-check>>=
+x <- c(2, 3, 3, 4, 5, 6, 40)
+mean(x)
+median(x)
+mean(x, trim = 0.2)               # trimmed mean
+names(which.max(table(x)))        # mode: most frequent value
+@
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: \texttt{mode()}}
+<<mode-trap>>=
+mode(x)      # NOT the statistical mode!
+@
+  \begin{Gabim}\texttt{mode()} në R jep \emph{tipin e ruajtjes} së objektit. R nuk ka funksion bazë për modën statistikore.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Vetitë e mesatares dhe medianës}
+% ------------------------------------------------------------
+
+\begin{frame}{Mesatarja minimizon shumën e katrorëve}
+  Kërkojmë $c$ që minimizon $S(c)=\sum_{i=1}^{n}(x_i-c)^2$.
+  \begin{align*}
+    \onslide<2->{S'(c) &= -2\sum_{i=1}^{n}(x_i-c)} \\
+    \onslide<3->{0 &= \sum x_i - nc \ \Rightarrow\ c=\frac1n\sum x_i=\bar x} \\
+    \onslide<4->{S''(c) &= 2n>0 \ \Rightarrow\ \text{minimum}}
+  \end{align*}
+  \onslide<5->{\begin{Teoreme}$\bar x$ është vlera që minimizon shumën e katrorëve të devijimeve. Kjo është ideja e katrorëve më të vegjël (Java 5).\end{Teoreme}}
+\end{frame}
+
+\begin{frame}{Mediana minimizon shumën e vlerave absolute}
+  Kërkojmë $c$ që minimizon $A(c)=\sum_{i=1}^{n}|x_i-c|$.
+  \begin{itemize}
+    \item<2-> Lëvizim $c$ pak djathtas, me $\delta>0$.
+    \item<3-> Çdo vlerë majtas $c$ shton $\delta$; çdo vlerë djathtas zbret $\delta$.
+    \item<4-> Ndryshimi: $\delta\,(\#\text{majtas}-\#\text{djathtas})$.
+    \item<5-> Sa kohë djathtas ka më shumë vlera, ia vlen të lëvizim. Ndalojmë kur të dyja anët kanë sa gjysma.
+  \end{itemize}
+  \onslide<6->{\begin{Teoreme}Mediana minimizon $\sum|x_i-c|$. Kjo është baza e regresionit të fortë (Java 8).\end{Teoreme}}
+\end{frame}
+
+\begin{frame}{Dy funksione humbjeje, dy përgjigje}
+  \centering
+  $x = (1,\ 2,\ 3,\ 4,\ 10)$\\[2pt]
+  \begin{tikzpicture}
+    \begin{axis}[name=a1,width=6cm,height=4.2cm,xmin=0,xmax=10,ymin=0,
+      title={\scriptsize $S(c)=\sum(x_i-c)^2$},xlabel={$c$},axis lines=left,
+      ticklabel style={font=\scriptsize},samples=60]
+      \addplot[uptmid,very thick,domain=0:10]{5*x^2-40*x+130};
+      \addplot[only marks,mark=*,accent] coordinates {(4,50)};
+      \node[font=\scriptsize,text=accent,above] at (axis cs:4,60) {$\bar x=4$};
+    \end{axis}
+    \begin{axis}[at={(a1.east)},anchor=west,xshift=1.2cm,width=6cm,height=4.2cm,xmin=0,xmax=10,ymin=0,
+      title={\scriptsize $A(c)=\sum|x_i-c|$},xlabel={$c$},axis lines=left,
+      ticklabel style={font=\scriptsize},samples=101]
+      \addplot[okgreen,very thick,domain=0:10]{abs(x-1)+abs(x-2)+abs(x-3)+abs(x-4)+abs(x-10)};
+      \addplot[only marks,mark=*,accent] coordinates {(3,11)};
+      \node[font=\scriptsize,text=accent,above] at (axis cs:3,14) {$\tilde x=3$};
+    \end{axis}
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $S(c)$ është parabolë: minimumi te mesatarja, $\bar x=4$.
+    \item<2-> $A(c)$ është vijë e thyer: minimumi te mediana, $\tilde x=3$.
+    \item<3-> Vlera 10 ``tërheq'' parabolën shumë më fort, sepse katrori e zmadhon distancën.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Zgjedhja midis mesatares dhe medianës është zgjedhje e funksionit të humbjes: katrorë apo vlera absolute.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Transformimet lineare}
+  \begin{Teoreme}[(Transformimi $y_i=a+b\,x_i$)]
+    \[ \bar y = a+b\,\bar x,\qquad \tilde y = a+b\,\tilde x,\qquad s_y=|b|\,s_x,\qquad s_y^2=b^2s_x^2 \]
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item Zhvendosja $a$ lëviz qendrën, jo shpërndarjen.
+    \pause
+    \item Shkallëzimi $b$ shumëzon edhe qendrën, edhe shpërndarjen.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull: nga °C në °F}
+  $F = 32 + 1.8\,C$. Temperaturat ditore: $\bar C = 15$, $s_C = 4$.
+  \pause
+  \begin{enumerate}
+    \item $\bar F = 32 + 1.8\cdot15 = 59$ °F.
+    \pause
+    \item $s_F = 1.8\cdot4 = 7.2$ °F. Zhvendosja 32 nuk ndikon.
+    \pause
+    \item $s_F^2 = 1.8^2\cdot16 = 51.84$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[label=pyetjeLin]{Parashiko!}
+  \begin{Parashiko}
+    Pagat në një firmë kanë $\bar x = 80$ dhe $s = 15$ (mijë lekë).
+    Çdo pagë rritet fillimisht me 10 mijë, pastaj me 10\%. Sa bëhen $\bar y$ dhe $s_y$?\\[3pt]
+    \textbf{A)} 98 dhe 15 \quad \textbf{B)} 99 dhe 16.5 \quad \textbf{C)} 98 dhe 16.5
+  \end{Parashiko}
+  \shkoTe{zgjLin}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Masat e shpërndarjes}
+% ------------------------------------------------------------
+
+\begin{frame}{Gjerësia (\emph{range})}
+  \begin{Definicion}[(Gjerësia)]
+    \[ R = x_{(n)} - x_{(1)} \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item E thjeshtë dhe e kuptueshme: ``nga 2 deri në 40''.
+    \pause
+    \item Varet vetëm nga dy vlera, pikërisht ato më ekstremet.
+    \pause
+    \item Rritet me $n$: mostrat e mëdha kanë gjerësi më të madhe. Nuk krahasohet midis mostrave me $n$ të ndryshëm.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Varianca dhe devijimi standard}
+  \[ s^2=\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar x)^2,\qquad s=\sqrt{s^2} \]
+  \pause
+  \begin{itemize}
+    \item Pse katrorë? Devijimet $x_i-\bar x$ kanë shumë 0; katrori i bën pozitivë.
+    \pause
+    \item $s$ është në njësitë e të dhënave; $s^2$ në njësi katrore.
+    \pause
+    \item Si mesatarja, $s$ është i ndjeshëm ndaj vlerave ekstreme: madje më shumë, sepse devijimet ngrihen në katror.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gjerësia ndërkuartilore}
+  \begin{Definicion}[(IQR)]
+    \[ IQR = Q_3 - Q_1 \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Gjerësia e 50\% të mesme të të dhënave.
+    \pause
+    \item Nuk ndikohet nga 25\% e vlerave në secilin skaj.
+    \pause
+    \item Është gjatësia e kutisë së boxplot-it.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Devijimi absolut median (MAD)}
+  \begin{Definicion}[(MAD)]
+    \[ \mathrm{MAD} = \operatorname{med}_i\big|x_i-\tilde x\big| \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item ``Mediana e distancave nga mediana''.
+    \pause
+    \item Në R, \texttt{mad()} e shumëzon me 1.4826, që të jetë i krahasueshëm me $\sigma$ për të dhëna normale.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pse 1.4826?}
+  Për $X\sim N(\mu,\sigma^2)$, mediana është $\mu$. Kërkojmë $c$ me $P(|X-\mu|\le c)=0.5$:
+  \begin{align*}
+    \onslide<2->{P\big(-c\le X-\mu\le c\big) &= 0.5} \\
+    \onslide<3->{\Rightarrow\ P\big(X-\mu\le c\big) &= 0.75 \ \Rightarrow\ c=\sigma\cdot z_{0.75}=0.6745\,\sigma} \\
+    \onslide<4->{\Rightarrow\ \sigma &= \frac{\mathrm{MAD}}{0.6745} = 1.4826\cdot\mathrm{MAD}}
+  \end{align*}
+  \onslide<5->{\begin{Keshille}\texttt{qnorm(0.75)} $=\Sexpr{fmt(qnorm(0.75), 4)}$, \ \texttt{1/qnorm(0.75)} $=\Sexpr{fmt(1/qnorm(0.75), 4)}$.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Koeficienti i variacionit}
+  \begin{Definicion}[(CV)]
+    \[ CV = 100\cdot\frac{s}{\bar x}\ \% \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Shpërndarja \emph{relative}: krahason variabla me njësi ose nivele të ndryshme.
+    \pause
+    \item Vetëm për shkallë raporti me $\bar x>0$. Për temperaturën në °C nuk ka kuptim.
+    \pause
+    \item Në statistikën zyrtare, CV përdoret për saktësinë e vlerësimeve: p.sh.\ vlerësime me CV të lartë shënohen si të pasigurta.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC (1)}
+  $x = (2,\ 3,\ 3,\ 4,\ 5,\ 6,\ 40)$, \ $\bar x=9$, \ $\tilde x=4$.
+  \pause
+  \begin{enumerate}
+    \item Gjerësia: $40-2=38$.
+    \pause
+    \item Devijimet nga 9: $-7,-6,-6,-5,-4,-3,31$.
+    \pause
+    \item Katrorët: $49+36+36+25+16+9+961=1132$.
+    \pause
+    \item $s^2=1132/6\approx188.67$, \quad $s\approx13.74$.
+  \end{enumerate}
+  \pause
+  \begin{itemize}
+    \item Vlera 40 jep 961 nga 1132: \textbf{85\%} e shumës!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC (2)}
+  \begin{enumerate}
+    \item<1-> Distancat nga mediana 4: $2,1,1,0,1,2,36$.
+    \item<2-> Të renditura: $0,1,1,1,2,2,36$; mediana $=1$. \ MAD $=1$; i shkallëzuar: $1.4826$.
+    \item<3-> Kuartilet (metoda e R-së): $Q_1=3$, $Q_3=5.5$, \ $IQR=2.5$.
+  \end{enumerate}
+  \onslide<4->{
+  \begin{tabular}{@{}lccc@{}}
+    \toprule
+    Masa & $s$ & IQR & MAD (shkallëzuar) \\ \midrule
+    Vlera & 13.74 & 2.5 & 1.48 \\ \bottomrule
+  \end{tabular}}
+  \onslide<5->{\begin{itemize}\item $s$ është 5--9 herë më i madh: e gjitha për shkak të një vlere.\end{itemize}}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<spread-check>>=
+diff(range(x))         # range
+var(x); sd(x)
+IQR(x)
+mad(x)                 # scaled by 1.4826
+mad(x, constant = 1)   # raw MAD
+100 * sd(x) / mean(x)  # coefficient of variation, %
+@
+\end{frame}
+
+\begin{frame}[label=ushSpread]{Radha jote!}
+  \begin{Ushtrim}[(pa ndihmën e PC, 6 minuta)]
+    Kohët e udhëtimit për në punë (minuta): $y=(10,\ 12,\ 13,\ 15,\ 15,\ 18,\ 50)$.
+    \begin{enumerate}
+      \item Llogaritni $\bar y$ dhe $\tilde y$.
+      \item Llogaritni MAD-in e pashkallëzuar.
+      \item Me $Q_1=12.5$ dhe $Q_3=16.5$, sa është IQR?
+      \item Cilën qendër dhe cilën shpërndarje do të raportonit? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSpread}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Qëndrueshmëria}
+% ------------------------------------------------------------
+
+\begin{frame}{Pika e prishjes}
+  \begin{Definicion}[(Pika e prishjes, \emph{breakdown point})]
+    Pjesa më e vogël e të dhënave që, po të ndryshohet në mënyrë arbitrare, e bën vlerësuesin arbitrarisht të madh.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Mesatarja: mjafton \textbf{një} vlerë $\Rightarrow$ $1/n\to0$.
+    \pause
+    \item Mediana: duhet të ndryshohen rreth \textbf{gjysma} e vlerave $\Rightarrow$ 50\%.
+    \pause
+    \item Sa më e lartë pika e prishjes, aq më \termi{i qëndrueshëm}{robust} vlerësuesi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pikat e prishjes së masave tona}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Masa & Pika e prishjes & E qëndrueshme? \\ \midrule
+    Mesatarja, $s$, gjerësia & 0\% & jo \\
+    Mesatarja e prerë $\alpha$ & $\alpha$ & pjesërisht \\
+    IQR & 25\% & po \\
+    Mediana, MAD & 50\% & shumë \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item 50\% është maksimumi: përtej saj, ``të dhënat e këqija'' janë shumica.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Eksperiment: rritim vlerën më të madhe}
+<<breakdown-demo>>=
+base <- c(2, 3, 3, 4, 5, 6)
+res <- sapply(c(6, 40, 400, 4000), function(v) {
+  z <- c(base, v)
+  c(max = v, mean = mean(z), median = median(z),
+    sd = sd(z), mad = mad(z))
+})
+round(res, 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mesatarja dhe $s$ rriten pa kufi me vlerën ekstreme.
+    \item<2-> Mediana dhe MAD nuk ndryshojnë fare.
+    \item<3-> Në praktikë: një gabim shtypjeje (4\,000 në vend të 40) mund ta prishë mesataren e një tabele të tërë.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}``Masat e qëndrueshme janë gjithmonë më të mira.'' Jo: kur të dhënat janë të pastra dhe normale, mesatarja është më e saktë (variancë më e vogël).\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Mendo -- Diskuto -- Ndaj}
+  \begin{Ushtrim}[(think--pair--share, 4 minuta)]
+    Një agjenci publikon çmimet e shitjes së apartamenteve në Tiranë për 2025.
+    \begin{enumerate}
+      \item Cilën masë qendre dhe cilën masë shpërndarjeje do të zgjidhnit?
+      \item Çfarë do të ndodhte me mesataren nëse në tabelë hyn një vilë luksi?
+      \item A do të hiqnit vilën nga të dhënat? Pse po ose pse jo?
+    \end{enumerate}
+  \end{Ushtrim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuantilet në R}
+% ------------------------------------------------------------
+
+\begin{frame}{Një pyetje e thjeshtë me disa përgjigje}
+  \begin{itemize}
+    \item<1-> Sa është $Q_1$ i $x=(1,2,3,4,5,6,7,8)$?
+    \item<2-> Pozicioni ``0.25 e rrugës'' bie midis vlerës së 2-të dhe të 3-të.
+    \item<3-> Përgjigje të mundshme: 2, 2.25, 2.5, 2.75 \dots\ Të gjitha janë të mbrojtshme.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Hyndman \& Fan (1996) përshkruajnë 9 përkufizime; R i ka të gjitha me argumentin \texttt{type}.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Tre tipa të zakonshëm}
+  \footnotesize
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    Tipi & Pozicioni $h$ & Ku përdoret & $Q_1$ për $x=1{:}8$ \\ \midrule
+    7 & $1+(n-1)p$, interpolim & R (parazgjedhja), Excel & 2.75 \\
+    6 & $(n+1)p$, interpolim & SPSS, Minitab & 2.25 \\
+    2 & mesatare kur $np$ është i plotë & ECDF e anasjelltë & 2.5 \\ \bottomrule
+  \end{tabular}
+  \normalsize
+  \vspace{6pt}
+  \begin{itemize}
+    \item Interpolim: $q_p = x_{(\lfloor h\rfloor)} + (h-\lfloor h\rfloor)\,\big(x_{(\lfloor h\rfloor+1)}-x_{(\lfloor h\rfloor)}\big)$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  $x=(1,2,\dots,8)$, \ $n=8$, \ $p=0.25$.
+  \pause
+  \begin{enumerate}
+    \item Tipi 7: $h=1+7\cdot0.25=2.75$ $\Rightarrow$ $2+0.75\cdot(3-2)=2.75$.
+    \pause
+    \item Tipi 6: $h=9\cdot0.25=2.25$ $\Rightarrow$ $2+0.25\cdot1=2.25$.
+    \pause
+    \item Tipi 2: $np=2$ është numër i plotë $\Rightarrow$ $(x_{(2)}+x_{(3)})/2=2.5$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<qtype>>=
+z <- 1:8
+sapply(c(type2 = 2, type6 = 6, type7 = 7),
+       function(t) quantile(z, 0.25, type = t, names = FALSE))
+fivenum(z)       # Tukey's hinges
+summary(z)       # uses type 7
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{fivenum()} jep $Q_1=2.5$; \texttt{summary()} jep 2.75. Të dyja janë ``të sakta''.
+    \item<2-> \texttt{fivenum()} përdor ``nyjet'' e Tukey-t: mediana e gjysmës së poshtme. Kjo është ajo që vizaton \texttt{boxplot()}.
+    \item<3-> Me $n$ të madh, dallimet zhduken.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}``R dhe SPSS japin $Q_1$ të ndryshëm, njëri është gabim.'' Jo: përdorin tipa të ndryshëm. Në raport, shkruaj cilin.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeQ]{Parashiko para se ta ekzekutosh}
+<<q9-code, eval=FALSE>>=
+sapply(1:9, function(t) quantile(1:9, 0.5, type = t))
+@
+  \begin{Parashiko}
+    Për medianën e $1,2,\dots,9$, a japin të 9 tipat të njëjtën vlerë, 5?\\[3pt]
+    \textbf{A)} Po, gjithmonë 5 \quad \textbf{B)} Jo, disa tipa japin vlerë tjetër
+  \end{Parashiko}
+  \shkoTe{zgjQ}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Tabela përmbledhëse}
+  \footnotesize
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    Masa & Funksioni R & Pika e prishjes & Minimizon \\ \midrule
+    Mesatarja & \Rkey{mean()} & 0\% & $\sum(x_i-c)^2$ \\
+    Mediana & \Rkey{median()} & 50\% & $\sum|x_i-c|$ \\
+    Mesatarja e prerë & \Rkey{mean(x, trim = )} & $\alpha$ & -- \\
+    $s$, $s^2$ & \Rkey{sd()}, \Rkey{var()} & 0\% & -- \\
+    IQR & \Rkey{IQR()} & 25\% & -- \\
+    MAD & \Rkey{mad()} & 50\% & -- \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=cp22]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 2}
+  \begin{enumerate}
+    \item Cilin funksion humbjeje minimizon mesatarja? Po mediana?
+    \item Nëse të gjitha vlerat shumëzohen me 3, çfarë ndodh me $s$ dhe me IQR?
+    \item Pse \texttt{mad()} shumëzon me 1.4826?
+  \end{enumerate}
+  \shkoTe{zgjCp22}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 2}
+  \begin{itemize}
+    \item Qendra: mesatarja, mediana, moda, mesatarja e prerë.
+    \item $\bar x$ minimizon katrorët; $\tilde x$ minimizon vlerat absolute.
+    \item Shpërndarja: gjerësia, $s$, IQR, MAD, CV.
+    \item Qëndrueshmëria matet me pikën e prishjes: mediana dhe MAD 50\%, mesatarja 0\%.
+    \item Kuantilet kanë 9 përkufizime; R përdor tipin 7.
+  \end{itemize}
+  \begin{Keshille}Ora 3: i llogaritim të gjitha nga zero në R, me funksione dhe cikle.\end{Keshille}
+\end{frame}
