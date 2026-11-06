@@ -1,0 +1,422 @@
+% ============================================================
+%  Java 1 · Ora 6 — Rast studimi: Auto nga fillimi në fund
+%  Rezultatet: S4, K1, C1 (paraprak)
+% ============================================================
+
+\section{Rast studimi}
+
+\begin{frame}{Ora 6: Rast studimi --- Auto nga fillimi në fund}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pyetja}
+% ------------------------------------------------------------
+
+\begin{frame}{Rasti ynë \LO{S4} \LO{K1}}
+  \begin{itemize}
+    \item<1-> \textbf{Pyetja}: si lidhen konsumi (\texttt{mpg}) me fuqinë, peshën, origjinën dhe vitin e modelit?
+    \item<2-> \textbf{Të dhënat}: \texttt{Auto}, 392 makina, modelet 1970--1982. Reale (burimi: ISLR).
+    \item<3-> \textbf{Produkti}: një skript R i riprodhueshëm + 4 përfundime të shkruara.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Kjo orë është model për detyrën e kursit: e njëjta strukturë, të dhëna të tjera.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Rrjedha e punës}
+  \centering
+  \begin{tikzpicture}[>=Stealth,node distance=0.45cm,
+      st/.style={rectangle,rounded corners=3pt,draw=uptblue,thick,fill=uptlight,minimum width=2cm,minimum height=1cm,align=center,font=\scriptsize\bfseries}]
+    \node[st] (a) {1. Importimi\\dhe pastrimi};
+    \node[st,right=of a] (b) {2. Përmbledhja};
+    \node[st,right=of b] (c) {3. Grafikët};
+    \node[st,right=of c] (d) {4. Përfundimet};
+    \node[st,right=of d,fill=orange!15] (e) {5. Pyetje e re\\(modeli)};
+    \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,uptmid,thick] (\x)--(\y);
+  \end{tikzpicture}
+  \vspace{8pt}
+  \begin{itemize}
+    \item Çdo hap është një seksion i skriptit, me titull në koment.
+    \item Hapi 5 na çon te Javët 3--8: korrelacioni, ANOVA, regresioni.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Struktura e skriptit}
+<<script-skeleton, eval=FALSE>>=
+# ==== 0. Setup ===============================================
+library(ggplot2)
+set.seed(2026)
+# ==== 1. Import and clean ====================================
+# ==== 2. Summaries ===========================================
+# ==== 3. Plots ===============================================
+# ==== 4. Conclusions (as comments) ===========================
+@
+  \begin{itemize}
+    \item RStudio i njeh komentet me \texttt{====} si seksione: navigim i shpejtë.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Hapi 1: importimi dhe pastrimi}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Importimi dhe pastrimi}
+<<cs-import>>=
+library(ggplot2)
+auto <- read.csv(file.path(W01DATA, "Auto.csv"), na.strings = "?")
+auto <- na.omit(auto)
+auto$origin <- factor(auto$origin, levels = 1:3,
+                      labels = c("American", "European", "Japanese"))
+auto$year_full <- 1900 + auto$year      # 70 -> 1970
+auto$cyl_f <- factor(auto$cylinders)    # cylinders as categories
+c(rows = nrow(auto), cols = ncol(auto))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 392 makina, 11 kolona: 9 origjinale + 2 të reja.
+    \item<2-> Kolonat e reja nuk e ndryshojnë skedarin origjinal: punojmë mbi kopjen në kujtesë.
+    \item<3-> \texttt{year\_full}: viti i plotë është më i qartë në grafikë dhe tabela.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Mos e mbishkruaj kurrë skedarin origjinal të të dhënave. Ruaj versionin e pastruar me emër tjetër.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[label=pyetjeL100]{Parashiko: nga mpg në L/100 km}
+  \begin{Parashiko}
+    Në Europë konsumi matet në litra për 100 km.
+    Formula: $\text{L/100 km} = 235.215 / \text{mpg}$.\\[3pt]
+    Pa ndihmën e PC: sa L/100 km harxhon një makinë me 20 mpg?\\[3pt]
+    \textbf{A)} rreth 4.7 \quad \textbf{B)} rreth 11.8 \quad \textbf{C)} rreth 23.5
+  \end{Parashiko}
+  \shkoTe{zgjL100}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Shndërrimi në L/100 km}
+<<lp100>>=
+auto$lp100 <- 235.215 / auto$mpg     # litres per 100 km
+summary(auto$lp100)
+@
+  \begin{itemize}
+    \item Kujdes me drejtimin: mpg i lartë = mirë; L/100 km i lartë = keq.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: mesatarja e një shndërrimi jolinear}
+<<jensen>>=
+mean(auto$lp100)            # mean of the converted values
+235.215 / mean(auto$mpg)    # converted mean: NOT the same
+@
+  \begin{Gabim}Për funksione jolineare, $\overline{g(x)} \neq g(\bar x)$. Shndërro çdo vlerë, pastaj llogarit mesataren.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Hapi 2: përmbledhja}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Përmbledhje e variablave kryesore}
+<<cs-summary>>=
+vars <- c("mpg", "lp100", "horsepower", "weight")
+round(sapply(auto[, vars], function(v)
+  c(mean = mean(v), sd = sd(v), median = median(v))), 1)
+@
+  \begin{itemize}
+    \item \texttt{sapply()} zbaton të njëjtin funksion mbi çdo kolonë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Variablat cilësore: frekuencat}
+<<cs-table>>=
+table(auto$origin)
+round(100 * prop.table(table(auto$origin)), 1)   # percentages
+table(auto$cyl_f)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Mesataret sipas grupeve: \texttt{tapply()}}
+<<cs-tapply>>=
+round(tapply(auto$mpg, auto$origin, mean), 2)
+round(tapply(auto$mpg, auto$origin, median), 2)
+@
+  \begin{itemize}
+    \item \texttt{tapply(vlerat, grupet, funksioni)}: një rezultat për çdo grup.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Disa variabla njëherësh: \texttt{aggregate()}}
+<<cs-aggregate>>=
+aggregate(cbind(mpg, weight, horsepower) ~ origin,
+          data = auto, FUN = function(v) round(mean(v), 1))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Makinat amerikane janë mesatarisht \textbf{më të rënda} (\Sexpr{fmt(mean(auto$weight[auto$origin == "American"]), 0)} paund) dhe më të fuqishme.
+    \item<2-> Japonezet janë më të lehtat (\Sexpr{fmt(mean(auto$weight[auto$origin == "Japanese"]), 0)} paund) dhe më ekonomiket.
+    \item<3-> Pyetja: dallimi në mpg vjen nga origjina apo nga pesha? Tabela nuk e ndan dot.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTap]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Llogarit peshën mesatare sipas numrit të cilindrave.
+      \item Sa makina kanë 3 ose 5 cilindra?
+      \item Cili grup cilindrash ka mesataren më të lartë të \texttt{lp100}?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTap}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Ecuria në kohë}
+<<cs-year>>=
+round(tapply(auto$mpg, auto$year_full, mean), 1)
+@
+  \begin{itemize}
+    \item Mesatarja rritet nga \Sexpr{fmt(mean(auto$mpg[auto$year == 70]), 1)} mpg (1970) në \Sexpr{fmt(mean(auto$mpg[auto$year == 82]), 1)} mpg (1982), por jo çdo vit.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Hapi 3: grafikët}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Ecuria në kohë: grafiku}
+<<cs-year-plot, fig.height=2.9>>=
+ggplot(auto, aes(x = year_full, y = mpg)) +
+  geom_jitter(width = 0.2, alpha = 0.3, colour = "#2C5AA0") +
+  stat_summary(fun = mean, geom = "line", colour = "#D97706", linewidth = 1.2) +
+  labs(x = "Model year", y = "mpg") + theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vija portokalli: mesatarja e çdo viti. Pikat: makinat individuale.
+    \item<2-> Prirje rritëse, me kërcim pas 1979.
+    \item<3-> Shpërndarja brenda çdo viti është e madhe: viti vetëm nuk e shpjegon mpg.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}\texttt{geom\_jitter()} i zhvendos pak pikat anash, që të mos mbivendosen në të njëjtin vit.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{mpg sipas numrit të cilindrave}
+<<cs-cyl, fig.height=2.9>>=
+ggplot(auto, aes(x = cyl_f, y = mpg)) +
+  geom_boxplot(fill = "#E8EEF7", colour = "#2C5AA0") +
+  labs(x = "Cylinders", y = "mpg") + theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Sa më shumë cilindra, aq më pak mpg, me përjashtim të grupit me 3.
+    \item<2-> Por grupet me 3 dhe 5 cilindra kanë vetëm \Sexpr{sum(auto$cylinders == 3)} dhe \Sexpr{sum(auto$cylinders == 5)} makina.
+  \end{itemize}
+  \onslide<3->{\begin{Gabim}Mos nxirr përfundime nga një boxplot me 3--4 vrojtime. Gjithmonë shkruaj $n$ e çdo grupi.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile]{Lidhja jolineare: mpg dhe fuqia}
+<<cs-smooth, fig.height=2.9>>=
+ggplot(auto, aes(x = horsepower, y = mpg)) +
+  geom_point(alpha = 0.4, colour = "#2C5AA0") +
+  geom_smooth(method = "loess", se = FALSE, colour = "#D97706") +
+  labs(x = "Horsepower", y = "mpg") + theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Kurba portokalli ndjek formën e të dhënave pa supozuar vijë të drejtë.
+    \item<2-> Rënia është e fortë deri rreth 150--170 kuaj-fuqi, pastaj kurba gati rrafshohet.
+    \item<3-> Një vijë e drejtë do të gabonte në skajet. Këtë problem e zgjidhim në Javën 8.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab6]{Gjej gabimin!}
+<<line-bug, fig.height=2.2, out.width="0.55\\textwidth">>=
+ggplot(auto, aes(x = year_full, y = mpg)) + geom_line()
+@
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Studenti donte vijën e mesatares vjetore. Pse grafiku duket si dhëmbë sharre? Si rregullohet?
+  \end{Ushtrim}
+  \shkoTe{zgjGab6}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Hapi 4: përfundimet}
+% ------------------------------------------------------------
+
+\begin{frame}{Përfundimet e analizës \LO{C1}}
+  \begin{enumerate}
+    \item<1-> \texttt{mpg} ka mesatare \Sexpr{fmt(mean(auto$mpg), 1)} dhe është e anuar djathtas.
+    \item<2-> Lidhja me peshën është e fortë dhe negative: $r=\Sexpr{fmt(cor(auto$weight, auto$mpg), 2)}$.
+    \item<3-> Lidhja me fuqinë është negative dhe jolineare.
+    \item<4-> Makinat japoneze kanë mpg më të lartë, por janë edhe më të lehta.
+    \item<5-> mpg mesatar u rrit me rreth \Sexpr{fmt(mean(auto$mpg[auto$year == 82]) - mean(auto$mpg[auto$year == 70]), 0)} mpg nga 1970 në 1982.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Çfarë \textbf{nuk} mund të themi}
+  \begin{itemize}
+    \item<1-> Nuk mund të themi që origjina \emph{shkakton} mpg të lartë: pesha është ngatërruese.
+    \item<2-> Nuk mund të përgjithësojmë për makinat e sotme: të dhënat janë 1970--1982.
+    \item<3-> Nuk kemi bërë ende asnjë test statistikor: këto janë përshkrime, jo prova.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Në detyrën e kursit, një seksion ``Kufizimet'' tregon pjekuri statistikore.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Mendo -- Diskuto -- Ndaj}
+  \begin{Ushtrim}[(think--pair--share, 5 minuta)]
+    \begin{enumerate}
+      \item \textbf{Mendo}: cila pyetje mbi \texttt{Auto} do të donit të testonit statistikisht?
+      \item \textbf{Diskuto}: çfarë metode duhet? (korrelacion, krahasim grupesh, model?)
+      \item \textbf{Ndaj}: tri çifte shkruajnë pyetjen dhe metodën në tabelë.
+    \end{enumerate}
+  \end{Ushtrim}
+  \begin{itemize}
+    \item Do t'u kthehemi këtyre pyetjeve në Javët 3--8.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Dataset i dytë: Advertising}
+% ------------------------------------------------------------
+
+\begin{frame}{Të dhënat \texttt{Advertising}}
+  \begin{itemize}
+    \item<1-> 200 tregje. Për secilin: buxheti i reklamës në \texttt{TV}, \texttt{radio}, \texttt{newspaper} (mijë \$) dhe shitjet \texttt{sales} (mijë njësi).
+    \item<2-> Pyetja: cili kanal reklame lidhet më fort me shitjet?
+    \item<3-> Të dhëna: reale (burimi: James et al., \emph{ISLR}, kap.\ 2--3; skedari nga repo-ja DS612). Nuk ndodhet në paketën \texttt{ISLR2}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Importimi dhe një kurth i vogël}
+<<adv-read>>=
+adv <- read.csv(file.path(W01DATA, "Advertising.csv"))
+names(adv)
+adv <- adv[, -1]          # drop the unnamed row-number column "X"
+dim(adv)
+@
+  \begin{Gabim}Kolona \texttt{X} është numri i rreshtit i ruajtur nga Excel-i. Si ``variabël'' nuk ka kuptim.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Përmbledhja}
+<<adv-summary>>=
+summary(adv)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Shitjet kundrejt tre kanaleve}
+<<adv-plot, fig.height=2.6, fig.width=8, out.width="0.9\\textwidth">>=
+par(mfrow = c(1, 3), mar = c(4, 4, 1, 1))
+for (v in c("TV", "radio", "newspaper"))
+  plot(adv[[v]], adv$sales, pch = 19, col = "#2C5AA066",
+       xlab = v, ylab = "sales")
+@
+\end{frame}
+
+\begin{frame}[label=pyetjeAdv]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Duke parë grafikët, rendit korrelacionet me \texttt{sales} nga më i forti te më i dobëti:\\[3pt]
+    \texttt{TV}, \quad \texttt{radio}, \quad \texttt{newspaper}.
+  \end{Parashiko}
+  \shkoTe{zgjAdv}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Lidhja me Javën 5}
+  \begin{itemize}
+    \item<1-> Te \texttt{TV} pikat ndjekin një prirje rritëse, gati lineare, që hapet si ``hinkë''.
+    \item<2-> Në Javën 5 ndërtojmë modelin $\texttt{sales} = \beta_0 + \beta_1\,\texttt{TV} + \varepsilon$.
+    \item<3-> ``Hinka'' do të thotë variancë jo konstante: e trajtojmë në Javën 7 (heteroskedasticiteti).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Panelet dhe dplyr}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Panelet me \texttt{facet\_wrap()} \Zgj}
+<<facet-code, eval=FALSE>>=
+ggplot(auto, aes(x = weight, y = mpg)) +
+  geom_point(alpha = 0.5, colour = "#2C5AA0") +
+  facet_wrap(~ origin) +                 # one panel per origin
+  labs(x = "Weight (lbs)", y = "mpg") + theme_minimal()
+@
+  \begin{itemize}
+    \item Një rresht shtesë ndan grafikun në panele me boshte të përbashkëta.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati \Zgj}
+<<facet-plot, echo=FALSE, fig.height=2.8, fig.width=8, out.width="0.9\\textwidth">>=
+ggplot(auto, aes(x = weight, y = mpg)) +
+  geom_point(alpha = 0.5, colour = "#2C5AA0") +
+  facet_wrap(~ origin) +
+  labs(x = "Weight (lbs)", y = "mpg") + theme_minimal(base_size = 13)
+@
+  \begin{itemize}
+    \item Brenda çdo origjine, mpg ulet me peshën: $r$ = \Sexpr{paste(fmt(sapply(split(auto, auto$origin), function(d) cor(d$weight, d$mpg)), 2), collapse = ", ")} (American, European, Japanese).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{dplyr} dhe operatori \texttt{|>} \Zgj}
+<<dplyr-intro>>=
+library(dplyr)
+auto |>
+  filter(cylinders == 4) |>          # keep rows
+  select(name, mpg, weight) |>       # keep columns
+  arrange(desc(mpg)) |>              # sort
+  head(3)
+@
+  \begin{itemize}
+    \item \texttt{x |> f()} lexohet: ``merr \texttt{x}, pastaj zbato \texttt{f}''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{group\_by()} dhe \texttt{summarise()} \Zgj}
+<<dplyr-group>>=
+auto |>
+  group_by(origin) |>
+  summarise(n = n(), mean_mpg = mean(mpg),
+            mean_weight = mean(weight), .groups = "drop")
+@
+  \begin{itemize}
+    \item I njëjti rezultat si \texttt{aggregate()}, por më i lexueshëm për hapa të shumtë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushDplyr]{Radha jote! \Zgj}
+  \begin{Ushtrim}[(6 minuta)]
+    Me \texttt{dplyr}:
+    \begin{enumerate}
+      \item krijo variablën \texttt{period}: ``1970--76'' nëse \texttt{year <= 76}, përndryshe ``1977--82'' (ndihmë: \texttt{mutate()}, \texttt{ifelse()});
+      \item llogarit mesataren e \texttt{lp100} sipas \texttt{origin} dhe \texttt{period};
+      \item cila origjinë u përmirësua më shumë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjDplyr}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp6]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Pse \texttt{mean(235.215 / mpg)} nuk është e barabartë me \texttt{235.215 / mean(mpg)}?
+    \item Pse nuk mund të themi që origjina japoneze \emph{shkakton} mpg të lartë?
+    \item Pse e hoqëm kolonën e parë të \texttt{Advertising}?
+  \end{enumerate}
+  \shkoTe{zgjCp6}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item Rrjedha: importim $\rightarrow$ pastrim $\rightarrow$ përmbledhje $\rightarrow$ grafikë $\rightarrow$ përfundime.
+    \item Shndërrimet e reja ruhen si kolona të reja; skedari origjinal nuk preket.
+    \item \Rkey{tapply()}, \Rkey{aggregate()}, \Rkey{prop.table()} për grupet.
+    \item Grafikët zbuluan: lidhje jolineare, ngatërrim nga pesha, grupe të vogla.
+    \item Përfundimet shkruhen bashkë me kufizimet.
+  \end{itemize}
+  \begin{Keshille}Ora 7: kuizi, ushtrimet, fletë-kujtesa dhe pamja e Javës 2.\end{Keshille}
+\end{frame}
