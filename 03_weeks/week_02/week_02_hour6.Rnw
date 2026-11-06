@@ -1,0 +1,419 @@
+% ============================================================
+%  Java 2 · Ora 6 — Rast studimi: Boston dhe Wage
+%  Rezultatet: K1, S4, C1 (paraprak)
+% ============================================================
+
+\section{Rast studimi}
+
+\begin{frame}{Ora 6: Rast studimi --- Boston dhe Wage}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rasti 1: Boston}
+% ------------------------------------------------------------
+
+\begin{frame}{Pyetja: çfarë lidhet me çmimin e banesave? \LO{K1} \LO{S4}}
+  \begin{itemize}
+    \item<1-> \texttt{MASS::Boston}: 506 zona regjistrimi (\emph{census tracts}) në zonën e Bostonit, censi i 1970.
+    \item<2-> Burimi: Harrison \& Rubinfeld (1978), studim mbi çmimet dhe ajrin e pastër.
+    \item<3-> Sot nuk ndërtojmë model: bëjmë \textbf{EDA} që përgatit regresionin e Javës 5.
+  \end{itemize}
+  \onslide<4->{\footnotesize\textcolor{gray}{Të dhëna: reale (burimi: paketa \texttt{MASS}).}}
+\end{frame}
+
+\begin{frame}{Variablat që përdorim}
+  \footnotesize
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Variabla & Kuptimi \\ \midrule
+    \texttt{medv} & vlera mediane e banesave të zëna nga pronarët (mijë \$) \\
+    \texttt{crim} & shkalla e krimit për frymë \\
+    \texttt{rm} & numri mesatar i dhomave për banesë \\
+    \texttt{lstat} & \% e popullsisë me status të ulët social-ekonomik \\
+    \texttt{chas} & 1 nëse zona kufizohet me lumin Charles \\
+    \texttt{rad} & indeksi i aksesit në autostradat radiale \\ \bottomrule
+  \end{tabular}
+  \normalsize
+  \vspace{6pt}
+  \begin{itemize}
+    \item Të dhënat kanë edhe një kolonë mbi përbërjen racore të popullsisë. Nuk e përdorim dhe nuk e shfaqim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit të EDA-s}
+  \centering
+  \begin{tikzpicture}[>=Stealth,node distance=0.28cm,
+      st/.style={rectangle,rounded corners=2pt,draw=uptblue,fill=uptlight,font=\scriptsize,minimum width=3.8cm,minimum height=5.5mm,anchor=west}]
+    \node[st] (a) at (0,0) {1. Struktura: $n$, tipat};
+    \node[st,below=of a] (b) {2. Cilësia: mungesat, kodet};
+    \node[st,below=of b] (c) {3. Çdo variabël: qendra, forma};
+    \node[st] (d) at (5.2,0) {4. Vlerat e skajshme};
+    \node[st,below=of d] (e) {5. Grupet};
+    \node[st,below=of e] (f) {6. Lidhjet midis variablave};
+    \draw[->,uptmid,thick] (a)--(b);
+    \draw[->,uptmid,thick] (b)--(c);
+    \draw[->,uptmid,thick] (c.east)--++(0.3,0)|-(d.west);
+    \draw[->,uptmid,thick] (d)--(e);
+    \draw[->,uptmid,thick] (e)--(f);
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}
+    \item E njëjta listë vlen për detyrën e kursit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hapat 1--2: struktura dhe cilësia}
+<<boston-load>>=
+library(MASS)
+boston <- Boston[, c("medv", "crim", "rm", "lstat", "chas", "rad")]
+dim(boston)
+sapply(boston, class)
+colSums(is.na(boston))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 3: përmbledhja}
+<<boston-describe>>=
+round(psych::describe(boston[, c("medv", "crim", "rm", "lstat")])[,
+  c("mean", "sd", "median", "mad", "min", "max", "skew")], 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Asnjë vlerë që mungon. Të gjitha kolonat janë numerike, edhe \texttt{chas} dhe \texttt{rad} që janë kode.
+    \item<2-> \texttt{crim}: mesatarja \Sexpr{fmt(mean(boston$crim), 2)}, mediana \Sexpr{fmt(median(boston$crim), 2)}. Anshmëri ekstreme.
+    \item<3-> \texttt{rm} është gati simetrike; \texttt{medv} dhe \texttt{lstat} të anuara djathtas.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Çmimi: medv}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Histogrami i \texttt{medv}}
+<<medv-hist, fig.height=2.6>>=
+library(ggplot2)
+ggplot(boston, aes(medv)) +
+  geom_histogram(binwidth = 1, fill = "#E8EEF7", colour = "#2C5AA0") +
+  labs(x = "Median home value (thousand USD)", y = "Count") +
+  theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pjesa kryesore: rreth 15--25 mijë \$, me bisht djathtas.
+    \item<2-> Por te 50 ka një shtyllë të çuditshme: më e lartë se fqinjët e saj.
+    \item<3-> Pse do të kishte kaq shumë zona me çmim mediane saktësisht 50?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeCap]{Parashiko!}
+  \begin{Parashiko}
+    Sa zona kanë \texttt{medv} saktësisht 50.0? Dhe sa kanë midis 49 dhe 50?\\[3pt]
+    Shkruaj komandën R para se ta ekzekutosh.
+  \end{Parashiko}
+  \shkoTe{zgjCap}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Vlerat më të larta të \texttt{medv}}
+<<medv-top>>=
+sum(boston$medv == 50)
+head(sort(boston$medv, decreasing = TRUE), 20)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon? Vlerë e kufizuar}
+  \begin{Definicion}[(Kufizimi nga lart, \emph{top-coding})]
+    Çdo vlerë mbi një prag $c$ regjistrohet si $c$.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item \Sexpr{sum(boston$medv == 50)} zona kanë 50.0, pastaj vlera më e madhe është \Sexpr{max(boston$medv[boston$medv < 50])}.
+    \pause
+    \item Kjo është shenjë e qartë që \texttt{medv} është kufizuar te 50: vlera e vërtetë mund të jetë 60 ose 80.
+  \end{itemize}
+  \pause
+  \begin{Keshille}Anketat e të ardhurave shpesh kufizojnë vlerat shumë të larta për të mbrojtur konfidencialitetin e të anketuarve.\end{Keshille}
+\end{frame}
+
+\begin{frame}{Pse ka rëndësi?}
+  \begin{itemize}
+    \item<1-> Mesatarja e \texttt{medv} është e \textbf{nënvlerësuar}: 50 është kufi i poshtëm i vlerës së vërtetë.
+    \item<2-> Mediana dhe kuartilet nuk preken, sepse kufizimi prek më pak se 4\% të zonave.
+    \item<3-> Në regresion (Java 5), këto pika do të shfaqen si mbetje të çuditshme.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}T'i trajtosh vlerat 50 si çmime të vërteta. Opsionet: raporto masa të qëndrueshme, analizo me dhe pa to, ose përdor modele për të dhëna të censuruara.\end{Gabim}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Krimi: crim}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{crim}: një variabël ekstreme}
+<<crim-q>>=
+quantile(boston$crim, c(0.5, 0.9, 0.99, 1))
+e1071::skewness(boston$crim, type = 1)
+e1071::skewness(log(boston$crim), type = 1)
+@
+  \begin{itemize}
+    \item Gjysma e zonave kanë \texttt{crim} nën \Sexpr{fmt(median(boston$crim), 2)}; zona më e keqe ka \Sexpr{fmt(max(boston$crim), 1)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{crim} në dy shkallë}
+<<crim-plot, echo=FALSE, fig.height=2.6, fig.width=8, out.width="0.92\\textwidth">>=
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+hist(boston$crim, breaks = 40, main = "crim", xlab = "crim",
+     col = "#E8EEF7", border = "#2C5AA0")
+hist(log(boston$crim), breaks = 30, main = "log(crim)", xlab = "log(crim)",
+     col = "#E8EEF7", border = "#2C5AA0")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Në shkallë origjinale: pothuajse çdo gjë është afër 0, me një bisht shumë të gjatë.
+    \item<2-> Në shkallë logaritmike: anshmëria bie nga \Sexpr{fmt(e1071::skewness(boston$crim, type = 1), 1)} në \Sexpr{fmt(e1071::skewness(log(boston$crim), type = 1), 1)}, dhe dalin dy grupe zonash.
+    \item<3-> Për \texttt{crim}, logaritmi nuk është zgjedhje kozmetike: pa të, mesatarja dhe $s$ nuk thonë asgjë të dobishme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Vlerat e skajshme të \texttt{crim}}
+<<crim-out>>=
+q <- quantile(boston$crim, c(0.25, 0.75)); iqr <- diff(q)
+sum(boston$crim > q[2] + 1.5 * iqr)               # Tukey, original scale
+lq <- quantile(log(boston$crim), c(0.25, 0.75)); liqr <- diff(lq)
+sum(log(boston$crim) > lq[2] + 1.5 * liqr)        # Tukey, log scale
+@
+  \begin{Gabim}66 zona ``të skajshme'' në shkallë origjinale nuk janë gabime: janë zona reale me krim të lartë. Shkalla e gabuar krijon vlera të skajshme të rreme.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=ushCrim]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Llogarit $z$-në e qëndrueshme $(x-\tilde x)/\mathrm{MAD}$ për \texttt{log(crim)}. Sa zona kanë $|z|>3$?
+      \item Krahaso me numrin e vlerave të shënuara nga rregulli i Tukey-t në shkallë log.
+      \item Në cilën shkallë do ta raportonit \texttt{crim}? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjCrim}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Grupet dhe lidhjet}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Grupet: zonat pranë lumit}
+<<chas>>=
+table(boston$chas)
+tapply(boston$medv, boston$chas, median)
+@
+  \begin{itemize}
+    \item Vetëm \Sexpr{sum(boston$chas == 1)} zona kufizohen me lumin: grup i vogël.
+    \item Mediana e çmimit është më e lartë pranë lumit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Boxplot i \texttt{medv} sipas \texttt{chas}}
+<<chas-box, echo=FALSE, fig.height=2.7>>=
+ggplot(boston, aes(x = factor(chas, labels = c("No", "Yes")), y = medv)) +
+  geom_boxplot(fill = "#E8EEF7", colour = "#2C5AA0") +
+  geom_jitter(width = 0.15, alpha = 0.25, size = 0.8) +
+  labs(x = "Bounds Charles River", y = "medv") + theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: kodi që duket si numër}
+<<rad>>=
+table(boston$rad)
+mean(boston$rad)        # computable, but meaningless
+@
+  \begin{Gabim}\texttt{rad} është indeks me kategori; vlera 24 nuk është ``3 herë më shumë'' se 8. \Sexpr{sum(boston$rad == 24)} zona kanë kodin 24: trajtoje si faktor ose si grup.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Lidhjet: \texttt{medv} me \texttt{lstat} dhe \texttt{rm}}
+<<rel-plot, echo=FALSE, fig.height=2.7, fig.width=8, out.width="0.92\\textwidth">>=
+par(mfrow = c(1, 2), mar = c(4, 4, 1, 1))
+plot(boston$lstat, boston$medv, pch = 19, col = "#2C5AA055", xlab = "lstat", ylab = "medv")
+plot(boston$rm, boston$medv, pch = 19, col = "#2C5AA055", xlab = "rm", ylab = "medv")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{lstat}: lidhje negative dhe e lakuar; $r=\Sexpr{fmt(cor(boston$lstat, boston$medv), 3)}$.
+    \item<2-> \texttt{rm}: lidhje pozitive, gati lineare në mes; $r=\Sexpr{fmt(cor(boston$rm, boston$medv), 3)}$.
+    \item<3-> Në të dy grafikët, vija horizontale e pikave te 50 është kufizimi që gjetëm.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeLog]{Parashiko!}
+  \begin{Parashiko}
+    Lidhja \texttt{medv}--\texttt{lstat} është e lakuar. Nëse marrim logaritmin e të dyjave, a do të jetë $|r|$ më i madh apo më i vogël se \Sexpr{fmt(abs(cor(boston$lstat, boston$medv)), 3)}?
+  \end{Parashiko}
+  \shkoTe{zgjLog}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rasti 2: pagat e larta}
+% ------------------------------------------------------------
+
+\begin{frame}{Kush janë punëtorët me paga shumë të larta?}
+  \begin{itemize}
+    \item<1-> Në Orët 1--5 pamë një grup të veçuar pagash mbi 250 mijë \$.
+    \item<2-> Pyetja e EDA-s: a është grup real, gabim, apo artefakt i përpunimit të të dhënave?
+    \item<3-> Hapi i parë: shiko vlerat rreth boshllëkut.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Vlerat rreth boshllëkut}
+<<wage-gap>>=
+wage <- read.csv(file.path(W02DATA, "Wage.csv"))
+s <- sort(wage$wage)
+hi <- wage$wage > 250
+c(n_high = sum(hi), max_below = max(s[s < 250]), min_above = min(s[s > 250]))
+round(tail(s[s < 250], 3), 1); round(head(s[s > 250], 3), 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Asnjë pagë midis \Sexpr{fmt(max(s[s < 250]), 1)} dhe \Sexpr{fmt(min(s[s > 250]), 1)} mijë \$.
+    \item<2-> \Sexpr{sum(hi)} punëtorë (\Sexpr{fmt(100 * mean(hi), 1)}\%) janë mbi boshllëk.
+    \item<3-> Një boshllëk kaq i pastër në një variabël të vazhdueshme është i dyshimtë: mund të jetë mënyrë kodimi ose përpunimi.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Hapi tjetër në praktikë: lexo dokumentacionin e burimit dhe pyet ofruesin e të dhënave. Mos hamendëso.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Arsimi i pagave të larta}
+<<wage-edu-high>>=
+edu <- factor(wage$education)                 # same 5 levels in both tables
+round(rbind(high = prop.table(table(edu[hi])),
+            all  = prop.table(table(edu))), 3)
+@
+  \begin{itemize}
+    \item Grupi i lartë nuk ka asnjë punëtor me arsim nën të mesëm.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Përbërja: grafik}
+<<wage-edu-bar, echo=FALSE, fig.height=2.6>>=
+eb <- rbind(data.frame(group = "wage > 250", education = wage$education[hi]),
+            data.frame(group = "all workers", education = wage$education))
+ggplot(eb, aes(x = group, fill = education)) +
+  geom_bar(position = "fill") +
+  scale_fill_brewer(palette = "Blues") +
+  labs(x = NULL, y = "Share", fill = NULL) + coord_flip() +
+  theme_minimal(base_size = 12)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \Sexpr{fmt(100 * mean(wage$education[hi] == "5. Advanced Degree"), 0)}\% e grupit të lartë kanë diplomë pasuniversitare, kundrejt \Sexpr{fmt(100 * mean(wage$education == "5. Advanced Degree"), 0)}\% në total.
+    \item<2-> Grupi duket \textbf{real}, me profil të qartë, dhe jo gabim i rastësishëm.
+    \item<3-> Por boshllëku i pagave mbetet pyetje për burimin e të dhënave.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Paga sipas moshës}
+<<wage-age, echo=FALSE, fig.height=2.7>>=
+ggplot(wage[!hi, ], aes(x = age, y = wage)) +
+  geom_point(alpha = 0.15, colour = "#2C5AA0") +
+  stat_summary_bin(fun = median, bins = 12, geom = "line",
+                   colour = "#D97706", linewidth = 1.3) +
+  labs(x = "Age", y = "Wage (thousand USD), wage <= 250") +
+  theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mediana rritet deri rreth 40--50 vjeç, pastaj bie pak: formë ``U'' e përmbysur.
+    \item<2-> Lidhja nuk është lineare: një vijë e drejtë do të gabonte në të dy skajet.
+    \item<3-> Këtë formë e modelojmë me polinome dhe splines në Javën 8.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Raporti i EDA-s}
+% ------------------------------------------------------------
+
+\begin{frame}{Struktura e një raporti EDA}
+  \begin{enumerate}
+    \item \textbf{Të dhënat}: burimi, $n$, variablat, njësitë.
+    \item \textbf{Cilësia}: mungesat, kodet, kufizimet, boshllëqet.
+    \item \textbf{Çdo variabël}: qendra, shpërndarja, forma, shkalla e zgjedhur.
+    \item \textbf{Grupet}: tabela me $n$, medianë, IQR.
+    \item \textbf{Lidhjet}: grafikë shpërndarjeje, forma e lidhjes.
+    \item \textbf{Kufizimet} dhe pyetjet e hapura.
+  \end{enumerate}
+  \begin{Keshille}Kjo është struktura e kërkuar për pjesën EDA të detyrës së kursit.\end{Keshille}
+\end{frame}
+
+\begin{frame}{Raporti EDA për \texttt{Boston} \LO{C1}}
+  \begin{enumerate}
+    \item<1-> 506 zona, pa mungesa. \texttt{chas} dhe \texttt{rad} janë kode, jo sasi.
+    \item<2-> \texttt{medv} është kufizuar te 50 (\Sexpr{sum(boston$medv == 50)} zona): mesatarja \Sexpr{fmt(mean(boston$medv), 2)} është e nënvlerësuar.
+    \item<3-> \texttt{crim} ka anshmëri \Sexpr{fmt(e1071::skewness(boston$crim, type = 1), 1)}: raportohet në shkallë log.
+    \item<4-> Zonat pranë lumit (\Sexpr{sum(boston$chas == 1)}) kanë medianë më të lartë, por grupi është i vogël.
+    \item<5-> \texttt{medv} lidhet fort me \texttt{lstat} (e lakuar) dhe me \texttt{rm}.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Mendo -- Diskuto -- Ndaj}
+  \begin{Ushtrim}[(think--pair--share, 5 minuta)]
+    Në Javën 5 do të ndërtojmë regresionin \texttt{medv \textasciitilde{} lstat}.
+    \begin{enumerate}
+      \item Çfarë problemi krijojnë 16 zonat me \texttt{medv = 50}?
+      \item A do t'i hiqnit? Çfarë humbet nëse i hiqni?
+      \item Çfarë do të shkruanit në seksionin ``Kufizimet''?
+    \end{enumerate}
+  \end{Ushtrim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Matrica e grafikëve}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{psych::pairs.panels()} \Zgj}
+<<pairs-panels, fig.height=4.4, fig.width=6.5, out.width="0.44\\textwidth">>=
+psych::pairs.panels(data.frame(medv = boston$medv, log_crim = log(boston$crim),
+                               rm = boston$rm, lstat = boston$lstat),
+                    hist.col = "#E8EEF7", density = TRUE, ellipses = FALSE)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon? \Zgj}
+  \begin{itemize}
+    \item<1-> Diagonalja: histogrami dhe dendësia e çdo variabli.
+    \item<2-> Poshtë: grafikët e shpërndarjes me kurbë të lëmuar.
+    \item<3-> Lart: koeficientët e korrelacionit, pikërisht tema e Javës 3.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp26]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Si e zbuluat që \texttt{medv} është e kufizuar? Pse e nënvlerëson mesataren?
+    \item Pse 66 vlerat e skajshme të \texttt{crim} nuk duhen hequr?
+    \item Pse \texttt{mean(boston\$rad)} nuk ka kuptim?
+  \end{enumerate}
+  \shkoTe{zgjCp26}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item EDA ndjek një listë: struktura, cilësia, variablat, vlerat e skajshme, grupet, lidhjet.
+    \item Gjetjet e ditës: kufizimi i \texttt{medv} te 50, anshmëria ekstreme e \texttt{crim}, kodet si \texttt{rad}.
+    \item Te pagat: grup real i pagave të larta, por me boshllëk të dyshimtë; lidhje jolineare me moshën.
+    \item Raporti EDA përfshin gjithmonë kufizimet.
+  \end{itemize}
+  \begin{Keshille}Ora 7: kuizi, ushtrimet për shtëpi dhe fletë-kujtesa.\end{Keshille}
+\end{frame}

@@ -1,0 +1,50 @@
+% ============================================================
+%  Java 2 · Ora 6 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjCap]{Zgjidhja: Parashiko (vlerat 50)}
+<<sol-cap>>=
+sum(MASS::Boston$medv == 50)
+sum(MASS::Boston$medv > 49 & MASS::Boston$medv < 50)
+@
+  \begin{itemize}
+    \item 16 zona me saktësisht 50, asnjë midis 49 dhe 50: shenja e kufizimit.
+  \end{itemize}
+  \vfill\kthehu{pyetjeCap}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjCrim]{Zgjidhja: Radha jote! (\texttt{log(crim)})}
+<<sol-crim>>=
+lc <- log(MASS::Boston$crim)
+rz <- (lc - median(lc)) / mad(lc)       # robust z-score
+c(robust_z = sum(abs(rz) > 3),
+  tukey_log = sum(lc < quantile(lc, 0.25) - 1.5 * IQR(lc) |
+                  lc > quantile(lc, 0.75) + 1.5 * IQR(lc)))
+@
+  \begin{itemize}
+    \item Në shkallë log, pothuajse asnjë zonë nuk është ``e skajshme''. Raporto \texttt{crim} në shkallë log, ose me medianë dhe kuantile.
+  \end{itemize}
+  \vfill\kthehu{ushCrim}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjLog]{Zgjidhja: Parashiko (logaritmi dhe $r$)}
+<<sol-log>>=
+b6 <- MASS::Boston
+round(c(original = cor(b6$lstat, b6$medv),
+        log_log  = cor(log(b6$lstat), log(b6$medv))), 3)
+@
+  \begin{itemize}
+    \item $|r|$ rritet: në shkallë log, lidhja është më afër vijës së drejtë.
+    \item Korrelacioni i Pearson-it mat lidhjen \emph{lineare}: tema e Javës 3.
+  \end{itemize}
+  \vfill\kthehu{pyetjeLog}
+\end{frame}
+
+\begin{frame}[label=zgjCp26]{Përgjigjet: Checkpoint i Orës 6}
+  \begin{enumerate}
+    \item Shtylla e çuditshme te 50 në histogram; 16 vlera saktësisht 50 dhe asnjë midis 49 e 50. Vlera e vërtetë e këtyre zonave është $\ge 50$.
+    \item Janë zona reale me krim të lartë; ``të skajshme'' duken vetëm në shkallë origjinale.
+    \item \texttt{rad} është indeks kategorish; mesatarja e kodeve nuk ka kuptim.
+  \end{enumerate}
+  \vfill\kthehu{cp26}
+\end{frame}

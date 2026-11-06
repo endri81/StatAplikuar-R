@@ -9,9 +9,8 @@ w5 |>
   group_by(education) |>
   summarise(n = n(), median = median(wage), IQR = IQR(wage),
             mad = mad(wage), .groups = "drop") |>
-  arrange(desc(median))
+  arrange(desc(median))     # Advanced Degree: highest median and IQR
 @
-  ``Advanced Degree'' ka medianën dhe IQR-në më të madhe.
   \vfill\kthehu{ushGrp}
 \end{frame}
 
