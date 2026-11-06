@@ -1,0 +1,503 @@
+% ============================================================
+%  Java 2 · Ora 4 — Teori II: forma, shndërrimet, vlerat e skajshme
+%  Rezultatet: K1, S1
+%  Material plotësues (jashtë repo-s DS612)
+% ============================================================
+
+\section{Forma}
+
+\begin{frame}{Ora 4: Forma e shpërndarjes dhe vlerat e skajshme}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Forma e shpërndarjes}
+% ------------------------------------------------------------
+
+\begin{frame}{Tri forma bazë \Plotesues}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[name=l,width=4.6cm,height=3.6cm,xmin=0,xmax=10,ymin=0,ymax=0.3,axis lines=left,
+      title={\scriptsize e anuar majtas},ticks=none,samples=80]
+      \addplot[uptmid,very thick,domain=0.01:10]{(10-x)^2*exp(-(10-x))/2};
+    \end{axis}
+    \begin{axis}[name=m,at={(l.east)},anchor=west,xshift=0.5cm,width=4.6cm,height=3.6cm,xmin=-3.5,xmax=3.5,ymin=0,ymax=0.45,axis lines=left,
+      title={\scriptsize simetrike},ticks=none,samples=80]
+      \addplot[uptmid,very thick,domain=-3.5:3.5]{exp(-x^2/2)/sqrt(2*pi)};
+    \end{axis}
+    \begin{axis}[name=r,at={(m.east)},anchor=west,xshift=0.5cm,width=4.6cm,height=3.6cm,xmin=0,xmax=10,ymin=0,ymax=0.3,axis lines=left,
+      title={\scriptsize e anuar djathtas},ticks=none,samples=80]
+      \addplot[uptmid,very thick,domain=0:10]{x^2*exp(-x)/2};
+      \draw[okgreen,thick] (axis cs:2,0)--(axis cs:2,0.27);
+      \draw[accent,thick,dashed] (axis cs:2.674,0)--(axis cs:2.674,0.25);
+      \draw[warnred,thick,dotted] (axis cs:3,0)--(axis cs:3,0.23);
+    \end{axis}
+  \end{tikzpicture}
+  \vspace{4pt}
+  \begin{itemize}
+    \item Djathtas, për Gamma(3, 1): \textcolor{okgreen}{moda 2} $<$ \textcolor{accent}{mediana 2.67} $<$ \textcolor{warnred}{mesatarja 3}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Rregulli i zakonshëm, dhe kufiri i tij}
+  \begin{itemize}
+    \item<1-> Anshmëri djathtas: zakonisht moda $<$ mediana $<$ mesatarja.
+    \item<2-> Anshmëri majtas: zakonisht mesatarja $<$ mediana $<$ moda.
+    \item<3-> Simetrike: të treja përputhen.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Ky është rregull praktik, jo teoremë. Ka shpërndarje (sidomos diskrete ose bimodale) ku renditja prishet.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[label=pyetjeShape]{Pyetje me zgjedhje}
+  \begin{Ushtrim}
+    Çfarë forme presim për secilën variabël?
+    \begin{enumerate}
+      \item Koha midis dy ardhjeve të klientëve në një sportel.
+      \item Pikët në një provim shumë të lehtë (maksimumi 100).
+      \item Gjatësia e trupit e meshkujve të rritur.
+      \item Të ardhurat vjetore të familjeve.
+    \end{enumerate}
+    Opsionet: \textbf{M} = majtas, \textbf{S} = simetrike, \textbf{D} = djathtas.
+  \end{Ushtrim}
+  \shkoTe{zgjShape}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Anshmëria dhe kurtoza}
+% ------------------------------------------------------------
+
+\begin{frame}{Momentet qendrore të mostrës}
+  \begin{Definicion}[(Momenti qendror i rendit $k$)]
+    \[ m_k=\frac1n\sum_{i=1}^{n}(x_i-\bar x)^k \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item $m_1=0$ gjithmonë; $m_2$ = varianca me emërues $n$.
+    \pause
+    \item $m_3$: shenja tregon nga cila anë është bishti më i gjatë.
+    \pause
+    \item $m_4$: sa peshë kanë vlerat larg qendrës.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Anshmëria (\emph{skewness})}
+  \begin{Definicion}[(Koeficienti i anshmërisë)]
+    \[ g_1=\frac{m_3}{m_2^{3/2}} \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Pa njësi: nuk ndryshon kur kalojmë nga lekë në euro.
+    \pause
+    \item $g_1>0$: bisht djathtas. $g_1<0$: bisht majtas. $g_1\approx0$: simetri.
+    \pause
+    \item Pse fuqia 3? Ruan shenjën e devijimit, ndryshe nga katrori.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  $x=(1,\ 2,\ 3,\ 4,\ 10)$, \ $\bar x=4$.
+  \pause
+  \begin{enumerate}
+    \item Devijimet: $-3,\ -2,\ -1,\ 0,\ 6$.
+    \pause
+    \item $m_2=(9+4+1+0+36)/5=50/5=10$.
+    \pause
+    \item $m_3=(-27-8-1+0+216)/5=180/5=36$.
+    \pause
+    \item $g_1=36/10^{3/2}=36/31.62\approx1.138$.
+  \end{enumerate}
+  \pause
+  \begin{itemize}
+    \item Vlera 10 jep 216 nga 180 neto: ajo vendos shenjën dhe madhësinë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<skew-check>>=
+moment_c <- function(v, k) mean((v - mean(v))^k)   # central moment, divisor n
+my_skew <- function(v) moment_c(v, 3) / moment_c(v, 2)^1.5
+x <- c(1, 2, 3, 4, 10)
+my_skew(x)
+library(e1071)
+skewness(x, type = 1)       # same definition as ours
+@
+\end{frame}
+
+\begin{frame}{Kurtoza (\emph{excess kurtosis})}
+  \begin{Definicion}[(Kurtoza e tepërt)]
+    \[ g_2=\frac{m_4}{m_2^{2}}-3 \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Për shpërndarjen normale, $m_4/m_2^2\to3$; prandaj zbresim 3.
+    \pause
+    \item $g_2>0$: bishta më të rëndë se normalja: më shumë vlera ekstreme.
+    \pause
+    \item $g_2<0$: bishta më të lehtë, p.sh.\ uniformja ($g_2=-1.2$).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabime të zakonshme me kurtozën}
+  \begin{Gabim}[--- kurtoza]
+    \begin{itemize}
+      \item ``Kurtoza mat sa e mprehtë është maja.'' Jo: mat kryesisht peshën e \textbf{bishtave}.
+      \item Ngatërrimi i kurtozës ($m_4/m_2^2$, normalja $=3$) me kurtozën e tepërt (normalja $=0$). Shkruaj gjithmonë cilën përdor.
+    \end{itemize}
+  \end{Gabim}
+  \begin{itemize}
+    \item \texttt{e1071::kurtosis()} dhe \texttt{psych::describe()} japin kurtozën e \emph{tepërt}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Tre përkufizime në \texttt{e1071}}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \texttt{type} & Anshmëria & Ku përdoret \\ \midrule
+    1 & $g_1$ & tekstet klasike \\
+    2 & $G_1=g_1\sqrt{n(n-1)}/(n-2)$ & SAS, SPSS, Excel \\
+    3 & $b_1=g_1\big((n-1)/n\big)^{3/2}$ & parazgjedhja e \texttt{e1071}, MINITAB \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Për $n$ të madh, të tre përputhen. Për $n<30$, dallimet janë të dukshme.
+    \item Si me kuantilet: raporto përkufizimin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushSkew]{Radha jote!}
+  \begin{Ushtrim}[(pa ndihmën e PC, 5 minuta)]
+    Për $y=(2,\ 2,\ 3,\ 5,\ 8)$:
+    \begin{enumerate}
+      \item Llogarit $\bar y$ dhe devijimet.
+      \item Llogarit $m_2$ dhe $m_3$.
+      \item Llogarit $g_1$ (3 shifra pas presjes). Çfarë forme ka shpërndarja?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSkew}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulimi: vlerësimi kundrejt së vërtetës}
+% ------------------------------------------------------------
+
+\begin{frame}{Tri shpërndarje me parametra të njohur}
+  \footnotesize
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Shpërndarja & Mesatarja & Mediana & Anshmëria & Kurtoza e tepërt \\ \midrule
+    $N(0,1)$ & 0 & 0 & 0 & 0 \\
+    $\text{Exp}(1)$ & 1 & $\ln2\approx0.693$ & 2 & 6 \\
+    $\text{LogN}(0,\ 0.5^2)$ & $e^{0.125}\approx1.133$ & 1 & $\approx1.750$ & $\approx5.898$ \\ \bottomrule
+  \end{tabular}
+  \normalsize
+  \vspace{6pt}
+  \begin{itemize}
+    \item Për lognormalen me $\sigma^2$: anshmëria $=(e^{\sigma^2}+2)\sqrt{e^{\sigma^2}-1}$.
+    \item Këto janë ``e vërteta''. A i gjen R-ja nga një mostër?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Simulimi me $n = 100\,000$}
+<<sim-shapes>>=
+set.seed(2026)
+n <- 1e5
+samples <- list(normal = rnorm(n), exponential = rexp(n, rate = 1),
+                lognormal = rlnorm(n, meanlog = 0, sdlog = 0.5))
+est <- sapply(samples, function(v)
+  c(mean = mean(v), median = median(v),
+    skew = skewness(v, type = 1), kurt = kurtosis(v, type = 1)))
+round(est, 3)
+@
+  \begin{itemize}
+    \item Të dhëna: sintetike, \texttt{set.seed(2026)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vlerësimi kundrejt së vërtetës}
+  \footnotesize
+  \begin{tabular}{@{}lcccccc@{}}
+    \toprule
+     & \multicolumn{2}{c}{Exponential} & \multicolumn{2}{c}{Lognormal} & \multicolumn{2}{c}{Normal} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+    & e vërteta & vlerësimi & e vërteta & vlerësimi & e vërteta & vlerësimi \\ \midrule
+    Mesatarja & 1 & \Sexpr{fmt(est["mean","exponential"],3)} & 1.133 & \Sexpr{fmt(est["mean","lognormal"],3)} & 0 & \Sexpr{fmt(est["mean","normal"],3)} \\
+    Mediana & 0.693 & \Sexpr{fmt(est["median","exponential"],3)} & 1 & \Sexpr{fmt(est["median","lognormal"],3)} & 0 & \Sexpr{fmt(est["median","normal"],3)} \\
+    Anshmëria & 2 & \Sexpr{fmt(est["skew","exponential"],3)} & 1.750 & \Sexpr{fmt(est["skew","lognormal"],3)} & 0 & \Sexpr{fmt(est["skew","normal"],3)} \\
+    Kurtoza & 6 & \Sexpr{fmt(est["kurt","exponential"],3)} & 5.898 & \Sexpr{fmt(est["kurt","lognormal"],3)} & 0 & \Sexpr{fmt(est["kurt","normal"],3)} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mesatarja dhe mediana vlerësohen shumë mirë.
+    \item<2-> Anshmëria afër, kurtoza më pak: momentet e larta kërkojnë shumë të dhëna.
+    \item<3-> Pse? $m_4$ varet nga vlerat më ekstreme, që janë të rralla dhe ndryshojnë shumë nga mostra në mostër.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Sa e besueshme është $g_1$ me $n = 30$?}
+<<skew-n30>>=
+set.seed(2026)
+g1_30 <- replicate(1000, skewness(rnorm(30), type = 1))  # truth: 0
+c(sd = sd(g1_30), approx_se = sqrt(6 / 30),
+  share_abs_above_0.5 = mean(abs(g1_30) > 0.5))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Shpërndarja e $g_1$ për mostra normale me $n = 30$}
+<<skew-n30-plot, echo=FALSE, fig.height=3>>=
+library(ggplot2)
+ggplot(data.frame(g1 = g1_30), aes(g1)) +
+  geom_histogram(binwidth = 0.1, fill = "#E8EEF7", colour = "#2C5AA0") +
+  geom_vline(xintercept = 0, colour = "#D97706", linewidth = 1.1) +
+  labs(x = "Sample skewness g1 (n = 30, true value 0)", y = "Count") +
+  theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Edhe kur e vërteta është 0, në rreth \Sexpr{fmt(100 * mean(abs(g1_30) > 0.5), 0)}\% të mostrave $|g_1|>0.5$.
+    \item<2-> Gabimi standard i përafërt: $\sqrt{6/n}=\Sexpr{fmt(sqrt(6/30), 3)}$ për $n=30$.
+  \end{itemize}
+  \onslide<3->{\begin{Gabim}Me $n=30$, ``$g_1 = 0.4$, pra të dhënat janë të anuara'' nuk është përfundim i sigurt. Shiko edhe grafikun.\end{Gabim}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shndërrimet}
+% ------------------------------------------------------------
+
+\begin{frame}{Pse i shndërrojmë të dhënat?}
+  \begin{itemize}
+    \item<1-> Për ta bërë shpërndarjen më simetrike: mesatarja dhe $s$ bëhen më përfaqësuese.
+    \item<2-> Për të stabilizuar variancën midis grupeve (Java 4, ANOVA).
+    \item<3-> Për ta bërë një efekt shumëzues aditiv: $\log(a\cdot b)=\log a+\log b$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Pagat, çmimet, popullsitë dhe të ardhurat shpesh analizohen në shkallë logaritmike.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Logaritmi i pagave}
+<<wage-log>>=
+c(skew_wage = skewness(wage$wage, type = 1),
+  skew_logwage = skewness(log(wage$wage), type = 1))
+all.equal(wage$logwage, log(wage$wage))   # the file already has log(wage)
+@
+  \begin{itemize}
+    \item Anshmëria bie nga \Sexpr{fmt(skewness(wage$wage, type = 1), 2)} në \Sexpr{fmt(skewness(log(wage$wage), type = 1), 2)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{wage} dhe \texttt{log(wage)}}
+<<wage-log-plot, echo=FALSE, fig.height=2.8, fig.width=8, out.width="0.92\\textwidth">>=
+wl <- rbind(data.frame(scale = "wage", value = wage$wage),
+            data.frame(scale = "log(wage)", value = log(wage$wage)))
+wl$scale <- factor(wl$scale, levels = c("wage", "log(wage)"))
+ggplot(wl, aes(value)) +
+  geom_histogram(bins = 40, fill = "#E8EEF7", colour = "#2C5AA0") +
+  facet_wrap(~ scale, scales = "free") +
+  labs(x = NULL, y = "Count") + theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Në shkallë logaritmike, pjesa kryesore e shpërndarjes është gati simetrike.
+    \item<2-> Grupi i pagave shumë të larta mbetet i veçuar: logaritmi nuk e ``zhduk'' atë.
+    \item<3-> Kjo sugjeron një nëngrup të ndryshëm punëtorësh, jo vetëm një bisht të gjatë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Shndërrime të tjera dhe kurthet e tyre}
+<<log-zero>>=
+log(c(0, 1, 10))        # log(0) = -Inf
+log1p(c(0, 1, 10))      # log(1 + x): safe for counts with zeros
+sqrt(c(0, 1, 4, 9))     # milder than log, for counts
+@
+  \begin{Gabim}\texttt{log()} i një vlere 0 jep \texttt{-Inf} dhe e prish mesataren. Për numërime me zero përdor \texttt{log1p()} ose \texttt{sqrt()}.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Kthimi në shkallën origjinale}
+  \begin{itemize}
+    \item<1-> Mesatarja në shkallë log: $\overline{\log x}$.
+    \item<2-> Kthimi: $\exp\big(\overline{\log x}\big)$ = \termi{mesatarja gjeometrike}{geometric mean}.
+    \item<3-> Kjo \textbf{nuk} është mesatarja aritmetike: kujto $\overline{g(x)}\neq g(\bar x)$ nga Java 1.
+    \item<4-> Për lognormalen: mesatarja gjeometrike $=e^\mu=$ mediana.
+  \end{itemize}
+  \onslide<5->{\begin{Teoreme}[(AM--GM)]Për $x_i>0$: mesatarja gjeometrike $\le$ mesatarja aritmetike, me barazim vetëm kur të gjitha $x_i$ janë të barabarta.\end{Teoreme}}
+\end{frame}
+
+\begin{frame}[label=pyetjeGM]{Parashiko!}
+  \begin{Parashiko}
+    Për $x=(1,\ 10,\ 100)$, pa ndihmën e PC:
+    \begin{enumerate}
+      \item Sa është mesatarja aritmetike?
+      \item Sa është mesatarja gjeometrike $\exp\big(\overline{\log x}\big)$?
+    \end{enumerate}
+    (Ndihmë: përdor $\log_{10}$, rezultati është i njëjtë.)
+  \end{Parashiko}
+  \shkoTe{zgjGM}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Vlerat e skajshme}
+% ------------------------------------------------------------
+
+\begin{frame}{Çfarë është një vlerë e skajshme?}
+  \begin{Definicion}[(Vlerë e skajshme, \emph{outlier})]
+    Vrojtim që ndodhet larg pjesës kryesore të të dhënave.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item \textbf{Gabim}: shtypje, njësi (kg në vend të g), kod për ``mungon'' (999).
+    \pause
+    \item \textbf{Vlerë e vërtetë e rrallë}: një pagë menaxheri.
+    \pause
+    \item \textbf{Popullatë tjetër}: një vilë në të dhënat e apartamenteve.
+  \end{itemize}
+  \pause
+  \begin{Keshille}Statistika gjen vlerat e dyshimta; vendimin e merr njohja e fushës.\end{Keshille}
+\end{frame}
+
+\begin{frame}{Gardhet e Tukey-t}
+  \begin{columns}[c]
+    \column{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[x=0.38cm]
+        \draw[uptblue,thick,fill=uptlight] (3,0) rectangle (6,0.8);
+        \draw[accent,very thick] (4.2,0)--(4.2,0.8);
+        \draw[uptblue,thick] (1.6,0.4)--(3,0.4) (6,0.4)--(8.2,0.4);
+        \draw[warnred,dashed] (-1.5,-0.3)--(-1.5,1.1) (10.5,-0.3)--(10.5,1.1);
+        \fill[warnred] (11.5,0.4) circle (2pt);
+        \node[font=\tiny,below] at (3,0) {$Q_1$};
+        \node[font=\tiny,below] at (6,0) {$Q_3$};
+        \node[font=\tiny,text=warnred,above] at (-1.5,1.1) {$Q_1-1.5\,IQR$};
+        \node[font=\tiny,text=warnred,above] at (10.5,1.1) {$Q_3+1.5\,IQR$};
+      \end{tikzpicture}
+    \column{0.53\textwidth}
+      \begin{itemize}
+        \item Vlerë e dyshimtë: jashtë $[Q_1-1.5\,IQR,\ Q_3+1.5\,IQR]$.
+        \item Për të dhëna normale, vetëm rreth \Sexpr{fmt(100 * 2 * pnorm(-(qnorm(0.75) + 3 * qnorm(0.75))), 2)}\% bien jashtë.
+        \item Mbështetet te kuartilet: e qëndrueshme.
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Rregulli $z$ dhe versioni i qëndrueshëm}
+  \begin{itemize}
+    \item<1-> Rregulli $z$: e dyshimtë nëse $|z_i|=\left|\dfrac{x_i-\bar x}{s}\right|>3$.
+    \item<2-> Problemi: $\bar x$ dhe $s$ ndikohen nga vetë vlerat e skajshme.
+    \item<3-> Rregulli $z$ i qëndrueshëm: $\left|\dfrac{x_i-\tilde x}{\mathrm{MAD}}\right|>3$, me MAD të shkallëzuar.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Disa autorë përdorin pragun 3.5 për versionin e qëndrueshëm. Pragu është vendim, jo ligj.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC: efekti i maskimit}
+  $x=(2,3,3,4,5,6,40)$: \ $\bar x=9$, \ $s=13.74$, \ $\tilde x=4$, \ MAD $=1.4826$, \ $Q_1=3$, \ $Q_3=5.5$.
+  \pause
+  \begin{enumerate}
+    \item Rregulli $z$: $z_{40}=(40-9)/13.74\approx2.26<3$ $\Rightarrow$ \textbf{nuk} shënohet!
+    \pause
+    \item $z$ i qëndrueshëm: $(40-4)/1.4826\approx24.3>3$ $\Rightarrow$ shënohet.
+    \pause
+    \item Tukey: $Q_3+1.5\cdot2.5=9.25<40$ $\Rightarrow$ shënohet.
+  \end{enumerate}
+  \pause
+  \begin{Gabim}Vlera e skajshme e fryn $s$ aq shumë sa ``fshihet'' nga rregulli $z$. Ky quhet \termi{maskim}{masking}.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Funksioni për tri rregullat}
+<<flag-fun>>=
+flag_outliers <- function(v, k = 1.5) {
+  q <- quantile(v, c(0.25, 0.75)); iqr <- q[2] - q[1]
+  data.frame(value = v,
+             tukey  = v < q[1] - k * iqr | v > q[2] + k * iqr,
+             z      = abs((v - mean(v)) / sd(v)) > 3,
+             robust = abs((v - median(v)) / mad(v)) > 3)
+}
+flag_outliers(c(2, 3, 3, 4, 5, 6, 40))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Vlerat e skajshme te pagat}
+<<wage-flags>>=
+fl <- flag_outliers(wage$wage)
+colSums(fl[, c("tukey", "z", "robust")])      # how many flagged
+round(range(wage$wage[fl$tukey & wage$wage > median(wage$wage)]), 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Tukey shënon \Sexpr{sum(fl$tukey)} paga, rregulli $z$ \Sexpr{sum(fl$z)}, rregulli i qëndrueshëm \Sexpr{sum(fl$robust)}.
+    \item<2-> Rregulla të ndryshme, numra të ndryshëm: zgjedhja duhet raportuar.
+    \item<3-> Te pagat, këto vlera janë kryesisht të vërteta: punëtorë me paga shumë të larta.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Mos i fshi automatikisht vlerat e shënuara. Kontrollo burimin; nëse janë të vërteta, mbaji dhe përdor metoda të qëndrueshme, ose raporto me dhe pa to.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[label=ushK]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(4 minuta)]
+    Te \texttt{flag\_outliers(wage\$wage, k = ...)}:
+    \begin{enumerate}
+      \item Parashiko: a rritet apo zvogëlohet numri i vlerave të shënuara kur $k$ kalon nga 1.5 në 3?
+      \item Provo $k = 1.5,\ 2,\ 3$. Sa shënohen në secilin rast?
+      \item Tukey i quante vlerat jashtë $k=3$ ``shumë të largëta'' (\emph{far out}). A ka të tilla te pagat?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjK}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Box-Cox}
+% ------------------------------------------------------------
+
+\begin{frame}{Shndërrimi Box-Cox \Zgj}
+  \begin{Definicion}[(Box-Cox, $x>0$)]
+    \[ x^{(\lambda)}=\begin{cases}\dfrac{x^\lambda-1}{\lambda}, & \lambda\neq0\\[6pt] \log x, & \lambda=0\end{cases} \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Familje shndërrimesh: $\lambda=1$ asnjë ndryshim (zhvendosje), $\lambda=0.5$ rrënjë, $\lambda=0$ logaritëm.
+    \pause
+    \item $\lambda$ zgjidhet me maksimum përgjasie (\emph{maximum likelihood}).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Box-Cox për pagat \Zgj}
+<<boxcox, echo=-1, fig.height=2.7, fig.width=6, out.width="0.55\\textwidth">>=
+par(mar = c(4, 4, 1, 1))
+bc <- MASS::boxcox(lm(wage ~ 1, data = wage), lambda = seq(-1, 1, 0.05))
+bc$x[which.max(bc$y)]        # best lambda
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon? \Zgj}
+  \begin{itemize}
+    \item<1-> $\hat\lambda=\Sexpr{fmt(bc$x[which.max(bc$y)], 2)}$, afër 0: logaritmi është zgjedhje e arsyeshme.
+    \item<2-> Vijat e ndërprera në grafik japin intervalin 95\% për $\lambda$.
+    \item<3-> Në praktikë preferojmë vlerën ``e rrumbullakët'' brenda intervalit (0, 0.5, 1): interpretohet më lehtë.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp24]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 4}
+  \begin{enumerate}
+    \item Çfarë tregon shenja e $g_1$? Pse kurtoza nuk është ``maja''?
+    \item Pse rregulli $z$ mund të mos e gjejë një vlerë të skajshme?
+    \item Çfarë merr kur kthen në shkallë origjinale mesataren e $\log x$?
+  \end{enumerate}
+  \shkoTe{zgjCp24}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 4}
+  \begin{itemize}
+    \item Forma: anshmëria $g_1$ dhe kurtoza e tepërt $g_2$; momentet e larta kërkojnë shumë të dhëna.
+    \item Simulimi me parametra të njohur tregon sa mirë vlerësohet secila masë.
+    \item Logaritmi ul anshmërinë e pagave; kthimi jep mesataren gjeometrike.
+    \item Vlerat e skajshme: Tukey, $z$, $z$ i qëndrueshëm; kujdes nga maskimi.
+  \end{itemize}
+  \begin{Keshille}Ora 5: EDA me paketa: dendësia, violin, ECDF, Q--Q plot.\end{Keshille}
+\end{frame}

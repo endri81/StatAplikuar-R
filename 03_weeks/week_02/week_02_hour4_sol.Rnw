@@ -1,0 +1,61 @@
+% ============================================================
+%  Java 2 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjShape]{Zgjidhja: forma e shpërndarjes}
+  \begin{enumerate}
+    \item Koha midis ardhjeve: \textbf{D}. Shumica e intervaleve janë të shkurtra, disa shumë të gjata.
+    \item Provim shumë i lehtë: \textbf{M}. Shumica afër 100, pak studentë me pikë të ulëta.
+    \item Gjatësia e trupit: \textbf{S}, afërsisht normale.
+    \item Të ardhurat e familjeve: \textbf{D}, si pagat.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeShape}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjSkew]{Zgjidhja: Radha jote! (anshmëria)}
+  $\bar y=20/5=4$; devijimet $-2,-2,-1,1,4$; \
+  $m_2=(4+4+1+1+16)/5=5.2$; \ $m_3=(-8-8-1+1+64)/5=9.6$.
+  \[ g_1=9.6/5.2^{3/2}=9.6/11.858\approx0.810 \quad\Rightarrow\quad \text{e anuar djathtas.} \]
+<<sol-skew>>=
+e1071::skewness(c(2, 2, 3, 5, 8), type = 1)
+@
+  \vfill\kthehu{ushSkew}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjGM]{Zgjidhja: Parashiko (mesatarja gjeometrike)}
+  \begin{enumerate}
+    \item Aritmetike: $(1+10+100)/3=37$.
+    \item $\log_{10}$: $0,1,2$; mesatarja $=1$; kthimi: $10^1=10$.
+  \end{enumerate}
+<<sol-gm>>=
+v <- c(1, 10, 100)
+c(arithmetic = mean(v), geometric = exp(mean(log(v))))
+@
+  \begin{itemize}
+    \item $10<37$, siç thotë mosbarazimi AM--GM.
+  \end{itemize}
+  \vfill\kthehu{pyetjeGM}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjK]{Zgjidhja: Ndrysho parametrin ($k$ i Tukey-t)}
+<<sol-k>>=
+wk <- read.csv(file.path(W02DATA, "Wage.csv"))$wage
+q <- quantile(wk, c(0.25, 0.75)); iqr <- diff(q)
+sapply(c(k1.5 = 1.5, k2 = 2, k3 = 3), function(k)
+  sum(wk < q[1] - k * iqr | wk > q[2] + k * iqr))
+@
+  \begin{itemize}
+    \item Me $k$ më të madh, gardhet largohen: shënohen më pak vlera.
+    \item Grupi i pagave shumë të larta mbetet jashtë edhe me $k=3$.
+  \end{itemize}
+  \vfill\kthehu{ushK}
+\end{frame}
+
+\begin{frame}[label=zgjCp24]{Përgjigjet: Checkpoint i Orës 4}
+  \begin{enumerate}
+    \item $g_1>0$: bisht djathtas; $g_1<0$: bisht majtas. Kurtoza mat kryesisht peshën e bishtave.
+    \item Vlera e skajshme fryn $\bar x$ dhe $s$, prandaj $|z|$ i saj mbetet nën 3 (maskim).
+    \item Mesataren gjeometrike, jo mesataren aritmetike.
+  \end{enumerate}
+  \vfill\kthehu{cp24}
+\end{frame}
