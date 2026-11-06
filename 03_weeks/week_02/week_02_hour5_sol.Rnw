@@ -1,0 +1,55 @@
+% ============================================================
+%  Java 2 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjGrp]{Zgjidhja: Radha jote! (tabela sipas arsimit)}
+<<sol-grp>>=
+w5 <- read.csv(file.path(W02DATA, "Wage.csv"))
+w5 |>
+  group_by(education) |>
+  summarise(n = n(), median = median(wage), IQR = IQR(wage),
+            mad = mad(wage), .groups = "drop") |>
+  arrange(desc(median))
+@
+  ``Advanced Degree'' ka medianën dhe IQR-në më të madhe.
+  \vfill\kthehu{ushGrp}
+\end{frame}
+
+\begin{frame}[label=zgjBw]{Zgjidhja: Parashiko (gjerësia e brezit)}
+  \begin{enumerate}
+    \item \texttt{adjust = 0.25}: kurbë me shumë maja të vogla, që ndjek çdo grumbullim rastësor.
+    \item \texttt{adjust = 4}: kurbë shumë e lëmuar, pothuajse kambanë e anuar.
+    \item Grupi mbi 250 duket qartë me 0.25 dhe 1; me 4 shkrihet në bisht.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeBw}
+\end{frame}
+
+\begin{frame}[label=zgjQQ]{Zgjidhja: Parashiko (Q--Q plot)}
+  \begin{enumerate}
+    \item \texttt{wage}: kurbë konvekse, pikat djathtas mbi vijë.
+    \item \texttt{log(wage)}: pikat afër vijës në pjesën kryesore.
+    \item Po: grupi i pagave të larta është strukturë e të dhënave, jo çështje shkalle.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeQQ}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjQQ2]{Zgjidhja: Ndrysho parametrin (Q--Q me $n$ të vogël)}
+<<sol-qq2, fig.height=1.9, fig.width=8, out.width="0.85\\textwidth">>=
+set.seed(7)
+par(mfrow = c(1, 4), mar = c(2, 2, 1, 1))
+for (k in 1:4) { z <- rnorm(20); qqnorm(z, main = ""); qqline(z) }
+@
+  \begin{itemize}
+    \item Me $n=20$, edhe të dhënat normale largohen nga vija, sidomos në skaje. Me $n=500$, pikat ndjekin vijën shumë më mirë.
+  \end{itemize}
+  \vfill\kthehu{ushQQ}
+\end{frame}
+
+\begin{frame}[label=zgjCp25]{Përgjigjet: Checkpoint i Orës 5}
+  \begin{enumerate}
+    \item Kurba lëmohet tepër dhe fsheh strukturën, p.sh.\ maja të dyta ose grupe të veçanta.
+    \item Dy ose më shumë maja (bimodalitetin): kuartilet mund të jenë të njëjta.
+    \item Kurbë konvekse: pikat në të djathtë ngrihen mbi vijë.
+  \end{enumerate}
+  \vfill\kthehu{cp25}
+\end{frame}

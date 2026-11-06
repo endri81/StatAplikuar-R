@@ -1,0 +1,402 @@
+% ============================================================
+%  Java 2 · Ora 5 — Laborator II: EDA me paketa
+%  Rezultatet: S4, K1
+% ============================================================
+
+\section{Laborator II}
+
+\begin{frame}{Ora 5: Laborator II --- EDA me paketa}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Përmbledhjet me paketa}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{psych::describe()} \LO{S4}}
+<<describe>>=
+library(psych)
+wage <- read.csv(file.path(W02DATA, "Wage.csv"))
+describe(wage[, c("age", "wage")])[, c("n", "mean", "sd", "median",
+                                        "trimmed", "mad", "skew", "kurtosis")]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Një rresht për çdo variabël, me qendrën, shpërndarjen dhe formën.
+    \item<2-> \texttt{trimmed}: mesatarja e prerë 10\%. Te pagat: \Sexpr{fmt(mean(wage$wage, trim = 0.1), 1)}, midis medianës dhe mesatares.
+    \item<3-> Mosha është gati simetrike; paga ka anshmëri dhe kurtozë të lartë.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}\texttt{psych} përdor si parazgjedhje anshmërinë e tipit 3, ndërsa ne në Orën 4 përdorëm tipin 1. Për $n=3\,000$ dallimi s'duket; për $n=20$ duket.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile]{Përmbledhje sipas grupeve me \texttt{dplyr}}
+<<grp-summary>>=
+library(dplyr)
+wage |>
+  group_by(jobclass) |>
+  summarise(n = n(), median = median(wage), IQR = IQR(wage),
+            mad = mad(wage), skew = e1071::skewness(wage, type = 1),
+            .groups = "drop")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Punët në sektorin e informacionit kanë medianë më të lartë.
+    \item<2-> Shpërndarja (IQR, MAD) është gjithashtu më e madhe atje.
+    \item<3-> Raportimi i qëndrueshëm: $n$, mediana dhe IQR për çdo grup. Kjo është tabela standarde e një EDA-je.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushGrp]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    Me \texttt{dplyr}, ndërto tabelën sipas \texttt{education}:
+    \begin{enumerate}
+      \item \texttt{n}, \texttt{median}, \texttt{IQR} dhe \texttt{mad} e pagës;
+      \item rendite sipas medianës, nga më e larta;
+      \item në cilin grup shpërndarja (IQR) është më e madhe?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjGrp}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Dendësia}
+% ------------------------------------------------------------
+
+\begin{frame}{Nga histogrami te dendësia}
+  \begin{Definicion}[(Vlerësuesi i dendësisë me bërthamë)]
+    \[ \hat f(x)=\frac{1}{nh}\sum_{i=1}^{n}K\!\left(\frac{x-x_i}{h}\right) \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item $K$: \termi{bërthama}{kernel}, zakonisht dendësia normale.
+    \pause
+    \item $h$: \termi{gjerësia e brezit}{bandwidth}. Luan rolin e gjerësisë së shtyllave te histogrami.
+    \pause
+    \item Ide: vendos një ``kodër'' të vogël mbi çdo vrojtim dhe mblidhi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Dendësia si shumë kodrash}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=0.8\textwidth,height=5cm,xmin=-1,xmax=9,ymin=0,
+      axis lines=left,samples=150,ticklabel style={font=\scriptsize},
+      legend style={font=\scriptsize,draw=none},legend pos=north east]
+      \addplot[gray,dashed,domain=-1:9]{exp(-(x-2)^2/2)/sqrt(2*pi)/3};
+      \addplot[gray,dashed,domain=-1:9,forget plot]{exp(-(x-3)^2/2)/sqrt(2*pi)/3};
+      \addplot[gray,dashed,domain=-1:9,forget plot]{exp(-(x-6)^2/2)/sqrt(2*pi)/3};
+      \addplot[uptmid,very thick,domain=-1:9]{(exp(-(x-2)^2/2)+exp(-(x-3)^2/2)+exp(-(x-6)^2/2))/sqrt(2*pi)/3};
+      \addplot[only marks,mark=|,mark size=6pt,accent,thick] coordinates {(2,0) (3,0) (6,0)};
+      \legend{kodra e një vrojtimi, $\hat f(x)$}
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Tri vrojtime: 2, 3, 6; $h=1$. Çdo kodër ka sipërfaqe $1/n$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Dendësia e pagave}
+<<dens-wage, fig.height=2.4>>=
+library(ggplot2)
+ggplot(wage, aes(x = wage)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 10,
+                 fill = "#E8EEF7", colour = "#2C5AA0") +
+  geom_density(colour = "#D97706", linewidth = 1.1) +
+  labs(x = "Wage (thousand USD)", y = "Density") + theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Si zgjidhet $h$? Rregulli i Silverman-it}
+  \[ h = 0.9\cdot\min\!\left(s,\ \frac{IQR}{1.34}\right)\cdot n^{-1/5} \]
+  \pause
+  \begin{itemize}
+    \item Për pagat: $s=\Sexpr{fmt(sd(wage$wage), 2)}$, \ $IQR/1.34=\Sexpr{fmt(IQR(wage$wage)/1.34, 2)}$, \ $n^{-1/5}=\Sexpr{fmt(nrow(wage)^(-1/5), 4)}$.
+    \pause
+    \item $h=0.9\cdot\Sexpr{fmt(min(sd(wage$wage), IQR(wage$wage)/1.34), 2)}\cdot\Sexpr{fmt(nrow(wage)^(-1/5), 4)}=\Sexpr{fmt(bw.nrd0(wage$wage), 2)}$: kjo është \texttt{bw.nrd0()}, parazgjedhja e R-së.
+    \pause
+    \item Pse minimumi? IQR mbron nga vlerat ekstreme që fryjnë $s$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeBw]{Parashiko!}
+  \begin{Parashiko}
+    Te \texttt{geom\_density(adjust = a)}, $h$ shumëzohet me $a$.
+    \begin{enumerate}
+      \item Si duket kurba me \texttt{adjust = 0.25}?
+      \item Po me \texttt{adjust = 4}?
+      \item A do të shihet grupi i pagave mbi 250 në të dyja?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjBw}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Tri gjerësi brezi}
+<<dens-bw, echo=FALSE, fig.height=3>>=
+ggplot(wage, aes(x = wage)) +
+  geom_density(aes(colour = "adjust = 0.25"), adjust = 0.25, linewidth = 0.8) +
+  geom_density(aes(colour = "adjust = 1"), adjust = 1, linewidth = 1.1) +
+  geom_density(aes(colour = "adjust = 4"), adjust = 4, linewidth = 1.1) +
+  scale_colour_manual(values = c("#9CA3AF", "#2C5AA0", "#D97706")) +
+  labs(x = "Wage (thousand USD)", y = "Density", colour = NULL) +
+  theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $h$ i vogël: kurbë me shumë maja të rreme (zhurmë).
+    \item<2-> $h$ i madh: kurbë e lëmuar që fsheh grupin e pagave të larta.
+    \item<3-> Parazgjedhja e R-së është kompromis, jo e vërteta.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Dendësia vazhdon edhe jashtë të dhënave: mund të tregojë ``paga negative'' ose ``gjatësi zero''. Mos e interpreto kurbën jashtë intervalit të vrojtuar.\end{Gabim}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Violin dhe boxplot}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Grafiku violin}
+<<violin-code, eval=FALSE>>=
+ggplot(wage, aes(x = education, y = wage)) +
+  geom_violin(fill = "#E8EEF7", colour = "#2C5AA0") +   # mirrored density
+  geom_boxplot(width = 0.12, outlier.shape = NA) +       # box inside
+  scale_x_discrete(labels = c("< HS", "HS", "Some coll.", "College", "Adv.")) +
+  labs(x = "Education", y = "Wage") + theme_minimal()
+@
+  \begin{itemize}
+    \item Violina = dendësia e pasqyruar; kutia brenda jep kuartilet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati}
+<<violin-plot, echo=FALSE, fig.height=3.2>>=
+ggplot(wage, aes(x = education, y = wage)) +
+  geom_violin(fill = "#E8EEF7", colour = "#2C5AA0") +
+  geom_boxplot(width = 0.12, outlier.shape = NA) +
+  scale_x_discrete(labels = c("< HS", "HS", "Some coll.", "College", "Adv.")) +
+  labs(x = "Education", y = "Wage (thousand USD)") + theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Në nivelet më të larta të arsimit, violina ka një ``fryrje'' të dytë mbi 250.
+    \item<2-> Boxplot-i e tregon këtë grup vetëm si pika të veçanta (vlera të skajshme).
+    \item<3-> Violina zbulon \textbf{strukturën}: dy grupe, jo vetëm një bisht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Boxplot-i mund të fshehë dy maja}
+<<bimodal-code>>=
+set.seed(2026)
+n <- 400
+unimodal <- rnorm(n, mean = 0, sd = 1.6)
+bimodal  <- c(rnorm(n / 2, -1.5, 0.5), rnorm(n / 2, 1.5, 0.5))  # two groups
+rbind(unimodal = quantile(unimodal, c(0.25, 0.5, 0.75)),
+      bimodal  = quantile(bimodal,  c(0.25, 0.5, 0.75)))
+@
+  \begin{itemize}
+    \item Të dhëna: sintetike. Kuartilet janë të ngjashme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Boxplot kundrejt violinës}
+<<bimodal-plot, echo=FALSE, fig.height=2.3, fig.width=8, out.width="0.9\\textwidth">>=
+bm <- rbind(data.frame(sample = "unimodal", value = unimodal),
+            data.frame(sample = "bimodal", value = bimodal))
+p1 <- ggplot(bm, aes(sample, value)) + geom_boxplot(fill = "#E8EEF7") +
+  labs(title = "Boxplot", x = NULL) + theme_minimal(base_size = 12)
+p2 <- ggplot(bm, aes(sample, value)) + geom_violin(fill = "#E8EEF7") +
+  labs(title = "Violin", x = NULL) + theme_minimal(base_size = 12)
+gridExtra::grid.arrange(p1, p2, ncol = 2)
+@
+  \begin{Gabim}Boxplot-i i dy mostrave duket i ngjashëm; violina tregon që njëra ka dy maja.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{ECDF}
+% ------------------------------------------------------------
+
+\begin{frame}{Pse ECDF?}
+  \begin{itemize}
+    \item<1-> Nuk ka shtylla dhe as $h$: tregon \textbf{çdo} vrojtim.
+    \item<2-> Mediana lexohet në lartësinë 0.5; kuartilet në 0.25 dhe 0.75.
+    \item<3-> Krahason grupe: kurba më djathtas = vlera më të mëdha.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{ECDF e pagave sipas llojit të punës}
+<<ecdf-job, fig.height=2.5>>=
+ggplot(wage, aes(x = wage, colour = jobclass)) +
+  stat_ecdf(linewidth = 1) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", colour = "grey50") +
+  labs(x = "Wage (thousand USD)", y = "F_n(x)", colour = NULL) +
+  theme_minimal(base_size = 13) + theme(legend.position = "bottom")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Kurba e sektorit të informacionit është djathtas pothuajse kudo.
+    \item<2-> Prerja me vijën 0.5 jep medianat: rreth 100 dhe 113.
+    \item<3-> Kur njëra kurbë është gjithmonë djathtas, grupi është ``stokastikisht më i madh''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{ECDF me zero të shumta: \texttt{Credit}}
+<<ecdf-credit, fig.height=2.2>>=
+credit <- read.csv(file.path(W02DATA, "Credit.csv"))
+mean(credit$Balance == 0)          # share of zero balances
+ggplot(credit, aes(Balance)) + stat_ecdf(linewidth = 1, colour = "#2C5AA0") +
+  labs(x = "Credit card balance (USD)", y = "F_n(x)") + theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Kërcim i madh te 0: \Sexpr{fmt(100 * mean(credit$Balance == 0), 1)}\% e klientëve nuk kanë borxh.
+    \item<2-> Mesatarja e \texttt{Balance} përzien dy grupe: pa borxh dhe me borxh.
+    \item<3-> Raporto veçmas: përqindja me zero, dhe mediana te ata me borxh.
+  \end{itemize}
+  \onslide<4->{\footnotesize\textcolor{gray}{Të dhëna: reale, \texttt{Credit.csv} (ISLR), nëpërmjet repo-s DS612.}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Q--Q plot}
+% ------------------------------------------------------------
+
+\begin{frame}{Ideja e Q--Q plot-it}
+  \begin{itemize}
+    \item<1-> Boshti $x$: kuantilet teorike të $N(0,1)$.
+    \item<2-> Boshti $y$: kuantilet e mostrës (vlerat e renditura).
+    \item<3-> Nëse të dhënat janë normale, pikat bien afër një vije të drejtë.
+    \item<4-> Devijimet nga vija tregojnë \emph{si} ndryshon forma.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Q--Q plot-i përdoret për mbetjet e regresionit në Javën 7.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Si lexohet një Q--Q plot}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[name=a,width=4.4cm,height=4cm,xmin=-2.5,xmax=2.5,axis lines=left,ticks=none,
+      title={\scriptsize normale},samples=25]
+      \addplot[gray,dashed,domain=-2.5:2.5]{x};
+      \addplot[only marks,mark=*,mark size=1.2pt,uptmid,domain=-2.2:2.2]{x};
+    \end{axis}
+    \begin{axis}[name=b,at={(a.east)},anchor=west,xshift=0.6cm,width=4.4cm,height=4cm,xmin=-2.5,xmax=2.5,axis lines=left,ticks=none,
+      title={\scriptsize anuar djathtas},samples=25]
+      \addplot[gray,dashed,domain=-2.5:2.5]{x};
+      \addplot[only marks,mark=*,mark size=1.2pt,accent,domain=-2.2:2.2]{exp(0.6*x)-1.1};
+    \end{axis}
+    \begin{axis}[name=c,at={(b.east)},anchor=west,xshift=0.6cm,width=4.4cm,height=4cm,xmin=-2.5,xmax=2.5,axis lines=left,ticks=none,
+      title={\scriptsize bishta të rëndë},samples=25]
+      \addplot[gray,dashed,domain=-2.5:2.5]{x};
+      \addplot[only marks,mark=*,mark size=1.2pt,warnred,domain=-2.2:2.2]{x+0.15*x^3};
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Anuar djathtas: kurbë konvekse (``buzëqeshje''). Bishta të rëndë: formë S.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeQQ]{Parashiko!}
+  \begin{Parashiko}
+    Duke ditur $g_1=1.68$ për \texttt{wage} dhe $g_1=-0.12$ për \texttt{log(wage)}:
+    \begin{enumerate}
+      \item Cilën formë pret për Q--Q plot-in e \texttt{wage}?
+      \item Po për \texttt{log(wage)}?
+      \item A pret që grupi i pagave të larta të duket në të dy?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjQQ}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Q--Q plot në R}
+<<qq-wage, fig.height=2.3, fig.width=8, out.width="0.92\\textwidth">>=
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+qqnorm(wage$wage, main = "wage", pch = 19, cex = 0.4, col = "#2C5AA0")
+qqline(wage$wage, col = "#D97706", lwd = 2)
+qqnorm(log(wage$wage), main = "log(wage)", pch = 19, cex = 0.4, col = "#2C5AA0")
+qqline(log(wage$wage), col = "#D97706", lwd = 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{wage}: pikat ngrihen mbi vijë djathtas: bisht i gjatë djathtas.
+    \item<2-> \texttt{log(wage)}: pjesa kryesore ndjek vijën.
+    \item<3-> Në të dyja, grupi i pagave të larta del si ``shkallë'' e veçantë lart djathtas.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}\texttt{qqline()} kalon nëpër kuartilet; pikat ndërmjet tyre gjykohen më mirë se skajet.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Gjatësitë: a janë vërtet normale?}
+<<heights-qq, fig.height=2.2, fig.width=8, out.width="0.9\\textwidth">>=
+heights <- read.csv(file.path(W02DATA, "general_heights.csv"))$height
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+hist(heights, breaks = 20, main = "height", col = "#E8EEF7", border = "#2C5AA0")
+qqnorm(heights, main = "Q-Q", pch = 19, cex = 0.5); qqline(heights, col = "#D97706", lwd = 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $n=\Sexpr{length(heights)}$, $g_1=\Sexpr{fmt(e1071::skewness(heights, type = 1), 2)}$: bisht djathtas, me vlerë maksimale \Sexpr{max(heights)} inç.
+    \item<2-> Pikat formojnë ``shkallë'': \Sexpr{fmt(100 * mean(heights %% 1 == 0), 0)}\% e vlerave janë numra të plotë.
+    \item<3-> Shkallët vijnë nga rrumbullakimi, jo nga forma e shpërndarjes.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}``Gjatësitë janë gjithmonë normale.'' Këto të dhëna kanë bisht djathtas dhe të paktën një vlerë që duhet kontrolluar. Burimi i skedarit nuk dokumentohet në repo: shëno ``reale, burim i padokumentuar''.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[label=ushQQ]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Ekzekuto 4 herë: \texttt{qqnorm(rnorm(20)); qqline(...)}, pa \texttt{set.seed()}.
+      \item A bien pikat gjithmonë mbi vijë, edhe pse të dhënat janë normale?
+      \item Përsërit me \texttt{rnorm(500)}. Çfarë ndryshon?
+      \item Çfarë mëson kjo për Q--Q plot-et me $n$ të vogël?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjQQ2}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Cili grafik për cilën pyetje?}
+  \footnotesize
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Pyetja & Grafiku & ggplot2 / R bazë \\ \midrule
+    Forma e përgjithshme & histogram + dendësia & \texttt{geom\_histogram}, \texttt{geom\_density} \\
+    Krahasim grupesh & violin + box, ECDF & \texttt{geom\_violin}, \texttt{stat\_ecdf} \\
+    Kuantilet, zerot & ECDF & \texttt{stat\_ecdf}, \texttt{ecdf()} \\
+    A është normale? & Q--Q plot & \texttt{qqnorm}, \texttt{stat\_qq} \\
+    Vlera të skajshme & boxplot & \texttt{geom\_boxplot} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=cp25]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Çfarë ndodh me dendësinë kur $h$ rritet shumë?
+    \item Çfarë mund të fshehë një boxplot që e tregon violina?
+    \item Si duket Q--Q plot-i i një shpërndarjeje të anuar djathtas?
+  \end{enumerate}
+  \shkoTe{zgjCp25}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item \Rkey{psych::describe()} dhe \texttt{dplyr} për tabelat e EDA-s, me $n$, medianë, IQR.
+    \item Dendësia me bërthamë; $h$ sipas Silverman-it; \texttt{adjust} ndryshon lëmimin.
+    \item Violina zbulon shumë maja; boxplot-i jo.
+    \item ECDF: pa shtylla, krahason grupe, tregon zerot.
+    \item Q--Q plot: forma kundrejt normales; kujdes me $n$ të vogël dhe me rrumbullakimin.
+  \end{itemize}
+  \begin{Keshille}Ora 6: rast studimi i plotë me \texttt{Boston} dhe \texttt{Wage}.\end{Keshille}
+\end{frame}
