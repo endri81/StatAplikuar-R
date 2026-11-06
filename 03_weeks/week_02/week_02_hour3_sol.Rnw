@@ -1,0 +1,97 @@
+% ============================================================
+%  Java 2 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjArg]{Zgjidhja: Parashiko (argumentet)}
+<<sol-arg>>=
+f <- function(x, k = 2) x^k
+c(f(3), f(3, 3), f(k = 0.5, x = 16))
+@
+  \begin{itemize}
+    \item $3^2=9$ (vlera e parazgjedhur $k=2$); \ $3^3=27$; \ $16^{0.5}=4$.
+    \item Me emra, renditja e argumenteve nuk ka rëndësi.
+  \end{itemize}
+  \vfill\kthehu{pyetjeArg}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjGab7]{Zgjidhja: Gjej gabimin (\texttt{>=} kundrejt \texttt{>})}
+  \begin{itemize}
+    \item Komenti thotë ``më të mëdhenj se 5'', kodi numëron ``$\ge 5$''.
+    \item Dy vlerat 5 numërohen gabimisht.
+  \end{itemize}
+<<sol-gab7>>=
+x7 <- c(10, 12, 2, 4, 5, 11, 3, 8, 6, 5)
+c(code = sum(x7 >= 5), comment = sum(x7 > 5))
+@
+  \begin{itemize}
+    \item Mësimi: kur kodi dhe komenti nuk përputhen, njëri është gabim. Kontrollo të dyja.
+  \end{itemize}
+  \vfill\kthehu{gjejGab7}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjGab8]{Zgjidhja: Gjej gabimin (vektori bosh)}
+<<sol-gab8>>=
+total_bad <- function(v) { s <- 0; for (i in 1:length(v)) s <- s + v[i]; s }
+total_ok  <- function(v) { s <- 0; for (i in seq_along(v)) s <- s + v[i]; s }
+1:length(numeric(0))     # c(1, 0): the loop runs twice!
+total_bad(numeric(0))
+total_ok(numeric(0))
+@
+  \begin{itemize}
+    \item \texttt{seq\_along(v)} jep \texttt{integer(0)} për vektor bosh: cikli nuk ekzekutohet.
+  \end{itemize}
+  \vfill\kthehu{gjejGab8}
+\end{frame}
+
+\begin{frame}[label=zgjMyQ]{Zgjidhja: Parashiko (\texttt{my\_quantile})}
+  \begin{enumerate}
+    \item \texttt{s} $=1,\dots,8$; \ \texttt{n} $=8$.
+    \item \texttt{h} $=1+7\cdot0.25=2.75$; \ \texttt{lo} $=2$.
+    \item Rezultati: $s_2+0.75\,(s_3-s_2)=2+0.75=2.75$.
+  \end{enumerate}
+  \begin{itemize}
+    \item E njëjta vlerë si \texttt{quantile(1:8, 0.25)} (tipi 7), siç e llogaritëm në Orën 2.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMyQ}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjFive]{Zgjidhja: Radha jote! (\texttt{my\_fivenum})}
+  Pa ndihmën e PC: $1{:}7$ $\Rightarrow$ gjysma e poshtme $1,2,3,4$ (nyja 2.5), e sipërmja $4,5,6,7$ (nyja 5.5): \ $1,\ 2.5,\ 4,\ 5.5,\ 7$.
+<<sol-five>>=
+my_fivenum <- function(v) {
+  s <- sort(v); n <- length(s)
+  c(s[1], my_median(s[1:ceiling(n / 2)]), my_median(s),
+    my_median(s[(floor(n / 2) + 1):n]), s[n])
+}
+my_fivenum(1:7)
+set.seed(1)
+all(replicate(500, { v <- rnorm(sample(1:40, 1))
+  isTRUE(all.equal(my_fivenum(v), fivenum(v))) }))
+@
+  \vfill\kthehu{ushFive}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjFun2]{Zgjidhja: Radha jote! (\texttt{my\_cv})}
+<<sol-cv, error=TRUE>>=
+my_cv <- function(v) {
+  m <- my_mean(v)
+  if (m <= 0) stop("CV requires a positive mean")
+  100 * my_sd(v) / m
+}
+round(c(wage = my_cv(wage$wage), age = my_cv(wage$age)), 1)
+my_cv(c(-1, 0, 1))
+@
+  \begin{itemize}
+    \item Paga ndryshon më shumë relativisht (CV më i madh) se mosha.
+  \end{itemize}
+  \vfill\kthehu{ushFun2}
+\end{frame}
+
+\begin{frame}[label=zgjCp23]{Përgjigjet: Checkpoint i Orës 3}
+  \begin{enumerate}
+    \item Për vektor bosh, \texttt{1:0} jep \texttt{c(1, 0)} dhe cikli ekzekutohet dy herë. Përdor \texttt{seq\_along(v)}.
+    \item Zbret dy numra shumë të mëdhenj e pothuajse të barabartë; shifrat e sakta humbasin.
+    \item Krahasojmë me \texttt{median()} në shumë vektorë të rastit, me gjatësi tek dhe çift, me \texttt{all.equal()}.
+  \end{enumerate}
+  \vfill\kthehu{cp23}
+\end{frame}

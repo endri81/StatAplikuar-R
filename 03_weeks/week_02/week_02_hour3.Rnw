@@ -1,0 +1,428 @@
+% ============================================================
+%  Java 2 · Ora 3 — Laborator I: statistikat nga zero
+%  Rezultatet: S4, S1
+%  Burimi i kodit: DS612_R-Code_Lecture_2.R (funksionet, ciklet), rishkruar
+% ============================================================
+
+\section{Laborator I}
+
+\begin{frame}{Ora 3: Laborator I --- statistikat nga zero}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Funksionet}
+% ------------------------------------------------------------
+
+\begin{frame}{Anatomia e një funksioni \LO{S4}}
+  \centering
+  \begin{tikzpicture}[lb/.style={font=\scriptsize,text=accent,align=center}]
+    \node[draw=uptblue,thick,fill=codebg,rounded corners=2pt,inner sep=8pt,font=\ttfamily\small,align=left] (f) {%
+      \textcolor{uptmid}{sum\_prod} <- function(\textcolor{okgreen}{a, b}) \{\\
+      \ \ s <- a + b\\
+      \ \ p <- a * b\\
+      \ \ \textcolor{warnred}{c(sum = s, product = p)}\\
+      \}};
+    \node[lb,above=0.25cm of f.north west,anchor=south west] {emri};
+    \node[lb,above=0.25cm of f.north,anchor=south] {argumentet};
+    \node[lb,right=0.3cm of f.east] {vlera e fundit\\kthehet};
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Objektet brenda funksionit (\texttt{s}, \texttt{p}) janë \textbf{lokale}: nuk shfaqen jashtë tij.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Funksioni i parë}
+<<fun-sumprod>>=
+sum_prod <- function(a, b) {
+  s <- a + b
+  p <- a * b
+  c(sum = s, product = p)      # named vector is returned
+}
+res <- sum_prod(2, 4)
+res
+res["product"]
+exists("s")                    # local objects do not leak
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Funksioni kthen një vektor me emra: \texttt{res["product"]} është më i qartë se \texttt{res[2]}.
+    \item<2-> \texttt{s} dhe \texttt{p} nuk ekzistojnë jashtë funksionit. Pse është mirë? Funksioni nuk prish objektet e tua.
+    \item<3-> Në skriptin origjinal përdorej \texttt{=} për caktim; ne përdorim \texttt{<-}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Distanca Euklidiane: pa ndihmën e PC}
+  \[ d(\mathbf a,\mathbf b)=\sqrt{\sum_{i=1}^{p}(a_i-b_i)^2} \]
+  \pause
+  $\mathbf a=(1,2,3,4)$, \ $\mathbf b=(0,0,1,2)$:
+  \begin{enumerate}
+    \item Diferencat: $1,\ 2,\ 2,\ 2$.
+    \pause
+    \item Katrorët: $1+4+4+4=13$.
+    \pause
+    \item $d=\sqrt{13}\approx3.606$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Distanca Euklidiane në R}
+<<fun-dist>>=
+euclid <- function(a, b) sqrt(sum((a - b)^2))
+x1 <- c(1, 2, 3, 4)
+x2 <- c(0, 0, 1, 2)
+euclid(x1, x2)
+sqrt((1 - 0)^2 + (2 - 0)^2 + (3 - 1)^2 + (4 - 2)^2)  # by hand, same
+@
+  \begin{Keshille}Kjo distancë është zemra e metodës KNN për klasifikim (Java 9).\end{Keshille}
+\end{frame}
+
+\begin{frame}[fragile]{Funksion që kthen mesataren dhe $s$}
+<<fun-meansd>>=
+mean_sd <- function(x) {
+  c(mean = mean(x), sd = sd(x))
+}
+mean_sd(x1)
+mean_sd(c(2, 4, 4, 5, 10))
+@
+  \begin{itemize}
+    \item Një funksion, shumë përdorime: çdo vektor numerik.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Argumentet me vlerë të parazgjedhur dhe kontrolli}
+<<fun-defaults, error=TRUE>>=
+mean_sd <- function(x, na.rm = FALSE) {
+  stopifnot(is.numeric(x))                 # fail early with a clear message
+  c(mean = mean(x, na.rm = na.rm), sd = sd(x, na.rm = na.rm))
+}
+mean_sd(c(1, NA, 3), na.rm = TRUE)
+mean_sd(c("a", "b"))
+@
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeArg]{Parashiko para se ta ekzekutosh}
+<<arg-code, eval=FALSE>>=
+f <- function(x, k = 2) x^k
+f(3)
+f(3, 3)
+f(k = 0.5, x = 16)
+@
+  \begin{Parashiko}
+    Çfarë kthen secila nga tri thirrjet?
+  \end{Parashiko}
+  \shkoTe{zgjArg}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ciklet}
+% ------------------------------------------------------------
+
+\begin{frame}{Cikli \texttt{for}}
+  \centering
+  \begin{tikzpicture}[>=Stealth,node distance=0.6cm,
+      st/.style={rectangle,rounded corners=2pt,draw=uptblue,fill=uptlight,font=\scriptsize,minimum width=3.4cm,minimum height=6mm,align=center},
+      dc/.style={diamond,aspect=2.4,draw=accent,fill=orange!10,font=\scriptsize,inner sep=1pt}]
+    \node[st] (a) {merr elementin e radhës \texttt{i}};
+    \node[st,below=of a] (b) {ekzekuto trupin \texttt{\{ \dots\ \}}};
+    \node[dc,below=of b] (c) {ka të tjerë?};
+    \node[st,right=1.4cm of c] (d) {dil nga cikli};
+    \draw[->,uptmid,thick] (a)--(b);
+    \draw[->,uptmid,thick] (b)--(c);
+    \draw[->,uptmid,thick] (c)--node[above,font=\tiny]{jo}(d);
+    \draw[->,uptmid,thick] (c.west)--++(-0.8,0)|-node[left,pos=0.25,font=\tiny]{po}(a.west);
+  \end{tikzpicture}
+  \vspace{4pt}
+  \begin{itemize}
+    \item Sintaksa: \texttt{for (i in vektori) \{ trupi \}}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab7]{Gjej gabimin! (nga skripti origjinal)}
+<<loop-count>>=
+x <- c(10, 12, 2, 4, 5, 11, 3, 8, 6, 5)
+# Count how many numbers are greater than 5
+count <- 0
+for (v in x) {
+  if (v >= 5) count <- count + 1
+}
+count
+@
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Komenti dhe kodi nuk përputhen. Ku? Sa duhet të ishte përgjigjja sipas komentit?
+  \end{Ushtrim}
+  \shkoTe{zgjGab7}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{E njëjta gjë pa cikël}
+<<loop-vector>>=
+sum(x >= 5)     # vectorised: TRUE counts as 1
+sum(x > 5)
+@
+  \begin{itemize}
+    \item Në R, zgjidhja e vektorizuar është zakonisht më e shkurtër dhe më e shpejtë.
+    \item Ciklet i përdorim kur hapi $i$ varet nga hapi $i-1$, ose për të kuptuar algoritmin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Ndërtimi i një vektori brenda ciklit}
+<<loop-build>>=
+y <- c()                         # grows at every step (slow for large n)
+for (i in seq_along(x)) y <- c(y, 5 * x[i])
+w <- numeric(length(x))          # pre-allocated (recommended)
+for (i in seq_along(x)) w[i] <- 5 * x[i]
+identical(y, w)
+identical(w, 5 * x)              # and the vectorised version
+@
+  \begin{itemize}
+    \item Pse \texttt{numeric(n)}? Rritja e vektorit e kopjon atë në çdo hap: për $n$ të madh, puna rritet si $n^2$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab8]{Gjej gabimin!}
+<<loop-empty-code, eval=FALSE>>=
+total <- function(v) {
+  s <- 0
+  for (i in 1:length(v)) s <- s + v[i]
+  s
+}
+total(numeric(0))     # an empty vector
+@
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Shuma e një vektori bosh duhet të jetë 0. Çfarë kthen funksioni? Pse? Si rregullohet?
+  \end{Ushtrim}
+  \shkoTe{zgjGab8}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kushtet: \texttt{if} / \texttt{else}}
+<<ifelse-demo>>=
+classify_cv <- function(cv) {
+  if (cv < 15) "precise"
+  else if (cv < 30) "use with caution"
+  else "unreliable"
+}
+sapply(c(8, 22, 41), classify_cv)
+@
+  \begin{itemize}
+    \item Rregull i tillë (me pragje të ndryshme sipas institucionit) përdoret për të shënuar vlerësimet e pasigurta në statistikën zyrtare.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mesatarja dhe varianca nga zero}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Mesatarja me cikël}
+<<my-mean>>=
+my_mean <- function(v) {
+  s <- 0
+  for (vi in v) s <- s + vi     # add every value
+  s / length(v)
+}
+x <- c(2, 3, 3, 4, 5, 6, 40)
+c(mine = my_mean(x), R = mean(x))
+@
+  \begin{itemize}
+    \item Tri rreshta = formula $\bar x=\frac1n\sum x_i$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Varianca: algoritmi me dy kalime}
+<<my-var>>=
+my_var <- function(v) {
+  m <- my_mean(v)               # pass 1: the mean
+  ss <- 0
+  for (vi in v) ss <- ss + (vi - m)^2   # pass 2: squared deviations
+  ss / (length(v) - 1)
+}
+c(mine = my_var(x), R = var(x))
+my_sd <- function(v) sqrt(my_var(v))
+c(mine = my_sd(x), R = sd(x))
+@
+\end{frame}
+
+\begin{frame}{Një formulë ``më e shpejtë'' për variancën}
+  \begin{align*}
+    \sum(x_i-\bar x)^2 &= \sum x_i^2 - 2\bar x\sum x_i + n\bar x^2 \\
+    \onslide<2->{&= \sum x_i^2 - 2n\bar x^2 + n\bar x^2} \\
+    \onslide<3->{&= \sum x_i^2 - n\bar x^2}
+  \end{align*}
+  \onslide<4->{
+  \[ s^2=\frac{\sum x_i^2-n\bar x^2}{n-1} \]
+  \begin{itemize}
+    \item Një kalim i vetëm mbi të dhënat. Matematikisht e saktë. Por \dots
+  \end{itemize}}
+\end{frame}
+
+\begin{frame}[fragile]{Gabim numerik: zbritja e dy numrave të mëdhenj}
+<<cancel>>=
+v <- 1e9 + c(1, 2, 3)          # e.g. IDs or timestamps
+n <- length(v)
+var(v)                                          # correct: 1
+(sum(v^2) - n * mean(v)^2) / (n - 1)           # one-pass formula
+@
+  \begin{Gabim}Formula me një kalim zbret dy numra rreth $3\cdot10^{18}$. Kompjuteri ruan vetëm rreth 16 shifra të sakta, ndaj diferenca humbet plotësisht.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Një formulë e saktë në letër mund të jetë e gabuar në kompjuter.
+    \item<2-> Algoritmi me dy kalime (si \texttt{var()} në R) e shmang problemin: zbret mesataren \emph{para} katrorit.
+    \item<3-> Pse na intereson? E njëjta gjë ndodh me $\mathbf X^\top\mathbf X$ në regresion (Java 6--7).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mediana dhe kuantilet nga zero}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Mediana nga zero}
+<<my-median>>=
+my_median <- function(v) {
+  s <- sort(v)
+  n <- length(s)
+  if (n %% 2 == 1) s[(n + 1) / 2]                 # odd n
+  else (s[n / 2] + s[n / 2 + 1]) / 2              # even n
+}
+c(mine = my_median(x), R = median(x))
+c(mine = my_median(c(20, 1, 8, 3)), R = median(c(20, 1, 8, 3)))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Kuantili i tipit 7 nga zero}
+<<my-quantile>>=
+my_quantile <- function(v, p) {
+  s <- sort(v)
+  n <- length(s)
+  h <- 1 + (n - 1) * p                 # position
+  lo <- floor(h)
+  if (lo >= n) return(s[n])            # p = 1
+  s[lo] + (h - lo) * (s[lo + 1] - s[lo])
+}
+p <- c(0, 0.1, 0.25, 0.5, 0.75, 1)
+rbind(mine = sapply(p, my_quantile, v = x),
+      R    = quantile(x, p, names = FALSE))
+@
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeMyQ]{Parashiko para se ta ekzekutosh}
+<<myq-code, eval=FALSE>>=
+my_quantile(1:8, 0.25)
+@
+  \begin{Parashiko}
+    Ndiq kodin rresht pas rreshti: sa janë \texttt{h}, \texttt{lo} dhe rezultati?
+  \end{Parashiko}
+  \shkoTe{zgjMyQ}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{MAD nga zero}
+<<my-mad>>=
+my_mad <- function(v, constant = 1.4826) {
+  constant * my_median(abs(v - my_median(v)))
+}
+c(mine = my_mad(x), R = mad(x))
+my_iqr <- function(v) my_quantile(v, 0.75) - my_quantile(v, 0.25)
+c(mine = my_iqr(x), R = IQR(x))
+@
+  \begin{itemize}
+    \item Funksionet tona ndërtohen mbi njëri-tjetrin: \texttt{my\_mad} përdor \texttt{my\_median}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Testimi i funksioneve}
+% ------------------------------------------------------------
+
+\begin{frame}{Si dimë që funksioni ynë është i saktë?}
+  \begin{itemize}
+    \item<1-> Një test me një vektor nuk mjafton: mund të jetë rast me fat.
+    \item<2-> Ide: krahaso me funksionin e R-së në \textbf{shumë} vektorë të rastit.
+    \item<3-> Gjatësi të ndryshme (tek, çift, 1, 2), shpërndarje të ndryshme, vlera të përsëritura.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Ky quhet ``testim me të dhëna të rastit''. Me \texttt{set.seed()}, testi është i riprodhueshëm.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Testi: 1\,000 vektorë të rastit}
+<<test-harness>>=
+set.seed(2026)
+ok <- replicate(1000, {
+  v <- round(rexp(sample(2:50, 1), rate = 0.1), 1)   # skewed, with ties
+  c(mean   = isTRUE(all.equal(my_mean(v), mean(v))),
+    var    = isTRUE(all.equal(my_var(v), var(v))),
+    median = isTRUE(all.equal(my_median(v), median(v))),
+    q25    = isTRUE(all.equal(my_quantile(v, 0.25), unname(quantile(v, 0.25)))),
+    mad    = isTRUE(all.equal(my_mad(v), mad(v))))
+})
+rowMeans(ok)       # share of tests passed
+@
+\end{frame}
+
+\begin{frame}[fragile]{Pse \texttt{all.equal()} dhe jo \texttt{==}?}
+<<float-eq>>=
+0.1 + 0.2 == 0.3
+isTRUE(all.equal(0.1 + 0.2, 0.3))
+print(0.1 + 0.2, digits = 17)
+@
+  \begin{Gabim}Numrat me presje ruhen me përafrim në sistemin binar. Krahaso me \texttt{all.equal()}, që lejon një tolerancë të vogël.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=ushFive]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    Pesë numrat e Tukey-t: min, nyja e poshtme, mediana, nyja e sipërme, max.
+    Nyja e poshtme = mediana e gjysmës së poshtme; për $n$ tek, gjysmat përfshijnë medianën.
+    \begin{enumerate}
+      \item Llogarit pa ndihmën e PC \texttt{fivenum(1:7)}.
+      \item Shkruaj funksionin \texttt{my\_fivenum(v)} duke përdorur \texttt{my\_median()}.
+      \item Testoje me \texttt{fivenum()}.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjFive}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushFun2]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    \begin{enumerate}
+      \item Shkruaj \texttt{my\_cv(v)}: koeficienti i variacionit në \%, me \texttt{my\_sd()} dhe \texttt{my\_mean()}.
+      \item Shto kontrollin: nëse \texttt{my\_mean(v) <= 0}, ndalo me mesazhin ``CV requires a positive mean''.
+      \item Zbatoje te \texttt{wage\$wage} dhe \texttt{wage\$age}. Cila ndryshon më shumë relativisht?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjFun2}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Funksionet tona mbi të dhëna reale}
+<<mine-on-wage>>=
+w_pay <- wage$wage
+round(c(mean = my_mean(w_pay), median = my_median(w_pay),
+        sd = my_sd(w_pay), iqr = my_iqr(w_pay), mad = my_mad(w_pay)), 2)
+@
+  \begin{itemize}
+    \item $s$ (\Sexpr{fmt(my_sd(w_pay), 1)}) $>$ MAD (\Sexpr{fmt(my_mad(w_pay), 1)}): bishti i gjatë djathtas e fryn $s$.
+    \item Të dhëna: reale (\texttt{Wage}, ISLR).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp23]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Pse \texttt{1:length(v)} është i rrezikshëm? Çfarë përdorim në vend të tij?
+    \item Pse formula $\big(\sum x_i^2 - n\bar x^2\big)/(n-1)$ mund të japë rezultat të gabuar?
+    \item Si e testojmë që \texttt{my\_median()} është i saktë?
+  \end{enumerate}
+  \shkoTe{zgjCp23}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item Funksionet: emri, argumentet, trupi; objektet brenda janë lokale; \Rkey{stopifnot()}.
+    \item Ciklet \texttt{for} me \Rkey{seq\_along()} dhe vektor të para-alokuar; zgjidhja e vektorizuar shpesh është më e mirë.
+    \item Ndërtuam nga zero: mesataren, variancën, medianën, kuantilin e tipit 7, MAD-in, IQR-në.
+    \item Testim me 1\,000 vektorë të rastit dhe \Rkey{all.equal()}.
+  \end{itemize}
+  \begin{Keshille}Ora 4: forma e shpërndarjes, anshmëria, kurtoza dhe vlerat e skajshme.\end{Keshille}
+\end{frame}
