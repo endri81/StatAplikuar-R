@@ -110,6 +110,7 @@
 <<setup, include=FALSE>>=
 library(knitr)
 # Code -> Rstyle listing, output -> Rout listing (template styles)
+local({
 wrap_out <- function(x, options)
   paste0("\\begin{lstlisting}[style=Rout]\n", x, "\\end{lstlisting}\n")
 knit_hooks$set(
@@ -119,16 +120,20 @@ knit_hooks$set(
   chunk   = function(x, options) x,
   plot    = knitr::hook_plot_tex
 )
+})
 set_header(highlight = "", framed = "", tikz = "")
 opts_chunk$set(comment = NA, fig.path = "figure/w01-", dev = "pdf",
                fig.align = "center", results = "hold", out.width = "0.70\\textwidth",
                fig.width = 7, fig.height = 3.6, message = FALSE)
 options(width = 70, digits = 6, scipen = 5)
-# Number formatting: thin space as thousands separator (safe inside math mode)
-fmt <- function(x, digits = 2)
-  formatC(x, format = "f", digits = digits, big.mark = "\\,")
-# Paths survive rm(list = ls()) inside lecture chunks
-attach(list(W01DATA = "week_01_data", DATA = "../../02_data"), name = "sa_paths")
+# Helpers live outside the global environment, so ls() in the slides stays clean
+# and they survive rm(list = ls()).
+# fmt(): thin space as thousands separator (safe inside math mode)
+attach(list(
+  W01DATA = "week_01_data", DATA = "../../02_data",
+  fmt = function(x, digits = 2)
+    formatC(x, format = "f", digits = digits, big.mark = "\\,")
+), name = "sa_helpers")
 @
 
 \begin{document}
@@ -147,11 +152,17 @@ attach(list(W01DATA = "week_01_data", DATA = "../../02_data"), name = "sa_paths"
 <<hour1, child='week_01_hour1.Rnw'>>=
 @
 
+<<hour2, child='week_01_hour2.Rnw'>>=
+@
+
 % ===================== SHTOJCA =====================
 \appendix
 \section*{Zgjidhjet}
 
 <<hour1sol, child='week_01_hour1_sol.Rnw'>>=
+@
+
+<<hour2sol, child='week_01_hour2_sol.Rnw'>>=
 @
 
 \end{document}

@@ -1,0 +1,87 @@
+% ============================================================
+%  Java 1 · Ora 2 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjP1]{Zgjidhja: ku shkruhet kodi?}
+  \textbf{B)} Në një skript në panelin Source.
+  \begin{itemize}
+    \item Skripti ruhet si skedar dhe mund të ekzekutohet sërish pas dy javësh.
+    \item A) Console nuk ruan punën si skedar.
+    \item C) History është vetëm listë komandash, pa strukturë dhe pa komente.
+  \end{itemize}
+  \vfill\kthehu{pyetjeP1}
+\end{frame}
+
+\begin{frame}[label=zgjGab1]{Zgjidhja: Gjej gabimin (shtegu)}
+  \begin{itemize}
+    \item Në R, \texttt{\textbackslash} nis një ``escape sequence''. \texttt{\textbackslash A} nuk ekziston $\Rightarrow$ gabim.
+    \item Rregullimi 1: \texttt{"week\_01\_data/Auto.csv"} (vija e pjerrët \texttt{/} punon edhe në Windows).
+    \item Rregullimi 2: \texttt{file.path("week\_01\_data", "Auto.csv")}.
+    \item Mos harro \texttt{na.strings = "?"} për këtë skedar.
+  \end{itemize}
+  \vfill\kthehu{gjejGab1}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjCase]{Zgjidhja: Parashiko (emrat)}
+  \textbf{B)} Gabim: R dallon shkronjat e mëdha nga të voglat.
+<<sol-case, error=TRUE>>=
+total_mpg <- 100
+Total_mpg
+@
+  \vfill\kthehu{pyetjeCase}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjTip]{Zgjidhja: Radha jote! (tipat)}
+<<sol-types>>=
+c(class(42), class("42"), class(42 > 40),
+  class(factor(c("low", "high"))), class(length(c(1, 2, 3))))
+@
+  \begin{itemize}
+    \item \texttt{length()} kthen \texttt{integer}, edhe pse \texttt{42} është \texttt{numeric}.
+  \end{itemize}
+  \vfill\kthehu{ushTip}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjVec]{Zgjidhja: Parashiko ($-2^2$)}
+  \textbf{B)} $-4$. Fuqia ka përparësi ndaj minusit:\ $-2^2 = -(2^2)$.
+<<sol-negpow>>=
+-2^2
+(-2)^2
+@
+  \vfill\kthehu{pyetjeVec}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjNA]{Zgjidhja: Parashiko (vlerat e veçanta)}
+<<sol-special>>=
+1 / 0
+0 / 0
+NA > 1
+TRUE + TRUE
+@
+  \begin{itemize}
+    \item \texttt{NA > 1}: nuk e dimë vlerën, prandaj nuk dimë as përgjigjen.
+    \item \texttt{TRUE + TRUE}: \texttt{TRUE} kthehet në 1, pra $1 + 1 = 2$.
+  \end{itemize}
+  \vfill\kthehu{pyetjeNA}
+\end{frame}
+
+\begin{frame}[fragile]{Zgjidhja: Mendo -- Diskuto -- Ndaj}
+<<sol-help>>=
+median(c(3, NA, 7, 1), na.rm = TRUE)
+round(2.5)    # rounds half to the even number
+round(3.5)
+@
+  \begin{itemize}
+    \item \texttt{na.rm = TRUE} heq vlerat që mungojnë.
+    \item \texttt{round()} ndjek standardin IEC 60559: gjysma rrumbullakohet te numri çift.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=zgjCp2]{Përgjigjet: Checkpoint i Orës 2}
+  \begin{enumerate}
+    \item \texttt{install.packages()} shkarkon paketën një herë në kompjuter; \texttt{library()} e ngarkon në çdo seancë.
+    \item Shtegu absolut ekziston vetëm në atë kompjuter; skripti nuk punon gjetiu.
+    \item Kodet 1, 2, 3 janë kategori, jo sasi. Si numra, R do të llogariste mesatare pa kuptim.
+  \end{enumerate}
+  \vfill\kthehu{cp2}
+\end{frame}

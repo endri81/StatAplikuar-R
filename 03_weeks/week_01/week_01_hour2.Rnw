@@ -1,0 +1,603 @@
+% ============================================================
+%  Java 1 · Ora 2 — Teori I: mjedisi R dhe RStudio
+%  Rezultatet: S4
+% ============================================================
+
+\section{Mjedisi R}
+
+\begin{frame}{Ora 2: Mjedisi R dhe RStudio}
+  \tableofcontents[currentsection,hideothersubsections]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{R dhe RStudio}
+% ------------------------------------------------------------
+
+\begin{frame}{Çfarë është R? \LO{S4}}
+  \begin{Definicion}[(R)]
+    Gjuhë programimi dhe mjedis për llogaritje statistikore dhe grafikë.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Krijuar nga Ross Ihaka dhe Robert Gentleman (Universiteti i Auckland-it).
+    \pause
+    \item Mirëmbahet sot nga \emph{R Core Team}.
+    \pause
+    \item E interpretuar: çdo rresht ekzekutohet menjëherë dhe jep rezultat.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë është RStudio?}
+  \begin{Definicion}[(RStudio)]
+    \termi{Mjedis i integruar zhvillimi}{Integrated Development Environment, IDE} për R.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Shton redaktues kodi, ndihmë, grafikë dhe menaxhim skedarësh rreth R-së.
+    \pause
+    \item Zhvillohet nga kompania Posit.
+    \pause
+    \item RStudio \textbf{nuk} funksionon pa R: ai thjesht e drejton R-në.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{R kundrejt RStudio: një analogji}
+  \centering
+  \begin{tikzpicture}[>=Stealth,
+      bx/.style={rectangle,rounded corners=3pt,draw=uptblue,thick,minimum width=4.2cm,minimum height=1.6cm,align=center,font=\footnotesize}]
+    \node[bx,fill=uptlight] (r) at (0,0) {\textbf{R}\\motori i makinës\\(bën llogaritjet)};
+    \node[bx,fill=orange!10] (rs) at (6,0) {\textbf{RStudio}\\paneli i drejtimit\\(timoni, ekranet, butonat)};
+    \draw[<->,uptmid,very thick] (r)--node[above,font=\scriptsize]{punojnë bashkë}(rs);
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Pa motor, paneli nuk e lëviz makinën. Pa panel, motori punon, por drejtohet me vështirësi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Instalimi: dy hapa, në këtë rend}
+  \centering
+  \begin{tikzpicture}[>=Stealth,
+      st/.style={rectangle,rounded corners=3pt,draw=uptblue,thick,fill=uptlight,minimum width=4.4cm,minimum height=1.3cm,align=center,font=\footnotesize}]
+    \node[st] (a) {\textbf{1. Instalo R}\\\url{https://cran.r-project.org}};
+    \node[st,right=1.2cm of a] (b) {\textbf{2. Instalo RStudio Desktop}\\\url{https://posit.co}};
+    \draw[->,uptmid,very thick] (a)--(b);
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}
+    \item<1-> Zgjidh versionin për sistemin tënd: Windows, macOS ose Linux.
+    \item<2-> Pse ky rend? RStudio gjen R-në e instaluar gjatë nisjes së parë.
+  \end{itemize}
+  \onslide<3->{\begin{Keshille}Përditëso R-në një herë në vit; paketat ripërditësohen më shpesh.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Katër panelet e RStudio-s}
+  \centering
+  \begin{tikzpicture}[pn/.style={rectangle,draw=uptblue,thick,minimum width=5cm,minimum height=2.1cm,align=center,font=\footnotesize}]
+    \node[pn,fill=uptlight] at (0,2.2) {\textbf{Source}\\skriptet \texttt{.R}, \texttt{.Rnw}\\këtu shkruan dhe ruan kodin};
+    \node[pn,fill=white] at (0,0) {\textbf{Console}\\këtu ekzekutohet kodi\\dhe del rezultati};
+    \node[pn,fill=white] at (5.2,2.2) {\textbf{Environment / History}\\objektet në kujtesë\\komandat e mëparshme};
+    \node[pn,fill=uptlight] at (5.2,0) {\textbf{Files / Plots / Packages / Help}\\skedarët, grafikët,\\paketat, ndihma};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile]{Paneli Console}
+  \begin{itemize}
+    \item Shenja \texttt{>} do të thotë: R është gati për komandën tjetër.
+    \item Shenja \texttt{+} do të thotë: komanda nuk ka mbaruar (p.sh.\ mungon një kllapë).
+  \end{itemize}
+<<console-demo>>=
+2 + 3
+sqrt(16)
+@
+  \begin{itemize}
+    \item \texttt{[1]} tregon indeksin e elementit të parë në rresht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Paneli Source: skriptet}
+  \begin{itemize}
+    \item<1-> Skripti \texttt{.R} është një skedar teksti me komanda R.
+    \item<2-> \texttt{Ctrl+Enter} (macOS: \texttt{Cmd+Return}): ekzekuton rreshtin ose zgjedhjen.
+    \item<3-> \texttt{Ctrl+Shift+S}: ekzekuton gjithë skriptin.
+    \item<4-> Komentet nisin me \texttt{\#}: R i shpërfill.
+  \end{itemize}
+  \onslide<5->{\begin{Gabim}Të shkruash gjithë analizën vetëm në Console: kur mbyll RStudio, puna humbet.\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Panelet e tjera}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      \begin{block}{Environment}
+        Çdo objekt që krijon: emri, tipi, madhësia.
+      \end{block}
+      \begin{block}{History}
+        Lista e komandave të ekzekutuara.
+      \end{block}
+    \column{0.5\textwidth}
+      \begin{block}{Plots}
+        Grafikët; butoni \emph{Export} për t'i ruajtur.
+      \end{block}
+      \begin{block}{Packages / Help}
+        Paketat e instaluara; faqet e ndihmës.
+      \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[label=pyetjeP1]{Pyetje me zgjedhje}
+  \begin{Ushtrim}
+    Do të shkruash kodin e detyrës së kursit dhe do ta dorëzosh pas dy javësh.
+    Ku duhet ta shkruash?\\[3pt]
+    \textbf{A)} Në Console \quad \textbf{B)} Në një skript në panelin Source \quad \textbf{C)} Në panelin History
+  \end{Ushtrim}
+  \shkoTe{zgjP1}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Paketat}
+% ------------------------------------------------------------
+
+\begin{frame}{Çfarë është një paketë?}
+  \begin{Definicion}[(Paketa)]
+    Koleksion funksionesh, të dhënash dhe dokumentimi për një detyrë të caktuar.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Paketat bazë vijnë me R: \texttt{base}, \texttt{stats}, \texttt{graphics}, \dots
+    \pause
+    \item Paketat e tjera merren nga CRAN: \texttt{ggplot2}, \texttt{sf}, \texttt{gstat}, \dots
+    \pause
+    \item Në këtë kurs përdorim rreth 15 paketa; i shtojmë javë pas jave.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{install.packages()} kundrejt \texttt{library()}}
+<<pkg-demo, eval=FALSE>>=
+install.packages("ggplot2")   # once per computer: download from CRAN
+library(ggplot2)              # every session: load into memory
+@
+  \begin{itemize}
+    \item Analogji: \texttt{install.packages()} = blen librin; \texttt{library()} = e merr nga rafti.
+    \item Librin e blen një herë; nga rafti e merr sa herë do ta lexosh.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{A është instaluar një paketë?}
+<<pkg-check>>=
+"ggplot2" %in% rownames(installed.packages())
+packageVersion("ggplot2")
+@
+  \begin{itemize}
+    \item \texttt{TRUE}: paketa ndodhet në kompjuter.
+    \item Versioni ka rëndësi: funksionet ndryshojnë ndërmjet versioneve.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: emri i paketës}
+<<pkg-error, error=TRUE>>=
+library(ggplot)    # typo: the package is ggplot2
+@
+  \begin{Gabim}
+    ``there is no package called \dots'' do të thotë: emri është gabim, ose paketa nuk është instaluar.
+  \end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Operatori \texttt{::}}
+<<ns-demo>>=
+x <- c(2, 4, 4, 5, 10)
+stats::sd(x)       # sd() from the stats package, explicitly
+@
+  \begin{itemize}
+    \item \texttt{paketa::funksioni} thërret funksionin pa e ngarkuar gjithë paketën.
+    \item Pse? Dy paketa mund të kenë funksione me të njëjtin emër, p.sh.\ \texttt{filter()}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Direktoria e punës}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Direktoria e punës}
+  \begin{Definicion}[(Working directory)]
+    Dosja ku R kërkon skedarët dhe ku i ruan, kur nuk jep shtegun e plotë.
+  \end{Definicion}
+<<getwd, eval=FALSE>>=
+getwd()    # where am I?
+@
+  \begin{itemize}
+    \item Në RStudio: paneli Files tregon të njëjtën dosje.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shtigjet absolute dhe relative}
+  \begin{columns}[c]
+    \column{0.50\textwidth}
+      \begin{tikzpicture}[font=\scriptsize,
+          grow via three points={one child at (0.4,-0.55) and two children at (0.4,-0.55) and (0.4,-1.1)},
+          edge from parent path={(\tikzparentnode.south) |- (\tikzchildnode.west)}]
+        \node[anchor=west,text=uptblue,font=\scriptsize\bfseries] {StatAplikuar-R/}
+          child {node[anchor=west] {03\_weeks/}
+            child {node[anchor=west] {week\_01/}
+              child {node[anchor=west,text=accent] {week\_01\_hour1.Rnw}}
+              child {node[anchor=west] {week\_01\_data/Auto.csv}}}}
+          child [missing] {} child [missing] {}
+          child {node[anchor=west] {02\_data/}};
+      \end{tikzpicture}
+    \column{0.48\textwidth}
+      \begin{itemize}
+        \item \textbf{Absolut}:\\ \texttt{C:/Users/ana/StatAplikuar-R/\dots}
+        \item \textbf{Relativ} (nga \texttt{week\_01/}):\\ \texttt{week\_01\_data/Auto.csv}
+        \item Shtegu relativ funksionon në çdo kompjuter.
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Projektet e RStudio-s}
+  \begin{itemize}
+    \item<1-> \emph{File $\rightarrow$ New Project} krijon një skedar \texttt{.Rproj} në dosje.
+    \item<2-> Kur e hap projektin, direktoria e punës vendoset automatikisht.
+    \item<3-> Çdo detyrë ose analizë ka projektin e vet: të dhënat, skriptet, rezultatet.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Një projekt = një dosje = një analizë.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: \texttt{setwd()} me shteg absolut}
+<<setwd-bad, eval=FALSE>>=
+setwd("C:/Users/ana/Desktop/statistika")   # works only on Ana's PC
+@
+  \begin{Gabim}
+    Kur skripti hapet në një kompjuter tjetër, kjo dosje nuk ekziston dhe skripti ndalon.
+  \end{Gabim}
+  \begin{itemize}
+    \item Zgjidhja: përdor projekt \texttt{.Rproj} dhe shtigje relative.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{file.path()} dhe \texttt{file.exists()}}
+<<file-path>>=
+f <- file.path("week_01_data", "Auto.csv")  # builds a path
+f
+file.exists(f)                              # is the file there?
+@
+  \begin{itemize}
+    \item \texttt{file.path()} vendos ndarësin e duhur në çdo sistem.
+    \item Kontrollo me \texttt{file.exists()} para se të lexosh skedarin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab1]{Gjej gabimin!}
+<<bug-path, eval=FALSE>>=
+auto <- read.csv("week_01_data\Auto.csv")
+@
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Studenti në Windows kopjoi shtegun nga Explorer-i. R jep gabim.
+    Pse? Si rregullohet?
+  \end{Ushtrim}
+  \shkoTe{zgjGab1}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Objektet dhe caktimi}
+% ------------------------------------------------------------
+
+\begin{frame}{Në R, çdo gjë është objekt}
+  \begin{itemize}
+    \item<1-> Numrat, vektorët, tabelat, modelet, grafikët: të gjitha janë \termi{objekte}{objects}.
+    \item<2-> Objekti merr emër me operatorin e \termi{caktimit}{assignment} \texttt{<-}.
+    \item<3-> Lexohet: ``vlera 5 shkon te \texttt{x}''.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Shkurtorja në RStudio: \texttt{Alt + -} shkruan \texttt{<-} me hapësirat përreth.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Tre mënyra caktimi}
+<<assign>>=
+x <- 5       # recommended style
+y = 3        # also works
+7 -> z       # rare, avoid
+x + y + z
+@
+  \begin{itemize}
+    \item Në këtë kurs përdorim gjithmonë \texttt{<-}.
+    \item Pse? \texttt{=} përdoret edhe për argumentet e funksioneve: \texttt{mean(x, na.rm = TRUE)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Emrat e objekteve}
+  \begin{itemize}
+    \item<1-> Nisin me shkronjë; mund të përmbajnë shkronja, shifra, \texttt{.} dhe \texttt{\_}.
+    \item<2-> Nuk lejohen hapësira: \texttt{my data} është gabim.
+    \item<3-> R dallon shkronjat e mëdha nga të voglat: \texttt{Auto} $\neq$ \texttt{auto}.
+    \item<4-> Stili ynë: \texttt{snake\_case}, emra kuptimplotë: \texttt{mean\_mpg}, jo \texttt{a1}.
+  \end{itemize}
+  \onslide<5->{\begin{Gabim}Mos përdor emra funksionesh si emra objektesh: \texttt{mean <- 5} fsheh funksionin \texttt{mean()}.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeCase]{Parashiko para se ta ekzekutosh}
+<<case-code, eval=FALSE>>=
+total_mpg <- 100
+Total_mpg
+@
+  \begin{Parashiko}
+    Çfarë printon R?\\[3pt]
+    \textbf{A)} 100 \quad \textbf{B)} Gabim: objekti nuk gjendet \quad \textbf{C)} 0
+  \end{Parashiko}
+  \shkoTe{zgjCase}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Objektet në kujtesë: \texttt{ls()} dhe \texttt{rm()}}
+<<ls-rm>>=
+a <- 1; b <- 2
+ls()            # list objects
+rm(a)           # remove one object
+exists("a")
+@
+  \begin{itemize}
+    \item \texttt{rm(list = ls())} fshin gjithçka. Përdore me kujdes.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Tipat e të dhënave}
+% ------------------------------------------------------------
+
+\begin{frame}{Pesë tipat bazë të të dhënave}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Tipi & Shembull & Përdorimi në statistikë \\ \midrule
+    \texttt{numeric} & \texttt{3.14}, \texttt{18} & variabla sasiore: mpg, pesha \\
+    \texttt{integer} & \texttt{5L} & numërime: numri i cilindrave \\
+    \texttt{character} & \texttt{"ford"} & tekst: emri i makinës \\
+    \texttt{logical} & \texttt{TRUE}, \texttt{FALSE} & kushte: mpg $>$ 30? \\
+    \texttt{factor} & nivelet \texttt{American}, \dots & variabla cilësore: origjina \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Tipi vendos çfarë veprimesh lejohen. Pse? Nuk mund të mbledhësh dy emra makinash.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{class()}: cili është tipi?}
+<<types>>=
+class(3.14)
+class(5L)
+class("ford")
+class(TRUE)
+class(factor("American"))
+@
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{numeric} dhe \texttt{integer}}
+<<num-int>>=
+n1 <- 5        # numeric (double)
+n2 <- 5L       # integer: the L suffix
+is.integer(n1)
+is.integer(n2)
+n1 == n2       # same value
+@
+  \begin{itemize}
+    \item Për llogaritjet statistikore, dallimi rrallë ka rëndësi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{character}: teksti}
+<<chr>>=
+car <- "ford torino"
+nchar(car)                       # number of characters
+toupper(car)
+paste("Model:", car)             # join text
+@
+  \begin{itemize}
+    \item Teksti shkruhet gjithmonë midis thonjëzave.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{logical}: krahasimet}
+<<lgl>>=
+mpg <- c(18, 31, 24, 15)
+mpg > 20              # one TRUE/FALSE per element
+sum(mpg > 20)         # TRUE counts as 1
+mean(mpg > 20)        # share of cars above 20
+@
+  \begin{itemize}
+    \item Ky truk do të na duhet shpesh: \texttt{mean()} e një vektori logjik jep një përqindje.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\texttt{factor}: variablat cilësore \LO{S1}}
+  \begin{Definicion}[(Faktori)]
+    Variabël cilësore me një numër të kufizuar \termi{nivelesh}{levels}.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Në \texttt{Auto}, \texttt{origin} ruhet si numër: 1, 2, 3.
+    \pause
+    \item Por kuptimi është kategori: 1 = American, 2 = European, 3 = Japanese.
+    \pause
+    \item Pa e kthyer në faktor, R e trajton si sasi: ``Japonia = 3 herë Amerika''. Kjo s'ka kuptim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Krijimi i një faktori}
+<<factor>>=
+origin <- c(1, 3, 2, 1, 1, 3)
+origin_f <- factor(origin, levels = c(1, 2, 3),
+                   labels = c("American", "European", "Japanese"))
+origin_f
+table(origin_f)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm me faktorët}
+<<factor-trap>>=
+f <- factor(c("10", "20", "5"))
+as.numeric(f)                  # internal codes, not values!
+as.numeric(as.character(f))    # correct conversion
+@
+  \begin{Gabim}\texttt{as.numeric()} mbi një faktor jep kodet e niveleve, jo vlerat.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile,label=ushTip]{Radha jote!}
+  \begin{Ushtrim}[(pa ndihmën e PC, 3 minuta)]
+    Shkruaj tipin që kthen \texttt{class()} për secilën shprehje:
+    \begin{enumerate}
+      \item \texttt{42}
+      \item \texttt{"42"}
+      \item \texttt{42 > 40}
+      \item \texttt{factor(c("low", "high"))}
+      \item \texttt{length(c(1, 2, 3))}
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTip}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Llogaritjet dhe vlerat e veçanta}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{R si makinë llogaritëse: rendi i veprimeve}
+<<arith>>=
+2 + 3 * 4       # multiplication first
+(2 + 3) * 4     # brackets first
+2^3^2           # power is right-associative: 2^(3^2)
+@
+  \begin{itemize}
+    \item Rendi: kllapat, fuqia, shumëzimi/pjesëtimi, mbledhja/zbritja.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeVec]{Parashiko para se ta ekzekutosh}
+<<neg-pow-code, eval=FALSE>>=
+-2^2
+@
+  \begin{Parashiko}
+    Çfarë printon R?\\[3pt]
+    \textbf{A)} 4 \quad \textbf{B)} $-4$ \quad \textbf{C)} Gabim
+  \end{Parashiko}
+  \shkoTe{zgjVec}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Pjesëtimi i plotë dhe mbetja}
+<<intdiv>>=
+17 %/% 5      # integer division
+17 %% 5       # remainder (modulo)
+@
+  \begin{itemize}
+    \item Shembull: 17 vëzhgime në grupe me nga 5 $\Rightarrow$ 3 grupe të plota, 2 mbeten.
+    \item Do ta përdorim në Javën 6 për ndarjen në \emph{folds} të cross-validation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vlerat e veçanta: \texttt{NA}, \texttt{NaN}, \texttt{Inf}, \texttt{NULL}}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Vlera & Kuptimi & Shembull \\ \midrule
+    \texttt{NA} & vlerë që mungon (\emph{not available}) & \texttt{horsepower} me ``?'' \\
+    \texttt{NaN} & rezultat i papërcaktuar (\emph{not a number}) & $0/0$ \\
+    \texttt{Inf} & pafundësi & $1/0$ \\
+    \texttt{NULL} & objekt bosh, pa vlerë & \texttt{c()} \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Në statistikë, \texttt{NA} është më i shpeshti: të dhënat reale kanë boshllëqe.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeNA]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Çfarë kthen R për secilën shprehje?
+    \begin{enumerate}
+      \item \texttt{1 / 0}
+      \item \texttt{0 / 0}
+      \item \texttt{NA > 1}
+      \item \texttt{TRUE + TRUE}
+    \end{enumerate}
+  \end{Parashiko}
+  \begin{itemize}
+    \item Shkruaj përgjigjet në letër. Pastaj i ekzekutojmë.
+  \end{itemize}
+  \shkoTe{zgjNA}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{NA} në llogaritje}
+<<na-mean>>=
+hp <- c(130, 165, NA, 150)
+mean(hp)                  # NA spreads
+mean(hp, na.rm = TRUE)    # ignore the missing value
+is.na(hp)
+sum(is.na(hp))            # how many are missing?
+@
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: \texttt{x == NA}}
+<<na-trap>>=
+hp == NA         # every comparison with NA is NA
+is.na(hp)        # the right test
+@
+  \begin{Gabim}Mos testo kurrë \texttt{x == NA}. Përdor gjithmonë \texttt{is.na(x)}.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: \texttt{=} kundrejt \texttt{==}}
+<<eq-trap>>=
+k <- 3
+k == 4      # comparison: is k equal to 4?
+k
+@
+  \begin{itemize}
+    \item \texttt{==} pyet; \texttt{=} (ose \texttt{<-}) cakton.
+    \item Shkrimi \texttt{k = 4} kur do të krahasoje e ndryshon \texttt{k} pa të paralajmëruar.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ndihma}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Si të gjesh ndihmë}
+<<help-demo, eval=FALSE>>=
+?mean               # help page for mean()
+help("mean")        # same thing
+example(mean)       # run the examples of the page
+??"standard deviation"   # search all help pages
+@
+  \begin{itemize}
+    \item Faqja e ndihmës: \emph{Description}, \emph{Usage}, \emph{Arguments}, \emph{Value}, \emph{Examples}.
+    \item Lexoje nga fundi: shembujt shpesh shpjegojnë më shpejt.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mendo -- Diskuto -- Ndaj}
+  \begin{Ushtrim}[(think--pair--share, 4 minuta)]
+    \begin{enumerate}
+      \item Hap \texttt{?median}. Cili argument heq vlerat \texttt{NA}?
+      \item Hap \texttt{?round}. Çfarë kthen \texttt{round(2.5)}? Pse?
+      \item Krahaso përgjigjet me shokun pranë.
+    \end{enumerate}
+  \end{Ushtrim}
+  \begin{itemize}
+    \item Përgjigjet i diskutojmë me zë në klasë.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp2]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 2}
+  \begin{enumerate}
+    \item Cili është dallimi midis \texttt{install.packages()} dhe \texttt{library()}?
+    \item Pse \texttt{setwd("C:/Users/\dots")} në një skript është ide e keqe?
+    \item Pse \texttt{origin} në \texttt{Auto} duhet kthyer në faktor?
+  \end{enumerate}
+  \shkoTe{zgjCp2}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 2}
+  \begin{itemize}
+    \item R = motori; RStudio = paneli i drejtimit. Kodi shkruhet në skripte.
+    \item Paketat: instalohen një herë, ngarkohen në çdo seancë.
+    \item Projektet \texttt{.Rproj} dhe shtigjet relative e bëjnë kodin të riprodhueshëm.
+    \item Caktimi me \texttt{<-}; tipat: numeric, integer, character, logical, factor.
+    \item \texttt{NA} kërkon kujdes: \texttt{na.rm = TRUE}, \texttt{is.na()}.
+  \end{itemize}
+  \begin{Keshille}Ora 3: vektorët, indeksimi dhe matricat, rresht pas rreshti.\end{Keshille}
+\end{frame}
