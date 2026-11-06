@@ -55,6 +55,7 @@ c(mean = mean(y), var = var(y), sd = round(sd(y), 3))
   \textbf{B)} Mbetet 3. Zhvendosja lëviz qendrën, jo shpërndarjen:
   \[ (x_i + 10) - (\bar x + 10) = x_i - \bar x \]
 <<sol-shift>>=
+x <- c(2, 4, 4, 5, 10)
 c(sd(x), sd(x + 10))
 @
   \vfill\kthehu{pyetjeZhv1}

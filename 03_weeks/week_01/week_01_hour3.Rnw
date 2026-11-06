@@ -1,0 +1,526 @@
+% ============================================================
+%  Java 1 · Ora 3 — Laborator I: vektorët, indeksimi, matricat
+%  Rezultatet: S4, S1
+%  Burimi i kodit: DS612_R-Code_Lecture_1.R (rreshtat 21-95), rishkruar
+% ============================================================
+
+\section{Laborator I}
+
+\begin{frame}{Ora 3: Laborator I --- vektorët dhe matricat}
+  \tableofcontents[currentsection,hideothersubsections]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Vektorët}
+% ------------------------------------------------------------
+
+\begin{frame}{Vektori: blloku bazë i R-së \LO{S4}}
+  \begin{Definicion}[(Vektori)]
+    Varg i renditur elementesh, \textbf{të gjithë të të njëjtit tip}.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Një kolonë e tabelës \texttt{Auto} (p.sh.\ \texttt{mpg}) është një vektor.
+    \pause
+    \item Edhe një numër i vetëm është vektor me gjatësi 1.
+    \pause
+    \item Pse ka rëndësi? Pothuajse çdo funksion statistikor merr një vektor si hyrje.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Krijimi i vektorit me \texttt{c()}}
+<<vec-c>>=
+x <- c(1, 3, 2, 5)    # c() = combine
+x
+length(x)             # number of elements
+is.vector(5)          # a single number is a vector
+@
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeCoerce]{Parashiko para se ta ekzekutosh}
+<<coerce-code, eval=FALSE>>=
+v <- c(1, "a", TRUE)
+class(v)
+@
+  \begin{Parashiko}
+    Një vektor mban vetëm një tip. Cilin tip merr \texttt{v}?\\[3pt]
+    \textbf{A)} numeric \quad \textbf{B)} character \quad \textbf{C)} logical \quad \textbf{D)} gabim
+  \end{Parashiko}
+  \shkoTe{zgjCoerce}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Shndërrimi automatik i tipit (\emph{coercion})}
+  \centering
+  \begin{tikzpicture}[>=Stealth,
+      tp/.style={rectangle,rounded corners=2pt,draw=uptblue,fill=uptlight,minimum width=2.4cm,minimum height=7mm,font=\footnotesize\ttfamily}]
+    \node[tp] (l) {logical};
+    \node[tp,right=1.2cm of l] (n) {numeric};
+    \node[tp,right=1.2cm of n] (c) {character};
+    \draw[->,accent,thick] (l)--(n);
+    \draw[->,accent,thick] (n)--(c);
+  \end{tikzpicture}
+<<coerce-run>>=
+c(TRUE, 2)         # logical -> numeric
+c(1, "a", TRUE)    # everything -> character
+@
+  \begin{itemize}
+    \item R zgjedh tipin më ``të gjerë'' që i mban të gjitha vlerat.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Vargjet me \texttt{seq()} dhe \texttt{:}}
+<<seq>>=
+y <- seq(4, 10, by = 1)            # from 4 to 10, step 1
+y
+4:10                               # same sequence, short form
+y <- seq(4, by = 5, length.out = 3)  # start 4, step 5, 3 values
+y
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{seq(from, to, by)}: kur njeh fillimin, fundin dhe hapin.
+    \item<2-> \texttt{seq(from, by, length.out)}: kur njeh numrin e vlerave.
+    \item<3-> Caktimi i dytë i \texttt{y} \textbf{mbishkroi} të parin, pa paralajmërim.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Ripërdorimi i të njëjtit emër fshin vlerën e vjetër. Jep emra të ndryshëm: \texttt{y\_step1}, \texttt{y\_step5}.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile]{Përsëritjet me \texttt{rep()}}
+<<rep>>=
+rep(1:2, times = 3)   # repeat the whole vector
+rep(1:2, each = 3)    # repeat each element
+rep(c("A", "B"), times = c(2, 4))
+@
+  \begin{itemize}
+    \item Do ta përdorim për të ndërtuar etiketat e grupeve në ANOVA (Java 4).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushSeq]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    Shkruaj komandën R që krijon secilin vektor:
+    \begin{enumerate}
+      \item $10,\ 8,\ 6,\ 4,\ 2$
+      \item $1,\ 1,\ 2,\ 2,\ 3,\ 3$
+      \item $0,\ 0.25,\ 0.50,\ 0.75,\ 1$
+      \item \texttt{"G1" "G1" "G2" "G2" "G2"}
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSeq}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Aritmetika e vektorizuar}
+% ------------------------------------------------------------
+
+\begin{frame}{Aritmetika e vektorizuar: element pas elementi}
+  \centering
+  \begin{tikzpicture}[cell/.style={draw=uptmid,minimum width=0.9cm,minimum height=0.6cm,font=\footnotesize}]
+    \foreach \v [count=\i] in {1,2,3,4} \node[cell,fill=uptlight] at (\i*0.9,0) {\v};
+    \node at (4.6,0) {$+$};
+    \foreach \v [count=\i] in {10,20,30,40} \node[cell,fill=uptlight] at (4.6+\i*0.9,0) {\v};
+    \node at (9.2,0) {$=$};
+    \foreach \v [count=\i] in {11,22,33,44} \node[cell,fill=orange!15] at (9.2+\i*0.9,0) {\v};
+    \foreach \i in {1,2,3,4} \draw[accent,->] (\i*0.9,-0.35) to[bend right=20] (9.2+\i*0.9,-0.35);
+  \end{tikzpicture}
+  \vspace{8pt}
+  \begin{itemize}
+    \item Veprimet \texttt{+ - * / \^} punojnë mbi çdo çift elementesh.
+    \item Pse? Nuk ka nevojë për cikle \texttt{for}: kodi është më i shkurtër dhe më i shpejtë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Veprimet në R}
+<<vec-arith>>=
+x <- c(1, 2, 3, 4)
+y <- c(10, 20, 30, 40)
+x + y       # addition
+y - x       # subtraction
+x * 2       # multiplication by a scalar
+x^2         # power
+y / x       # division
+@
+\end{frame}
+
+\begin{frame}[fragile]{Funksionet mbi vektorë}
+<<vec-fun>>=
+sum(y)          # total
+mean(y)         # average
+max(y); min(y)
+cumsum(x)       # running total
+sqrt(x)         # element-wise square root
+@
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC: prodhimi skalar}
+  $x = (1, 2, 3, 4)$, \quad $y = (10, 20, 30, 40)$.
+  \pause
+  \begin{enumerate}
+    \item \texttt{x * y} $= (1\cdot10,\ 2\cdot20,\ 3\cdot30,\ 4\cdot40) = (10,\ 40,\ 90,\ 160)$.
+    \pause
+    \item \texttt{sum(x * y)} $= 10 + 40 + 90 + 160 = 300$.
+  \end{enumerate}
+  \pause
+  \[ \mathbf{x}^\top \mathbf{y} = \sum_{i=1}^{n} x_i y_i = 300 \]
+  \pause
+  \begin{Keshille}Kjo shumë del në formulën e katrorëve më të vegjël (Java 5).\end{Keshille}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<dot-check>>=
+x * y
+sum(x * y)
+@
+  \begin{itemize}
+    \item E njëjta përgjigje si pa ndihmën e PC: 300.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Riciklimi (\emph{recycling})}
+  \centering
+  \begin{tikzpicture}[cell/.style={draw=uptmid,minimum width=0.9cm,minimum height=0.6cm,font=\footnotesize}]
+    \foreach \v [count=\i] in {1,2,3,4} \node[cell,fill=uptlight] at (\i*0.9,0) {\v};
+    \node at (4.6,0) {$+$};
+    \node[cell,fill=uptlight] at (5.5,0) {10};
+    \node[cell,fill=uptlight] at (6.4,0) {20};
+    \node[cell,dashed,text=gray] at (7.3,0) {10};
+    \node[cell,dashed,text=gray] at (8.2,0) {20};
+    \node at (9.1,0) {$=$};
+    \foreach \v [count=\i] in {11,22,13,24} \node[cell,fill=orange!15] at (9.1+\i*0.9,0) {\v};
+  \end{tikzpicture}
+  \vspace{8pt}
+  \begin{itemize}
+    \item Kur vektorët kanë gjatësi të ndryshme, R përsërit vektorin e shkurtër.
+    \item Kështu punon edhe \texttt{x * 2}: numri 2 riciklohet 4 herë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: gjatësi jo shumëfish}
+<<recycle-warn>>=
+c(1, 2, 3, 4) + c(10, 20)    # fine: 4 is a multiple of 2
+1:5 + 1:2                    # 5 is not a multiple of 2
+@
+  \begin{Gabim}Një paralajmërim (\emph{warning}) nuk ndalon kodin. Lexoje gjithmonë.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeRecy]{Parashiko para se ta ekzekutosh}
+<<recy-code, eval=FALSE>>=
+1:6 * c(1, -1)
+@
+  \begin{Parashiko}
+    Çfarë printon R?\\[3pt]
+    \textbf{A)} \texttt{1 -2 3 -4 5 -6} \quad \textbf{B)} \texttt{1 -1} \quad \textbf{C)} \texttt{-1 -2 -3 -4 -5 -6}
+  \end{Parashiko}
+  \shkoTe{zgjRecy}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Indeksimi}
+% ------------------------------------------------------------
+
+\begin{frame}{Indeksi në R nis nga 1}
+  \centering
+  \begin{tikzpicture}[cell/.style={draw=uptmid,minimum width=1cm,minimum height=0.7cm,font=\footnotesize}]
+    \foreach \v [count=\i] in {2,7,4,9,5} {
+      \node[cell,fill=uptlight] at (\i*1.0,0) {\v};
+      \node[font=\scriptsize,text=accent] at (\i*1.0,0.6) {[\i]};
+    }
+    \node[font=\footnotesize] at (-0.2,0) {\texttt{x}};
+  \end{tikzpicture}
+  \vspace{8pt}
+  \begin{itemize}
+    \item Elementi i parë është \texttt{x[1]}, jo \texttt{x[0]}.
+    \item Kllapat katrore \texttt{[ ]} zgjedhin; kllapat e rrumbullakëta \texttt{( )} thërrasin funksione.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Zgjedhja sipas pozicionit}
+<<idx-pos>>=
+x <- c(2, 7, 4, 9, 5)
+x[2]          # second element
+x[2:3]        # second to third
+x[c(1, 5)]    # first and last
+@
+\end{frame}
+
+\begin{frame}[fragile]{Indeksi negativ: përjashtimi}
+<<idx-neg>>=
+x[-2]         # all except the second
+x[-(1:2)]     # all except the first two
+@
+  \begin{itemize}
+    \item Shenja minus do të thotë: ``hiq'', jo ``nga fundi''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: kllapat te indeksi negativ}
+<<idx-neg-trap, error=TRUE, results='markup'>>=
+-1:2          # this is c(-1, 0, 1, 2)
+x[-1:2]       # mixes negative and positive indices
+@
+  \begin{Gabim}Shkruaj \texttt{x[-(1:2)]}, jo \texttt{x[-1:2]}. Operatori \texttt{:} ka përparësi më të ulët se minusi.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Indeksimi logjik}
+<<idx-lgl>>=
+x > 4               # one TRUE/FALSE per element
+x[x > 4]            # keep only TRUE positions
+which(x > 4)        # positions of TRUE
+x[x > 4 & x < 9]    # two conditions: AND
+@
+\end{frame}
+
+\begin{frame}[fragile]{Shembull me të dhëna reale: 10 makinat e para}
+<<idx-auto>>=
+mpg10 <- auto$mpg[1:10]          # first 10 cars
+mpg10
+mpg10[mpg10 > 16]                # cars above 16 mpg
+mean(mpg10 > 16)                 # share above 16 mpg
+@
+  \begin{itemize}
+    \item Të dhëna: reale (\texttt{Auto.csv}, ISLR). \texttt{auto\$mpg} është një vektor.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Ndryshimi i elementeve}
+<<idx-assign>>=
+z5 <- c(2, 7, 4, 9, 5)
+z5[3] <- 100          # replace one element
+z5
+z5[z5 > 50] <- NA     # replace by condition
+z5
+@
+  \begin{itemize}
+    \item Kështu pastrohen vlerat e pamundura në të dhëna reale, p.sh.\ një moshë 999.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Emrat e elementeve}
+<<idx-names>>=
+temp <- c(Tirana = 17.1, Shkoder = 15.2, Korce = 11.4)  # synthetic values
+temp["Korce"]
+names(temp)
+temp[temp > 15]
+@
+  \begin{itemize}
+    \item Të dhëna: sintetike, vetëm për ilustrim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushIdx]{Radha jote!}
+  \begin{Ushtrim}[(pa ndihmën e PC, 4 minuta)]
+    Jepet \texttt{v <- c(12, 5, 8, 20, 3, 15)}. Shkruaj rezultatin e:
+    \begin{enumerate}
+      \item \texttt{v[3]}
+      \item \texttt{v[-(1:2)]}
+      \item \texttt{v[v > 10]}
+      \item \texttt{which(v > 10)}
+      \item \texttt{sum(v > 10)}
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjIdx}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeOut]{Parashiko para se ta ekzekutosh}
+<<out-code, eval=FALSE>>=
+x <- c(2, 7, 4, 9, 5)
+x[0]
+x[10]
+@
+  \begin{Parashiko}
+    Çfarë kthen R për secilën? Gabim, \texttt{NA}, apo diçka tjetër?
+  \end{Parashiko}
+  \shkoTe{zgjOut}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Matricat}
+% ------------------------------------------------------------
+
+\begin{frame}{Matrica \LO{S1}}
+  \begin{Definicion}[(Matrica)]
+    Tabelë dydimensionale me $i$ rreshta dhe $j$ kolona, me elemente të të njëjtit tip.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Elementi $z_{ij}$ ndodhet në rreshtin $i$ dhe kolonën $j$.
+    \pause
+    \item Në R përmasa jepet gjithmonë: \textbf{rreshta, pastaj kolona}.
+    \pause
+    \item Pse ka rëndësi? Regresioni i shumëfishtë shkruhet me matrica: $\hat{\bm\beta} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Krijimi i matricës}
+<<mat-create>>=
+z <- matrix(1:12, nrow = 3, ncol = 4)   # 3 rows, 4 columns
+z
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon? R mbush sipas kolonave}
+  \centering
+  \begin{tikzpicture}[cell/.style={draw=uptmid,minimum width=0.8cm,minimum height=0.6cm,font=\footnotesize}]
+    \foreach \j in {1,...,4} \foreach \i in {1,2,3} {
+      \pgfmathtruncatemacro{\v}{(\j-1)*3+\i}
+      \pgfmathtruncatemacro{\odd}{mod(\j,2)}
+      \ifnum\odd=1 \node[cell,fill=uptlight] at (\j*0.8,-\i*0.6) {\v};
+      \else \node[cell,fill=orange!15] at (\j*0.8,-\i*0.6) {\v}; \fi
+    }
+    \foreach \j in {1,...,4} \node[font=\scriptsize,text=accent] at (\j*0.8,-2.25) {$\uparrow$\,\j};
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Vlerat 1, 2, 3 mbushin kolonën e parë, pastaj 4, 5, 6 kolonën e dytë, \dots
+    \item Për mbushje sipas rreshtave: \texttt{matrix(1:12, nrow = 3, byrow = TRUE)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Indeksimi i matricës: \texttt{[rresht, kolonë]}}
+<<mat-idx>>=
+z[2, 2]      # row 2, column 2
+z[2, ]       # whole row 2
+z[, 3]       # whole column 3
+@
+  \begin{itemize}
+    \item Vendi bosh para ose pas presjes do të thotë: ``të gjitha''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Përjashtimi i rreshtave dhe kolonave}
+<<mat-neg>>=
+z[-1, ]           # drop first row
+z[, -2]           # drop second column
+z[, -c(2, 3)]     # drop second and third columns
+@
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeLen]{Parashiko para se ta ekzekutosh}
+<<len-code, eval=FALSE>>=
+dim(z)
+length(z)
+@
+  \begin{Parashiko}
+    Matrica \texttt{z} ka 3 rreshta dhe 4 kolona. Çfarë kthen \texttt{length(z)}?\\[3pt]
+    \textbf{A)} 3 \quad \textbf{B)} 4 \quad \textbf{C)} 12 \quad \textbf{D)} \texttt{3 4}
+  \end{Parashiko}
+  \shkoTe{zgjLen}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Përmasat e matricës}
+<<mat-dim>>=
+dim(z)        # rows, columns
+nrow(z); ncol(z)
+length(z)     # total number of elements
+@
+  \begin{itemize}
+    \item Matrica është një vektor me 12 elemente që ka edhe atributin \texttt{dim}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC: \texttt{*} kundrejt \texttt{\%*\%}}
+  \[
+    A=\begin{pmatrix}1&2\\3&4\end{pmatrix},\qquad
+    B=\begin{pmatrix}0&1\\1&0\end{pmatrix}
+  \]
+  \pause
+  \begin{itemize}
+    \item \texttt{A * B} (element pas elementi): $\begin{pmatrix}0&2\\3&0\end{pmatrix}$
+    \pause
+    \item \texttt{A \%*\% B} (prodhimi matricor): $\begin{pmatrix}1\cdot0+2\cdot1 & 1\cdot1+2\cdot0\\3\cdot0+4\cdot1 & 3\cdot1+4\cdot0\end{pmatrix}=\begin{pmatrix}2&1\\4&3\end{pmatrix}$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<mat-mult>>=
+A <- matrix(c(1, 3, 2, 4), nrow = 2)   # filled by column
+B <- matrix(c(0, 1, 1, 0), nrow = 2)
+A * B        # element-wise
+A %*% B      # matrix product
+@
+\end{frame}
+
+\begin{frame}[fragile]{Transpozimi dhe \texttt{\%*\%} me përmasa të ndryshme}
+<<mat-t>>=
+dim(t(z))            # transpose: 4 x 3
+dim(z %*% t(z))      # (3 x 4)(4 x 3) = 3 x 3
+@
+  \begin{Gabim}\texttt{z \%*\% z} jep gabim: kolonat e së parës (4) duhet të barazohen me rreshtat e së dytës (3).\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Bashkimi: \texttt{cbind()} dhe \texttt{rbind()}}
+<<bind>>=
+mpg <- c(18, 15, 31)
+hp  <- c(130, 165, 65)
+m <- cbind(mpg, hp)    # columns side by side
+m
+rbind(m, c(24, 95))    # add a row
+@
+\end{frame}
+
+\begin{frame}[fragile]{Përmbledhje sipas rreshtave dhe kolonave}
+<<colmeans>>=
+colMeans(m)        # mean of each column
+rowSums(z)         # sum of each row of z
+apply(z, 2, max)   # max of each column (2 = columns)
+@
+  \begin{itemize}
+    \item Te \texttt{apply()}: 1 = rreshtat, 2 = kolonat.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab3]{Gjej gabimin!}
+<<bug-mat, eval=FALSE>>=
+w <- matrix(1:12, nrow = 5)
+@
+  \begin{Ushtrim}[(Gjej gabimin)]
+    R nuk ndalon, por shfaq një paralajmërim. Pse? Sa kolona ka \texttt{w}? Si rregullohet?
+  \end{Ushtrim}
+  \shkoTe{zgjGab3}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushMat]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Krijo matricën \texttt{q} $4\times3$ me vlerat 1--12, \textbf{sipas rreshtave}.
+      \item Nxirr kolonën e dytë.
+      \item Llogarit mesataren e rreshtit të tretë.
+      \item Sa është \texttt{q[4, 3]}? Përgjigju pa ndihmën e PC, pastaj kontrollo.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjMat}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Pastrimi i mjedisit}
+<<cleanup>>=
+rm(z5, temp, mpg10)       # remove objects we no longer need
+exists("temp")
+@
+  \begin{Keshille}Para se të dorëzosh një skript, ekzekutoje nga e para në një seancë të pastër (\emph{Session $\rightarrow$ Restart R}). Nëse punon, është i riprodhueshëm.\end{Keshille}
+\end{frame}
+
+\begin{frame}[label=cp3]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Çfarë kthen \texttt{c(5, "5")}? Pse?
+    \item Si i zgjedh elementet e \texttt{x} që janë midis 3 dhe 8?
+    \item Cili është dallimi midis \texttt{A * B} dhe \texttt{A \%*\% B}?
+  \end{enumerate}
+  \shkoTe{zgjCp3}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item Vektorët: \Rkey{c()}, \Rkey{seq()}, \Rkey{rep()}; një tip i vetëm për vektor.
+    \item Veprimet janë element pas elementi; vektori i shkurtër riciklohet.
+    \item Indeksimi: pozicion \texttt{x[2]}, përjashtim \texttt{x[-2]}, kusht \texttt{x[x > 4]}.
+    \item Matricat: \texttt{matrix()} mbush sipas kolonave; \texttt{z[i, j]}; \texttt{dim()}.
+    \item \texttt{*} = element pas elementi; \texttt{\%*\%} = prodhim matricor.
+  \end{itemize}
+  \begin{Keshille}Ora 4: numrat e rastit, shpërndarjet dhe histogramet.\end{Keshille}
+\end{frame}

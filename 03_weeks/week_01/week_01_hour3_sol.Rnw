@@ -1,0 +1,99 @@
+% ============================================================
+%  Java 1 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjCoerce]{Zgjidhja: Parashiko (tipi i vektorit)}
+  \textbf{B)} character. Numri dhe vlera logjike kthehen në tekst.
+<<sol-coerce>>=
+v <- c(1, "a", TRUE)
+v
+class(v)
+@
+  \vfill\kthehu{pyetjeCoerce}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjSeq]{Zgjidhja: Radha jote! (vargjet)}
+<<sol-seq>>=
+seq(10, 2, by = -2)
+rep(1:3, each = 2)
+seq(0, 1, by = 0.25)
+rep(c("G1", "G2"), times = c(2, 3))
+@
+  \begin{itemize}
+    \item Për 1: edhe \texttt{seq(10, 2, length.out = 5)} jep të njëjtin vektor.
+  \end{itemize}
+  \vfill\kthehu{ushSeq}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjRecy]{Zgjidhja: Parashiko (riciklimi)}
+  \textbf{A)} Vektori \texttt{c(1, -1)} përsëritet 3 herë: $1, -1, 1, -1, 1, -1$.
+<<sol-recy>>=
+1:6 * c(1, -1)
+@
+  \vfill\kthehu{pyetjeRecy}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjIdx]{Zgjidhja: Radha jote! (indeksimi)}
+<<sol-idx>>=
+v <- c(12, 5, 8, 20, 3, 15)
+v[3]
+v[-(1:2)]
+v[v > 10]
+which(v > 10)
+sum(v > 10)
+@
+  \vfill\kthehu{ushIdx}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjOut]{Zgjidhja: Parashiko (indekse jashtë kufirit)}
+<<sol-out>>=
+x <- c(2, 7, 4, 9, 5)
+x[0]       # empty vector: there is no position 0
+x[10]      # position 10 does not exist: NA
+@
+  \begin{itemize}
+    \item R nuk jep gabim. Kjo është e rrezikshme: gabimi kalon pa u vënë re.
+  \end{itemize}
+  \vfill\kthehu{pyetjeOut}
+\end{frame}
+
+\begin{frame}[label=zgjLen]{Zgjidhja: Parashiko (\texttt{length})}
+  \textbf{C)} 12.
+  \begin{itemize}
+    \item \texttt{length()} numëron të gjitha elementet: $3 \times 4 = 12$.
+    \item Për rreshtat dhe kolonat përdor \texttt{dim()}, \texttt{nrow()}, \texttt{ncol()}.
+  \end{itemize}
+  \vfill\kthehu{pyetjeLen}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjGab3]{Zgjidhja: Gjej gabimin (matrica)}
+<<sol-mat-bug>>=
+w <- matrix(1:12, nrow = 5)
+dim(w)
+w[5, ]
+@
+  \begin{itemize}
+    \item 12 nuk pjesëtohet me 5: R krijon $5\times3 = 15$ qeliza dhe riciklon 1, 2, 3.
+    \item Rregullimi: \texttt{nrow} duhet të pjesëtojë 12, p.sh.\ \texttt{nrow = 3} ose \texttt{nrow = 4}.
+  \end{itemize}
+  \vfill\kthehu{gjejGab3}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjMat]{Zgjidhja: Radha jote! (matrica)}
+<<sol-mat>>=
+q <- matrix(1:12, nrow = 4, byrow = TRUE)
+q[, 2]           # second column
+mean(q[3, ])     # row 3 is 7, 8, 9
+q[4, 3]          # last element
+@
+  \vfill\kthehu{ushMat}
+\end{frame}
+
+\begin{frame}[label=zgjCp3]{Përgjigjet: Checkpoint i Orës 3}
+  \begin{enumerate}
+    \item \texttt{"5" "5"}: një vektor ka një tip; numri kthehet në tekst (\emph{coercion}).
+    \item \texttt{x[x >= 3 \& x <= 8]}.
+    \item \texttt{A * B} shumëzon element pas elementi; \texttt{A \%*\% B} bën prodhimin matricor (rresht $\times$ kolonë).
+  \end{enumerate}
+  \vfill\kthehu{cp3}
+\end{frame}
