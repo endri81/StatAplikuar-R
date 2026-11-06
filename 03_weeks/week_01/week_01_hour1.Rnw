@@ -6,7 +6,7 @@
 \section{Motivimi dhe hyrja}
 
 \begin{frame}{Ora 1: Motivimi dhe hyrja në kurs}
-  \tableofcontents[currentsection,hideothersubsections]
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
 \end{frame}
 
 % ------------------------------------------------------------

@@ -1,0 +1,91 @@
+% ============================================================
+%  Java 1 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjSeed]{Zgjidhja: Parashiko (fara)}
+  \textbf{B)} \texttt{FALSE TRUE}.
+<<sol-seed>>=
+set.seed(1); a <- runif(1)
+b <- runif(1)                 # next number in the same sequence
+set.seed(1); d <- runif(1)    # sequence restarts
+c(a == b, a == d)
+@
+  \begin{itemize}
+    \item \texttt{b} është numri i dytë i vargut; \texttt{d} është sërish i pari.
+  \end{itemize}
+  \vfill\kthehu{pyetjeSeed}
+\end{frame}
+
+\begin{frame}[label=zgjUnif]{Zgjidhja: Radha jote! (autobusi)}
+  $X\sim U(2,8)$:
+  \begin{enumerate}
+    \item $E(X)=(2+8)/2=5$ minuta.
+    \item $\operatorname{Var}(X)=(8-2)^2/12=36/12=3$; \quad $\sigma=\sqrt3\approx1.732$ minuta.
+    \item \texttt{runif(1000, min = 2, max = 8)}.
+  \end{enumerate}
+  \vfill\kthehu{ushUnif}
+\end{frame}
+
+\begin{frame}[fragile]{Zgjidhja: kontrolli me simulim}
+<<sol-unif>>=
+set.seed(2026)
+wait <- runif(1000, min = 2, max = 8)
+c(mean = mean(wait), var = var(wait), sd = sd(wait))
+@
+  \begin{itemize}
+    \item Të dhëna: sintetike. Vlerësimet janë afër 5, 3 dhe 1.732.
+  \end{itemize}
+  \vfill\kthehu{ushUnif}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjPnorm]{Zgjidhja: Parashiko (\texttt{pnorm}, \texttt{qnorm})}
+<<sol-pnorm>>=
+pnorm(0)
+qnorm(0.5)
+@
+  \begin{itemize}
+    \item $N(0,1)$ është simetrike rreth 0: gjysma e probabilitetit bie majtas.
+    \item \texttt{qnorm()} është e anasjella e \texttt{pnorm()}: \texttt{qnorm(pnorm(0)) = 0}.
+  \end{itemize}
+  \vfill\kthehu{pyetjePnorm}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjNdrysho]{Zgjidhja: Ndrysho parametrin}
+<<sol-change>>=
+set.seed(2026)
+range(rnorm(50, mean = 5, sd = 2))       # narrower: most values in 5 +/- 4
+set.seed(2026)
+abs(mean(rnorm(50, 5, 10)) - 5)          # n = 50
+set.seed(2026)
+abs(mean(rnorm(5000, 5, 10)) - 5)        # n = 5000
+@
+  \begin{enumerate}
+    \item \texttt{sd = 2}: histogrami ngushtohet rreth 5.
+    \item Gabimi tipik zvogëlohet rreth $\sqrt{5000/50}=10$ herë.
+    \item Numrat ndryshojnë me farën; përfundimet e mësipërme jo.
+  \end{enumerate}
+  \vfill\kthehu{ushNdrysho}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjFun]{Zgjidhja: Radha jote! (gabimi standard)}
+<<sol-se>>=
+se_mean <- function(x) sd(x) / sqrt(length(x))
+set.seed(2026); w_sol <- rnorm(50, mean = 5, sd = 10)
+set.seed(2026); big_sol <- rnorm(1e6, mean = 5, sd = 10)
+c(se_mean(w_sol), se_mean(big_sol))
+sqrt(1e6 / 50)       # ratio of square roots of sample sizes
+@
+  \begin{itemize}
+    \item $SE$ varet nga $1/\sqrt n$: $\sqrt{10^6/50}\approx 141$. Raporti real ndryshon pak, sepse $s$ ndryshon nga mostra në mostër.
+  \end{itemize}
+  \vfill\kthehu{ushFun}
+\end{frame}
+
+\begin{frame}[label=zgjCp4]{Përgjigjet: Checkpoint i Orës 4}
+  \begin{enumerate}
+    \item Që rezultatet të jenë të riprodhueshme: e njëjta farë jep të njëjtët numra.
+    \item $E(X)=0.5$, \ $\operatorname{Var}(X)=1/12\approx0.0833$.
+    \item \texttt{pnorm(q)} jep probabilitetin $P(X\le q)$; \texttt{qnorm(p)} jep vlerën $q$ për një probabilitet $p$ të dhënë.
+  \end{enumerate}
+  \vfill\kthehu{cp4}
+\end{frame}

@@ -1,0 +1,491 @@
+% ============================================================
+%  Java 1 · Ora 4 — Teori II: rastësia dhe shpërndarjet
+%  Rezultatet: S1, S4
+%  Burimi i kodit: DS612_R-Code_Lecture_1.R (rreshtat 96-140), rishkruar
+% ============================================================
+
+\section{Rastësia}
+
+\begin{frame}{Ora 4: Rastësia dhe shpërndarjet}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rastësia në kompjuter}
+% ------------------------------------------------------------
+
+\begin{frame}{Pse na duhen numrat e rastit? \LO{S1}}
+  \begin{itemize}
+    \item<1-> \textbf{Simulimi}: krijojmë të dhëna me parametra të njohur dhe testojmë metodat.
+    \item<2-> \textbf{Zgjedhja e mostrës}: INSTAT zgjedh rastësisht familjet për anketë.
+    \item<3-> \textbf{Ndarja train/test} dhe \textbf{cross-validation} (Java 6).
+    \item<4-> \textbf{Bootstrap}: vlerësimi i pasigurisë pa formula (Java 6).
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Në këtë kurs, çdo dataset sintetik krahasohet me ``të vërtetën'' që e prodhoi.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Numrat pseudo-rastësorë}
+  \begin{Definicion}[(Gjenerator pseudo-rastësor)]
+    Algoritëm deterministik që prodhon numra që \emph{duken} të rastit.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Nis nga një numër fillestar: \termi{fara}{seed}.
+    \pause
+    \item E njëjta farë $\Rightarrow$ i njëjti varg numrash, në çdo kompjuter.
+    \pause
+    \item Pse është e dobishme? Analiza mund të përsëritet saktësisht: \textbf{riprodhueshmëria}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{set.seed()} në praktikë}
+<<seed-demo>>=
+runif(3)          # no seed: different every run
+runif(3)
+set.seed(2026)
+runif(3)
+set.seed(2026)    # same seed again
+runif(3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Dy thirrjet e para japin numra të ndryshëm.
+    \item<2-> Pas \texttt{set.seed(2026)}, të dy thirrjet japin \textbf{të njëjtët} numra.
+    \item<3-> Prandaj çdo bllok kodi me rastësi në këtë kurs nis me \texttt{set.seed()}.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Pa \texttt{set.seed()}, rezultatet e detyrës suaj ndryshojnë sa herë e ekzekutoni, dhe nuk mund të kontrollohen.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeSeed]{Parashiko para se ta ekzekutosh}
+<<seed-q, eval=FALSE>>=
+set.seed(1); a <- runif(1)
+b <- runif(1)
+set.seed(1); d <- runif(1)
+c(a == b, a == d)
+@
+  \begin{Parashiko}
+    Çfarë printon R?\\[3pt]
+    \textbf{A)} \texttt{TRUE TRUE} \quad \textbf{B)} \texttt{FALSE TRUE} \quad \textbf{C)} \texttt{FALSE FALSE}
+  \end{Parashiko}
+  \shkoTe{zgjSeed}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shpërndarja uniforme}
+% ------------------------------------------------------------
+
+\begin{frame}{Shpërndarja uniforme $U(a,b)$}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{Definicion}[(Uniforme)]
+        \[ f(x)=\begin{cases}\dfrac{1}{b-a}, & a\le x\le b\\[4pt] 0, & \text{ndryshe}\end{cases} \]
+      \end{Definicion}
+      \begin{itemize}
+        \item Çdo interval me të njëjtën gjatësi ka të njëjtin probabilitet.
+      \end{itemize}
+    \column{0.48\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[width=\textwidth,height=4.2cm,xmin=-0.5,xmax=1.5,ymin=0,ymax=1.4,
+          xlabel={$x$},ylabel={$f(x)$},axis lines=left,ticklabel style={font=\scriptsize}]
+          \addplot[uptmid,very thick,fill=uptlight] coordinates {(0,0) (0,1) (1,1) (1,0)};
+          \node[font=\scriptsize] at (axis cs:0.5,1.15) {$U(0,1)$};
+        \end{axis}
+      \end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Pritja e $U(a,b)$: hap pas hapi}
+  \begin{align*}
+    E(X) &= \int_a^b x\,\frac{1}{b-a}\,dx \\
+    \onslide<2->{&= \frac{1}{b-a}\left[\frac{x^2}{2}\right]_a^b = \frac{b^2-a^2}{2(b-a)}} \\
+    \onslide<3->{&= \frac{(b-a)(b+a)}{2(b-a)} = \frac{a+b}{2}}
+  \end{align*}
+  \onslide<4->{
+  \begin{Teoreme}[(Momentet e uniformes)]
+    $E(X)=\frac{a+b}{2}$, \quad $\operatorname{Var}(X)=\frac{(b-a)^2}{12}$. \quad Për $U(0,1)$: $0.5$ dhe $1/12\approx 0.0833$.
+  \end{Teoreme}}
+\end{frame}
+
+\begin{frame}[fragile]{Mostra nga $U(0,1)$ në R}
+<<unif-code>>=
+set.seed(2026)
+u50 <- runif(50)      # 50 draws from U(0, 1)
+round(head(u50), 3)
+mean(u50)
+var(u50)
+@
+  \begin{itemize}
+    \item Të dhëna: sintetike, $U(0,1)$, \texttt{set.seed(2026)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vlerësimi kundrejt së vërtetës: $U(0,1)$, $n=50$}
+  \centering
+  \begin{tabular}{@{}lccc@{}}
+    \toprule
+    Parametri & E vërteta & Vlerësimi ($n=50$) & Gabimi \\ \midrule
+    $E(X)$ & 0.5000 & \Sexpr{fmt(mean(u50), 4)} & \Sexpr{fmt(mean(u50) - 0.5, 4)} \\
+    $\operatorname{Var}(X)$ & 0.0833 & \Sexpr{fmt(var(u50), 4)} & \Sexpr{fmt(var(u50) - 1/12, 4)} \\ \bottomrule
+  \end{tabular}
+  \vspace{8pt}
+  \begin{itemize}
+    \item Vlerësimet janë afër, por jo të barabarta me të vërtetën.
+    \item Pse? Mostra ka vetëm 50 vlera: ka \termi{gabim mostre}{sampling error}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushUnif]{Radha jote!}
+  \begin{Ushtrim}[(pa ndihmën e PC, 3 minuta)]
+    Koha e pritjes së autobusit në një stacion në Tiranë është $X\sim U(2, 8)$ minuta.
+    \begin{enumerate}
+      \item Sa është pritja mesatare $E(X)$?
+      \item Sa është varianca $\operatorname{Var}(X)$ dhe devijimi standard?
+      \item Shkruaj komandën R që simulon 1\,000 pritje.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjUnif}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shpërndarja normale}
+% ------------------------------------------------------------
+
+\begin{frame}{Shpërndarja normale $N(\mu,\sigma^2)$}
+  \begin{Definicion}[(Normale)]
+    \[ f(x)=\frac{1}{\sigma\sqrt{2\pi}}\,\exp\!\left(-\frac{(x-\mu)^2}{2\sigma^2}\right),\qquad x\in\mathbb{R} \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item $\mu$: qendra (pritja). $\sigma$: gjerësia (devijimi standard).
+    \pause
+    \item Formë kambane, simetrike rreth $\mu$.
+    \pause
+    \item Pse është kaq e rëndësishme? Gabimet në regresion supozohen normale (Java 5).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Ndikimi i $\mu$ dhe $\sigma$}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=0.8\textwidth,height=5.2cm,xmin=-6,xmax=10,ymin=0,
+      xlabel={$x$},ylabel={$f(x)$},axis lines=left,samples=150,
+      legend style={font=\scriptsize,draw=none},legend pos=north east,ticklabel style={font=\scriptsize}]
+      \addplot[uptmid,very thick,domain=-6:10]{exp(-(x-0)^2/2)/sqrt(2*pi)};
+      \addplot[accent,very thick,dashed,domain=-6:10]{exp(-(x-4)^2/2)/sqrt(2*pi)};
+      \addplot[okgreen,very thick,dotted,domain=-6:10]{exp(-(x-0)^2/(2*4))/(2*sqrt(2*pi))};
+      \legend{{$N(0,1)$},{$N(4,1)$},{$N(0,2^2)$}}
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item $\mu$ e zhvendos kurbën; $\sigma$ e zgjeron dhe e ul.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Rregulli 68--95--99.7}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=0.75\textwidth,height=4.6cm,xmin=-4,xmax=4,ymin=0,
+      axis lines=left,samples=120,xtick={-3,-2,-1,0,1,2,3},
+      xticklabels={$\mu-3\sigma$,$\mu-2\sigma$,$\mu-\sigma$,$\mu$,$\mu+\sigma$,$\mu+2\sigma$,$\mu+3\sigma$},
+      ticklabel style={font=\tiny},ytick=\empty]
+      \addplot[draw=none,fill=uptlight,domain=-2:2]{exp(-x^2/2)/sqrt(2*pi)}\closedcycle;
+      \addplot[draw=none,fill=uptmid!40,domain=-1:1]{exp(-x^2/2)/sqrt(2*pi)}\closedcycle;
+      \addplot[uptblue,thick,domain=-4:4]{exp(-x^2/2)/sqrt(2*pi)};
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Rreth 68\% e vlerave bien në $\mu\pm\sigma$; 95\% në $\mu\pm2\sigma$; 99.7\% në $\mu\pm3\sigma$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Standardizimi}
+  \begin{Definicion}[(Vlera $z$)]
+    \[ z=\frac{x-\mu}{\sigma} \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item $z$ tregon sa devijime standarde larg qendrës ndodhet $x$.
+    \pause
+    \item Nëse $X\sim N(\mu,\sigma^2)$, atëherë $Z\sim N(0,1)$: \termi{normalja standarde}{standard normal}.
+    \pause
+    \item \texttt{rnorm(50)} në R jep 50 vlera $z$ nga $N(0,1)$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  $X\sim N(5,\ 10^2)$. Sa është $P(X>25)$?
+  \pause
+  \begin{enumerate}
+    \item $z = (25-5)/10 = 2$.
+    \pause
+    \item Nga rregulli: 95\% e vlerave bien në $\mu\pm2\sigma$, pra 5\% jashtë.
+    \pause
+    \item Nga simetria, gjysma e 5\% është sipër: $P(X>25)\approx 2.5\%$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<pnorm-check>>=
+pnorm(25, mean = 5, sd = 10, lower.tail = FALSE)  # P(X > 25)
+pnorm(2, lower.tail = FALSE)                      # same, with z
+@
+  \begin{itemize}
+    \item Vlera e saktë është \Sexpr{fmt(100 * pnorm(2, lower.tail = FALSE), 2)}\%, afër 2.5\%.
+    \item Pse ndryshon pak? 95\% i përket saktësisht $\pm1.96\,\sigma$, jo $\pm2\,\sigma$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Katër funksionet për çdo shpërndarje}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Prefiksi & Çfarë jep & Normalja \\ \midrule
+    \texttt{d} & dendësia $f(x)$ & \texttt{dnorm(x, mean, sd)} \\
+    \texttt{p} & probabiliteti $P(X\le x)$ & \texttt{pnorm(q, mean, sd)} \\
+    \texttt{q} & kuantili: $x$ për një probabilitet & \texttt{qnorm(p, mean, sd)} \\
+    \texttt{r} & numra të rastit & \texttt{rnorm(n, mean, sd)} \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item E njëjta logjikë: \texttt{dunif}, \texttt{punif}, \texttt{qunif}, \texttt{runif}; \texttt{dt}, \texttt{pt}, \dots
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Funksionet \texttt{d}, \texttt{p}, \texttt{q} në R}
+<<dpq>>=
+dnorm(0)                 # height of N(0,1) at 0 = 1/sqrt(2*pi)
+qnorm(0.975)             # the famous 1.96
+pnorm(1) - pnorm(-1)     # P(-1 < Z < 1): the 68% rule
+@
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjePnorm]{Parashiko para se ta ekzekutosh}
+<<pnorm-q, eval=FALSE>>=
+pnorm(0)
+qnorm(0.5)
+@
+  \begin{Parashiko}
+    Pa ekzekutuar kodin, çfarë kthejnë këto dy komanda? Pse?
+  \end{Parashiko}
+  \shkoTe{zgjPnorm}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulimi: vlerësimi kundrejt së vërtetës}
+% ------------------------------------------------------------
+
+\begin{frame}{Eksperimenti ynë}
+  \begin{itemize}
+    \item<1-> E vërteta: $X\sim N(\mu=5,\ \sigma=10)$.
+    \item<2-> Hapi 1: marrim një mostër të vogël, $n=50$.
+    \item<3-> Hapi 2: marrim një mostër shumë të madhe, $n=10^6$.
+    \item<4-> Pyetja: sa afër të vërtetës janë $\bar x$ dhe $s$ në secilin rast?
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Ky është avantazhi i të dhënave sintetike: e njohim përgjigjen e saktë.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Mostra e vogël: $n=50$}
+<<norm50>>=
+set.seed(2026)
+w <- rnorm(50, mean = 5, sd = 10)   # 50 draws from N(5, 10^2)
+mean(w)
+sd(w)
+var(w)
+@
+  \begin{itemize}
+    \item Të dhëna: sintetike, $N(5, 10^2)$, \texttt{set.seed(2026)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Histogrami i mostrës së vogël}
+<<hist50, echo=FALSE, fig.height=3.2>>=
+par(mar = c(4, 4, 1, 1))
+hist(w, breaks = 12, col = "#E8EEF7", border = "#2C5AA0",
+     main = "", xlab = "w (n = 50)", ylab = "Frequency")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Forma është e çrregullt: me 50 vlera, kambana mezi duket.
+    \item<2-> $\bar x = \Sexpr{fmt(mean(w), 2)}$ dhe $s = \Sexpr{fmt(sd(w), 2)}$ janë afër 5 dhe 10, por jo të barabartë.
+    \item<3-> Një farë tjetër do të jepte histogram tjetër. Kjo është ndryshueshmëria e mostrës.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Mostra e madhe: $n=10^6$}
+<<norm1e6>>=
+set.seed(2026)
+big <- rnorm(1e6, mean = 5, sd = 10)   # one million draws
+mean(big)
+sd(big)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Histogrami i mostrës së madhe dhe dendësia e vërtetë}
+<<hist1e6, echo=FALSE, fig.height=3.2>>=
+par(mar = c(4, 4, 1, 1))
+hist(big, breaks = 80, freq = FALSE, col = "#E8EEF7", border = "#2C5AA0",
+     main = "", xlab = "big (n = 1,000,000)", ylab = "Density")
+curve(dnorm(x, mean = 5, sd = 10), add = TRUE, col = "#D97706", lwd = 3)
+@
+\end{frame}
+
+\begin{frame}{Vlerësimi kundrejt së vërtetës: $N(5, 10^2)$}
+  \centering
+  \begin{tabular}{@{}lccc@{}}
+    \toprule
+    Parametri & E vërteta & $n=50$ & $n=10^6$ \\ \midrule
+    $\mu$ & 5 & \Sexpr{fmt(mean(w), 3)} & \Sexpr{fmt(mean(big), 3)} \\
+    $\sigma$ & 10 & \Sexpr{fmt(sd(w), 3)} & \Sexpr{fmt(sd(big), 3)} \\
+    $\sigma^2$ & 100 & \Sexpr{fmt(var(w), 2)} & \Sexpr{fmt(var(big), 2)} \\ \bottomrule
+  \end{tabular}
+  \vspace{8pt}
+  \begin{itemize}
+    \item Me $n=10^6$, gabimi për $\mu$ dhe $\sigma$ bie nën 0.01.
+    \item Pse? Sa më e madhe mostra, aq më i vogël gabimi i mostrës.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kujdes: mostra e madhe nuk e bën ``normale'' çdo gjë}
+  \begin{itemize}
+    \item<1-> Komenti në kodin origjinal thotë: ``me rritjen e $n$, shpërndarja bëhet normale''.
+    \item<2-> Kjo vlen këtu sepse \textbf{e vërteta është normale}.
+    \item<3-> Një mostër e madhe e \textbf{pasqyron} shpërndarjen e vërtetë, cilado qoftë ajo.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}``Kemi shumë të dhëna, pra janë normale.'' E gabuar: të ardhurat e familjeve mbeten të anuara edhe me $n=10^6$.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile]{Prova: $10^6$ vlera nga $U(0,1)$}
+<<hist-unif, echo=-1, fig.height=2.3>>=
+par(mar = c(4, 4, 1, 1))
+set.seed(2026)
+ubig <- runif(1e6)
+hist(ubig, breaks = 50, col = "#E8EEF7", border = "#2C5AA0",
+     main = "", xlab = "ubig", ylab = "Frequency")
+@
+  \begin{itemize}
+    \item Histogrami është i sheshtë, si $U(0,1)$, jo kambanë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushNdrysho]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(6 minuta)]
+    Në kodin \texttt{w <- rnorm(50, mean = 5, sd = 10)}:
+    \begin{enumerate}
+      \item Parashiko: si ndryshon histogrami nëse \texttt{sd = 2}? Pastaj provoje.
+      \item Parashiko: si ndryshon $|\bar x - 5|$ nëse \texttt{n = 5000}? Pastaj provoje.
+      \item Ndrysho farën në \texttt{set.seed(1)}. A ndryshojnë përfundimet?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjNdrysho}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ligji i numrave të mëdhenj}
+% ------------------------------------------------------------
+
+\begin{frame}{Ligji i numrave të mëdhenj \Zgj}
+  \begin{Teoreme}[(Ligji i dobët i numrave të mëdhenj)]
+    Nëse $X_1,\dots,X_n$ janë të pavarura me të njëjtën shpërndarje dhe $E(X_i)=\mu$, atëherë për çdo $\varepsilon>0$:
+    \[ P\big(|\bar X_n-\mu|>\varepsilon\big)\longrightarrow 0,\qquad n\to\infty \]
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item Me fjalë: mesatarja e mostrës afrohet te $\mu$ kur $n$ rritet.
+    \pause
+    \item Kjo shpjegon tabelën e mëparshme: $n=10^6$ dha $\bar x\approx 5$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Mesatarja rrjedhëse \Zgj}
+<<lln-code, eval=FALSE>>=
+set.seed(2026)
+draws <- rnorm(5000, mean = 5, sd = 10)
+running_mean <- cumsum(draws) / seq_along(draws)  # mean of first k draws
+plot(running_mean, type = "l", log = "x",
+     xlab = "k (log scale)", ylab = "Mean of first k draws")
+abline(h = 5, col = "#D97706", lwd = 2)          # the truth
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: mesatarja rrjedhëse \Zgj}
+<<lln-plot, echo=FALSE, fig.height=3.2>>=
+par(mar = c(4, 4, 1, 1))
+set.seed(2026)
+draws <- rnorm(5000, mean = 5, sd = 10)
+running_mean <- cumsum(draws) / seq_along(draws)
+plot(running_mean, type = "l", log = "x", col = "#2C5AA0", lwd = 1.5,
+     xlab = "k (log scale)", ylab = "Mean of first k draws")
+abline(h = 5, col = "#D97706", lwd = 2)
+@
+  \begin{itemize}
+    \item Në fillim lëkundjet janë të mëdha; pas disa qindra vlerash, vija qëndron afër 5.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Funksionet e veta}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Funksioni yt i parë \Zgj}
+<<my-fun>>=
+describe <- function(x) {
+  c(n = length(x), mean = mean(x), sd = sd(x))  # last value is returned
+}
+describe(w)
+@
+  \begin{itemize}
+    \item Struktura: \texttt{emri <- function(argumentet) \{ trupi \}}.
+    \item Pse? Kodi që përsëritet shkruhet një herë, testohet një herë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{sapply()}: një funksion për çdo element \Zgj}
+<<sapply-n>>=
+set.seed(2026)
+sizes <- c(10, 100, 1000, 10000, 100000)
+xbar <- sapply(sizes, function(n) mean(rnorm(n, mean = 5, sd = 10)))
+round(rbind(n = sizes, mean = xbar, error = xbar - 5), 3)
+@
+  \begin{itemize}
+    \item Gabimi zvogëlohet përgjithësisht me rritjen e $n$, por jo në çdo hap: rastësia mbetet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushFun]{Radha jote! \Zgj}
+  \begin{Ushtrim}[(5 minuta)]
+    Gabimi standard i mesatares është $SE = s/\sqrt{n}$.
+    \begin{enumerate}
+      \item Shkruaj funksionin \texttt{se\_mean(x)} që e llogarit.
+      \item Llogarit \texttt{se\_mean(w)} dhe \texttt{se\_mean(big)}.
+      \item Pse \texttt{se\_mean(big)} është rreth 140 herë më i vogël?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjFun}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp4]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 4}
+  \begin{enumerate}
+    \item Pse çdo simulim nis me \texttt{set.seed()}?
+    \item Për $U(0,1)$, sa janë $E(X)$ dhe $\operatorname{Var}(X)$?
+    \item Cili është dallimi midis \texttt{pnorm()} dhe \texttt{qnorm()}?
+  \end{enumerate}
+  \shkoTe{zgjCp4}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 4}
+  \begin{itemize}
+    \item Numrat pseudo-rastësorë: \texttt{set.seed()} i bën të riprodhueshëm.
+    \item $U(a,b)$: $E=(a+b)/2$, $\operatorname{Var}=(b-a)^2/12$. $N(\mu,\sigma^2)$: rregulli 68--95--99.7.
+    \item Funksionet \texttt{d}, \texttt{p}, \texttt{q}, \texttt{r} për çdo shpërndarje.
+    \item Me $n$ të madh, vlerësimet afrohen te e vërteta (ligji i numrave të mëdhenj).
+    \item Mostra e madhe pasqyron shpërndarjen e vërtetë; nuk e bën atë normale.
+  \end{itemize}
+  \begin{Keshille}Ora 5: importimi i të dhënave dhe vizualizimi me R bazë dhe ggplot2.\end{Keshille}
+\end{frame}

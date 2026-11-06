@@ -6,7 +6,7 @@
 \section{Mjedisi R}
 
 \begin{frame}{Ora 2: Mjedisi R dhe RStudio}
-  \tableofcontents[currentsection,hideothersubsections]
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
 \end{frame}
 
 % ------------------------------------------------------------

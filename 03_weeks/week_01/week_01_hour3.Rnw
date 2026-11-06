@@ -7,7 +7,7 @@
 \section{Laborator I}
 
 \begin{frame}{Ora 3: Laborator I --- vektorët dhe matricat}
-  \tableofcontents[currentsection,hideothersubsections]
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
 \end{frame}
 
 % ------------------------------------------------------------
