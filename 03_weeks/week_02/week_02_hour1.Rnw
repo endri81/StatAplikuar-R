@@ -1,0 +1,449 @@
+% ============================================================
+%  Java 2 · Ora 1 — Motivimi: çfarë është ``tipike''?
+%  Rezultatet: K1, S4, S1
+% ============================================================
+
+\section{Motivimi}
+
+\begin{frame}{Ora 1: Motivimi --- çfarë është ``tipike''?}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi motivues}
+% ------------------------------------------------------------
+
+\begin{frame}{Pyetja e ditës \LO{K1}}
+  \begin{itemize}
+    \item<1-> \textbf{Sa fiton një punëtor tipik?}
+    \item<2-> Duket pyetje e thjeshtë. Por çfarë do të thotë ``tipik''?
+    \item<3-> Mesatarja? Vlera në mes? Vlera më e shpeshtë?
+    \item<4-> Përgjigjja ndryshon shumë sipas zgjedhjes, dhe kjo ka pasoja reale: politika pagash, pragu i varfërisë, taksat.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Të dhënat \texttt{Wage}}
+  \begin{itemize}
+    \item<1-> 3\,000 punëtorë meshkuj në rajonin Mid-Atlantic të SHBA-së, vitet 2003--2009.
+    \item<2-> Variabli kryesor: \texttt{wage}, paga vjetore në mijë \$.
+    \item<3-> Variabla të tjera: mosha, arsimi, gjendja civile, lloji i punës, viti.
+  \end{itemize}
+  \onslide<4->{\footnotesize\textcolor{gray}{Të dhëna: reale (burimi: James et al., \emph{ISLR}; skedari \texttt{Wage.csv} nga repo-ja DS612).}}
+\end{frame}
+
+\begin{frame}[label=pyetjeWage]{Parashiko!}
+  \begin{Parashiko}
+    Për pagat e 3\,000 punëtorëve, cila është më e madhe?\\[3pt]
+    \textbf{A)} Mesatarja \quad \textbf{B)} Mediana \quad \textbf{C)} Janë afërsisht të barabarta
+  \end{Parashiko}
+  \pause
+  \begin{itemize}
+    \item Mendo: si shpërndahen zakonisht pagat në një shoqëri?
+  \end{itemize}
+  \shkoTe{zgjWage}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kodi R: mesatarja dhe mediana}
+<<wage-read>>=
+wage <- read.csv(file.path(W02DATA, "Wage.csv"))
+dim(wage)
+mean(wage$wage)       # arithmetic mean
+median(wage$wage)     # middle value
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mesatarja (\Sexpr{fmt(mean(wage$wage), 1)}) është më e madhe se mediana (\Sexpr{fmt(median(wage$wage), 1)}).
+    \item<2-> Diferenca: rreth \Sexpr{fmt(mean(wage$wage) - median(wage$wage), 1)} mijë \$ në vit.
+    \item<3-> Pse? Disa paga shumë të larta e ``tërheqin'' mesataren lart. Mediana nuk preket.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Histogrami i pagave}
+<<wage-hist, echo=FALSE, fig.height=3.1>>=
+library(ggplot2)
+ggplot(wage, aes(x = wage)) +
+  geom_histogram(binwidth = 10, fill = "#E8EEF7", colour = "#2C5AA0") +
+  geom_vline(xintercept = mean(wage$wage), colour = "#D97706", linewidth = 1.1) +
+  geom_vline(xintercept = median(wage$wage), colour = "#15803D",
+             linewidth = 1.1, linetype = "dashed") +
+  labs(x = "Wage (thousand USD per year)", y = "Count") +
+  theme_minimal(base_size = 13)
+@
+  \centering\footnotesize Portokalli: mesatarja. Jeshile e ndërprerë: mediana.
+\end{frame}
+
+\begin{frame}{Çfarë na tregon histogrami?}
+  \begin{itemize}
+    \item<1-> Shumica e pagave janë midis 50 dhe 150 mijë \$.
+    \item<2-> Bishti djathtas është i gjatë: \termi{anshmëri djathtas}{right skew}.
+    \item<3-> Ka një grup të veçantë mbi 250 mijë \$: \Sexpr{sum(wage$wage > 250)} punëtorë.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Në shpërndarje të anuara djathtas, zakonisht mesatarja $>$ mediana.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Mesatarja dhe mediana: dy ide të ndryshme}
+  \centering
+  \begin{tikzpicture}[>=Stealth]
+    \draw[thick,uptblue] (0,0)--(10,0);
+    \foreach \x in {1,1.6,2.2,2.8,3.4} \fill[uptmid] (\x,0.18) circle (4pt);
+    \fill[warnred] (9.4,0.18) circle (4pt);
+    \draw[accent,fill=accent] (3.4,-0.05)--(3.2,-0.45)--(3.6,-0.45)--cycle;
+    \node[font=\scriptsize,text=accent,below] at (3.4,-0.45) {mesatarja: pika e ekuilibrit};
+    \draw[okgreen,very thick,dashed] (2.5,0.5)--(2.5,-0.2);
+    \node[font=\scriptsize,text=okgreen,above] at (2.5,0.5) {mediana: personi në mes};
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Mesatarja: pika ku ``balancohet'' vija. Një pikë larg e zhvendos fort.
+    \item Mediana: gjysma e vlerave janë majtas, gjysma djathtas. Pika larg nuk ka rëndësi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  Pagat mujore në një firmë të vogël, në mijë lekë (sintetike):
+  \[ 60,\quad 70,\quad 80,\quad 90,\quad 600 \]
+  \pause
+  \begin{enumerate}
+    \item Mesatarja: $(60+70+80+90+600)/5 = 900/5 = 180$.
+    \pause
+    \item Mediana: vlera e tretë e renditur $= 80$.
+    \pause
+    \item Katër nga pesë punonjës marrin \textbf{më pak} se mesatarja.
+  \end{enumerate}
+  \pause
+  \begin{Gabim}``Paga mesatare në firmë është 180 mijë lekë'' është e saktë, por e çorienton lexuesin.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Statistika zyrtare zgjedh medianën}
+  \begin{itemize}
+    \item<1-> Eurostat dhe INSTAT (anketa SILC) e përcaktojnë pragun e rrezikut të varfërisë si \textbf{60\% e medianës} së të ardhurave të disponueshme të ekuivalentuara.
+    \item<2-> Pse mediana dhe jo mesatarja? Sepse disa të ardhura shumë të larta nuk duhet ta ngrenë pragun e varfërisë.
+    \item<3-> Për të dhënat \texttt{Wage}: 60\% e medianës $= \Sexpr{fmt(0.6 * median(wage$wage), 1)}$ mijë \$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mendo -- Diskuto -- Ndaj}
+  \begin{Ushtrim}[(think--pair--share, 4 minuta)]
+    Për secilin rast, cilën do të raportonit: mesataren apo medianën? Pse?
+    \begin{enumerate}
+      \item Çmimi i apartamenteve në Tiranë.
+      \item Nota mesatare e një studenti në 10 provime.
+      \item Koha e udhëtimit për në punë.
+      \item Konsumi total i energjisë i një qyteti, i llogaritur nga familjet.
+    \end{enumerate}
+  \end{Ushtrim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Objektivat}
+% ------------------------------------------------------------
+
+\begin{frame}{Objektivat e ditës}
+  Në fund të ditës do të jesh në gjendje:
+  \begin{enumerate}
+    \item \LO{K1} të zgjedhësh masën e duhur të qendrës dhe të shpërndarjes sipas të dhënave;
+    \item \LO{S1} të shpjegosh vetitë e mesatares, medianës, variancës, IQR-së dhe MAD-it;
+    \item \LO{S4} t'i llogaritësh në R, nga zero dhe me paketa;
+    \item \LO{K1} të përshkruash formën e një shpërndarjeje dhe të gjesh vlerat e skajshme;
+    \item \LO{S4} të bësh një analizë eksploruese (EDA) të plotë në R.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Lidhja me Javën 1}
+  \begin{itemize}
+    \item<1-> Te \texttt{Auto}: mesatarja e \texttt{mpg} 23.45 $>$ mediana 22.75. Sot e kuptojmë pse.
+    \item<2-> Boxplot-i: e përdorëm; sot e ndërtojmë nga zero, me rregullin $1.5\cdot IQR$.
+    \item<3-> $\overline{g(x)}\neq g(\bar x)$: sot e përdorim për shndërrimet logaritmike.
+    \item<4-> Varianca me $n-1$: sot shtojmë masa më të qëndrueshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plani i ditës}
+  \centering
+  \begin{tikzpicture}[x=1.55cm,
+      hr/.style={rectangle,draw=white,thick,minimum width=1.55cm,minimum height=1.25cm,align=center,font=\scriptsize\bfseries,text=white}]
+    \node[hr,fill=uptblue] at (0,0) {Ora 1\\Motivimi};
+    \node[hr,fill=uptmid]  at (1,0) {Ora 2\\Qendra,\\shpërndarja};
+    \node[hr,fill=okgreen] at (2,0) {Ora 3\\Nga zero};
+    \node[hr,fill=uptmid]  at (3,0) {Ora 4\\Forma,\\outliers};
+    \node[hr,fill=okgreen] at (4,0) {Ora 5\\EDA me\\paketa};
+    \node[hr,fill=accent]  at (5,0) {Ora 6\\Boston,\\Wage};
+    \node[hr,fill=uptblue] at (6,0) {Ora 7\\Konsolidim};
+  \end{tikzpicture}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Tipat e variablave}
+% ------------------------------------------------------------
+
+\begin{frame}{Klasifikimi i variablave \LO{S1}}
+  \centering
+  \begin{tikzpicture}[>=Stealth,level distance=1.3cm,
+      level 1/.style={sibling distance=5.2cm},level 2/.style={sibling distance=2.6cm},
+      nd/.style={rectangle,rounded corners=2pt,draw=uptblue,fill=uptlight,font=\scriptsize,align=center,minimum width=2.2cm}]
+    \node[nd,fill=uptblue,text=white] {Variabël}
+      child {node[nd] {Cilësore\\(kategori)}
+        child {node[nd,fill=white] {Nominale\\gjendja civile}}
+        child {node[nd,fill=white] {Rendore\\niveli i arsimit}}}
+      child {node[nd] {Sasiore\\(numra)}
+        child {node[nd,fill=white] {Diskrete\\nr.\ i fëmijëve}}
+        child {node[nd,fill=white] {E vazhdueshme\\paga, mosha}}};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Shkallët e matjes}
+  \footnotesize
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    Shkalla & Çfarë ka kuptim & Shembull & Statistika e lejuar \\ \midrule
+    Nominale & $=$, $\neq$ & gjendja civile & moda, frekuencat \\
+    Rendore & $<$, $>$ & arsimi (5 nivele) & + mediana, kuantilet \\
+    Intervalore & diferencat & temperatura në °C, viti & + mesatarja, $s$ \\
+    Raporti & raportet, zero e vërtetë & paga, mosha & + koeficienti i variacionit \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \normalsize
+  \begin{itemize}
+    \item Çdo shkallë lejon edhe statistikat e shkallëve sipër saj.
+    \item Pse 20 °C nuk është ``dy herë më ngrohtë'' se 10 °C? Sepse 0 °C nuk është mungesë temperature.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Variablat e \texttt{Wage} sipas shkallës}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      \begin{block}{Cilësore}
+        \texttt{maritl}: nominale\\
+        \texttt{jobclass}: nominale\\
+        \texttt{education}: rendore
+      \end{block}
+    \column{0.5\textwidth}
+      \begin{block}{Sasiore}
+        \texttt{year}: intervalore\\
+        \texttt{age}: raporti\\
+        \texttt{wage}: raporti
+      \end{block}
+  \end{columns}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Në skedar, \texttt{education} ruhet si tekst me numër para: ``1.~<~HS Grad'', \dots, ``5.~Advanced Degree''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: mesatarja e kodeve}
+<<edu-code>>=
+edu_code <- as.integer(substr(wage$education, 1, 1))  # first character: 1..5
+mean(edu_code)        # computable, but is it meaningful?
+@
+  \begin{Gabim}
+    ``Niveli mesatar i arsimit është \Sexpr{fmt(mean(edu_code), 2)}'' supozon që distanca 1$\to$2 është e barabartë me 4$\to$5. Për variabla rendore raporto medianën ose frekuencat.
+  \end{Gabim}
+\end{frame}
+
+\begin{frame}[label=ushShk]{Radha jote!}
+  \begin{Ushtrim}[(3 minuta)]
+    Përcaktoni shkallën e matjes për secilën variabël:
+    \begin{enumerate}
+      \item kodi postar i bashkisë;
+      \item vlerësimi i shërbimit: ``i dobët'', ``mesatar'', ``i mirë'';
+      \item sipërfaqja e banesës në m²;
+      \item temperatura mesatare ditore në Korçë (°C);
+      \item numri i anëtarëve të familjes.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjShk}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Faktor i renditur në R}
+<<edu-ordered>>=
+wage$education <- factor(wage$education, ordered = TRUE)
+levels(wage$education)
+table(wage$education)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Çfarë na tregon?}
+<<edu-median>>=
+levels(wage$education)[median(as.integer(wage$education))]
+@
+  \begin{itemize}
+    \item Mediana e arsimit bie te niveli i tretë, ``Some College'': të paktën gjysma e punëtorëve kanë këtë nivel ose më pak.
+    \item \texttt{ordered = TRUE} lejon krahasime: \texttt{wage\$education > "2. HS Grad"}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Funksioni i shpërndarjes dhe kuantilet}
+% ------------------------------------------------------------
+
+\begin{frame}{Funksioni i shpërndarjes}
+  \begin{Definicion}[(Funksioni i shpërndarjes)]
+    \[ F(x) = P(X\le x),\qquad x\in\mathbb R \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Jo-zbritës, nga 0 në 1.
+    \pause
+    \item Përgjigjet pyetjes: ``çfarë pjese e popullatës ka vlerë deri në $x$?''
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Funksioni empirik i shpërndarjes}
+  \begin{columns}[c]
+    \column{0.52\textwidth}
+      \begin{Definicion}[(ECDF)]
+        \[ F_n(x)=\frac{\#\{i:\ x_i\le x\}}{n} \]
+      \end{Definicion}
+      \begin{itemize}
+        \item Shkallë: kërcen me $1/n$ në çdo vrojtim.
+      \end{itemize}
+    \column{0.46\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[width=\textwidth,height=4.2cm,xmin=0,xmax=12,ymin=0,ymax=1.1,
+          xlabel={$x$},ylabel={$F_n(x)$},axis lines=left,ticklabel style={font=\scriptsize},
+          ytick={0,0.2,0.6,0.8,1}]
+          \addplot[uptmid,very thick,const plot] coordinates {(0,0) (2,0.2) (4,0.6) (5,0.8) (10,1) (12,1)};
+          \addplot[only marks,mark=*,uptmid] coordinates {(2,0.2) (4,0.6) (5,0.8) (10,1)};
+        \end{axis}
+      \end{tikzpicture}
+  \end{columns}
+  \centering\footnotesize Për $x = (2,4,4,5,10)$.
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  $x = (2,\ 4,\ 4,\ 5,\ 10)$, \ $n=5$.
+  \pause
+  \begin{itemize}
+    \item $F_n(1) = 0/5 = 0$.
+    \pause
+    \item $F_n(4) = 3/5 = 0.6$: tri vlera janë $\le 4$ (vlera 4 numërohet dy herë).
+    \pause
+    \item $F_n(7) = 4/5 = 0.8$.
+    \pause
+    \item $F_n(10) = 5/5 = 1$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<ecdf>>=
+x <- c(2, 4, 4, 5, 10)
+Fn <- ecdf(x)          # returns a function
+Fn(c(1, 4, 7, 10))
+@
+  \begin{itemize}
+    \item \texttt{ecdf()} kthen një \textbf{funksion}: e thërrasim si çdo funksion tjetër.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kuantili}
+  \begin{Definicion}[(Kuantili i rendit $p$)]
+    \[ q_p = \min\{x:\ F(x)\ge p\},\qquad 0<p<1 \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Mediana $= q_{0.5}$; kuartilet $Q_1 = q_{0.25}$, $Q_3 = q_{0.75}$.
+    \pause
+    \item Përqindëshat: $q_{0.10}$ = P10, $q_{0.90}$ = P90.
+    \pause
+    \item Interpretim: $q_{0.9}$ e pagave = paga nën të cilën janë 90\% e punëtorëve.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mediana kur $n$ është çift}
+  \begin{itemize}
+    \item $n$ tek: mediana është vlera në pozicionin $(n+1)/2$ pas renditjes.
+    \pause
+    \item $n$ çift: mesatarja e dy vlerave në mes, pozicionet $n/2$ dhe $n/2+1$.
+  \end{itemize}
+  \pause
+  \begin{Shembull}
+    $(3,\ 7,\ 8,\ 12)$: mediana $= (7+8)/2 = 7.5$.
+  \end{Shembull}
+  \begin{Keshille}Për kuartilet ka disa përkufizime. Në Orën 2 shohim pse R jep 9 tipa.\end{Keshille}
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeMed]{Parashiko para se ta ekzekutosh}
+<<med-q, eval=FALSE>>=
+median(c(20, 1, 8, 3))
+@
+  \begin{Parashiko}
+    Çfarë kthen R?\\[3pt]
+    \textbf{A)} 8 \quad \textbf{B)} 5.5 \quad \textbf{C)} 4.5 \quad \textbf{D)} 8 dhe 1
+  \end{Parashiko}
+  \shkoTe{zgjMed}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pamja e parë e pagave}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Kuantilet e pagave}
+<<wage-q>>=
+summary(wage$wage)
+quantile(wage$wage, probs = c(0.10, 0.50, 0.90))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 10\% e punëtorëve fitojnë nën \Sexpr{fmt(quantile(wage$wage, 0.1), 1)} mijë \$; 10\% fitojnë mbi \Sexpr{fmt(quantile(wage$wage, 0.9), 1)}.
+    \item<2-> Raporti P90/P10 $=\Sexpr{fmt(quantile(wage$wage, 0.9) / quantile(wage$wage, 0.1), 2)}$: një masë e thjeshtë e pabarazisë.
+    \item<3-> Raporti nuk varet nga vlerat ekstreme mbi P90.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}OECD dhe Eurostat përdorin raporte përqindëshash (P90/P10, P50/P10) për pabarazinë e pagave.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Paga sipas nivelit të arsimit}
+<<wage-edu, echo=FALSE, fig.height=3.1>>=
+ggplot(wage, aes(x = as.integer(education), y = wage, group = education)) +
+  geom_boxplot(fill = "#E8EEF7", colour = "#2C5AA0", outlier.alpha = 0.3) +
+  scale_x_continuous(breaks = 1:5,
+                     labels = c("< HS", "HS", "Some coll.", "College", "Advanced")) +
+  labs(x = "Education", y = "Wage (thousand USD)") + theme_minimal(base_size = 13)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mediana e pagës rritet me çdo nivel arsimi: nga \Sexpr{fmt(median(wage$wage[as.integer(wage$education) == 1]), 1)} në \Sexpr{fmt(median(wage$wage[as.integer(wage$education) == 5]), 1)} mijë \$.
+    \item<2-> Edhe shpërndarja rritet: kutitë zgjerohen në nivelet e larta.
+    \item<3-> Vlerat e larta mbi 250 shfaqen në çdo nivel.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Kjo nuk provon që arsimi \emph{shkakton} pagë më të lartë: mosha, lloji i punës dhe aftësitë ndryshojnë bashkë me arsimin.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[label=ushWage]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Llogaritni P90/P10 të pagave për punëtorët me ``4. College Grad''.
+      \item Llogaritni medianën e pagës sipas \texttt{jobclass}.
+      \item Sa \% e punëtorëve fitojnë më pak se 60\% e medianës?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjWage2}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp21]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 1}
+  \begin{enumerate}
+    \item Pse për pagat mesatarja është zakonisht më e madhe se mediana?
+    \item Cilat statistika lejohen për një variabël rendore?
+    \item Çfarë do të thotë $F_n(4) = 0.6$?
+  \end{enumerate}
+  \shkoTe{zgjCp21}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 1}
+  \begin{itemize}
+    \item ``Tipike'' ka disa kuptime: mesatarja, mediana, moda.
+    \item Në shpërndarje të anuara djathtas, mesatarja $>$ mediana; statistika zyrtare përdor medianën.
+    \item Shkalla e matjes vendos cila statistikë ka kuptim.
+    \item $F_n(x)$ dhe kuantilet: \Rkey{ecdf()}, \Rkey{quantile()}, \Rkey{median()}.
+  \end{itemize}
+  \begin{Keshille}Ora 2: masat e qendrës dhe të shpërndarjes, me vetitë e tyre.\end{Keshille}
+\end{frame}
