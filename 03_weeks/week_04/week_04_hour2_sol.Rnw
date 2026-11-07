@@ -1,0 +1,64 @@
+% ============================================================
+%  Java 4 · Ora 2 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjAlpha]{Zgjidhja: Radha jote! ($\hat\alpha_i$)}
+  \begin{enumerate}
+    \item $\hat\alpha=(20.07-23.52,\ 27.89-23.52,\ 30.45-23.52)=(-3.45,\ 4.37,\ 6.93)$.
+    \item $248(-3.45)+70(4.37)+79(6.93)\approx-855.6+305.9+547.5=-2.2\approx0$ (rrumbullakim).
+  \end{enumerate}
+<<sol-alpha>>=
+auto <- read.csv(file.path(W04DATA, "Auto.csv"), na.strings = "?")
+alpha <- tapply(auto$mpg, auto$origin, mean) - mean(auto$mpg)
+round(alpha, 3); sum(table(auto$origin) * alpha)
+@
+  \vfill\kthehu{pyetjeAlpha}
+\end{frame}
+
+\begin{frame}[label=zgjF1]{Zgjidhja: Pyetje me zgjedhje ($F<1$)}
+  \begin{itemize}
+    \item \textbf{B}. $F=\text{MSB}/\text{MSW}$ mund të jetë çdo numër $\ge0$. Nën $H_0$ pritet rreth 1; vlerat nën 1 janë të zakonshme.
+    \item C është e gabuar: $F$ nuk ka drejtim, sepse SSB përdor katrorë.
+    \item Një $F$ shumë afër 0 me shumë të dhëna mund të sinjalizojë të dhëna ``tepër të rregullta'': ia vlen të kontrollohen.
+  \end{itemize}
+  \vfill\kthehu{pyetjeF1}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjToy2]{Zgjidhja: Radha jote! (A, B, C)}
+  \begin{enumerate}
+    \item $\bar y=(2,3,7)$, $\bar y_{\cdot\cdot}=36/9=4$. SSB $=3(4+1+9)=42$; SSW $=2+2+2=6$; SST $=48$.
+    \item MSB $=21$, MSW $=1$, $F=21>5.14$: hedhim poshtë $H_0$.
+    \item Zhurma brenda grupeve është shumë më e vogël (MSW $=1$ kundrejt 4.67).
+  \end{enumerate}
+<<sol-toy2>>=
+y <- c(1, 2, 3, 2, 3, 4, 6, 7, 8); g <- gl(3, 3, labels = c("A", "B", "C"))
+summary(aov(y ~ g))
+@
+  \vfill\kthehu{ushToy2}
+\end{frame}
+
+\begin{frame}[label=zgjGabTab]{Zgjidhja: Gjej gabimin (tabela)}
+  \begin{enumerate}
+    \item df midis $=k-1=3$, jo 4. Prandaj MS $=60/3=20$ dhe $F=20/5=4.0$.
+    \item Totali: SS $=60+100=160$, jo 150. (df $=23$ është i saktë: $N-1=24-1$.)
+  \end{enumerate}
+  \vspace{4pt}
+  \centering
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Burimi & df & SS & MS & $F$ \\ \midrule
+    Midis & 3 & 60 & 20 & 4.0 \\
+    Brenda & 20 & 100 & 5 & \\ \midrule
+    Totali & 23 & 160 & & \\ \bottomrule
+  \end{tabular}
+  \vfill\kthehu{gjejGabTab}
+\end{frame}
+
+\begin{frame}[label=zgjCp42]{Përgjigjet: Checkpoint Ora 2}
+  \begin{enumerate}
+    \item Sepse brenda çdo grupi $\sum_j(y_{ij}-\bar y_{i\cdot})=0$.
+    \item Nën $H_0$: $\sigma^2$. Nën $H_1$: $\sigma^2+\sum n_i\alpha_i^2/(k-1)>\sigma^2$.
+    \item $\eta^2$ përfshin edhe pjesën e SSB që vjen nga zhurma; $\omega^2$ e heq atë me $(k-1)\text{MSW}$.
+  \end{enumerate}
+  \vfill\kthehu{cp42}
+\end{frame}

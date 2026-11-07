@@ -1,0 +1,457 @@
+% ============================================================
+%  Java 4 · Ora 2 — Teoria I: ANOVA njëfaktoriale
+%  Rezultatet: K1, S1
+%  Material plotësues (Raço et al.; Cohen et al.)
+% ============================================================
+
+\section{Teoria I}
+
+\begin{frame}{Ora 2: Teoria I --- ANOVA njëfaktoriale}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shënimet dhe modeli}
+% ------------------------------------------------------------
+
+\begin{frame}{Shënimet \LO{S1}}
+  \begin{itemize}
+    \item<1-> $k$ grupe (nivelet e faktorit), $i=1,\dots,k$.
+    \item<2-> $n_i$ vëzhgime në grupin $i$, $j=1,\dots,n_i$; gjithsej $N=\sum_i n_i$.
+    \item<3-> $y_{ij}$: vëzhgimi $j$ në grupin $i$.
+    \item<4-> $\bar y_{i\cdot}=\frac1{n_i}\sum_j y_{ij}$: mesatarja e grupit. \ $\bar y_{\cdot\cdot}=\frac1N\sum_i\sum_j y_{ij}$: mesatarja e përgjithshme.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Pika në indeks do të thotë ``kemi mbledhur sipas këtij indeksi''.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Modeli i mesatareve}
+  \begin{Definicion}[(Modeli njëfaktorial)]
+    \[ y_{ij}=\mu_i+\varepsilon_{ij},\qquad \varepsilon_{ij}\overset{\text{iid}}{\sim}N(0,\sigma^2). \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item $\mu_i$: mesatarja e vërtetë e grupit $i$ (e panjohur).
+    \pause
+    \item $\varepsilon_{ij}$: gabimi; e njëjta $\sigma^2$ në \textbf{të gjitha} grupet.
+    \pause
+    \item Tri supozime: normaliteti, varianca e njëjtë, pavarësia (Ora 4).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Modeli i efekteve}
+  \begin{itemize}
+    \item<1-> Shkruajmë $\mu_i=\mu+\alpha_i$: mesatarja e përgjithshme plus \termi{efekti i grupit}{treatment effect}.
+    \item<2-> Kufizimi $\sum_i n_i\alpha_i=0$, që $\mu$ të jetë mesatarja e ponderuar.
+    \item<3-> Hipotezat:
+      \[ H_0:\ \alpha_1=\dots=\alpha_k=0 \quad\Longleftrightarrow\quad \mu_1=\dots=\mu_k. \]
+    \item<4-> Vlerësuesit: $\hat\mu=\bar y_{\cdot\cdot}$, \ $\hat\alpha_i=\bar y_{i\cdot}-\bar y_{\cdot\cdot}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeAlpha]{Radha jote!}
+  \begin{Ushtrim}[(2 minuta)]
+    Te \texttt{Auto}: $\bar y_{\cdot\cdot}=23.52$, dhe mesataret e grupeve janë 20.07 (SHBA), 27.89 (Evropa), 30.45 (Japonia).
+    \begin{enumerate}
+      \item Llogarit $\hat\alpha_i$ për të tre grupet.
+      \item Kontrollo që $\sum n_i\hat\alpha_i\approx0$ me $n=(248,70,79)$.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjAlpha}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Pamja: devijimi i një vëzhgimi}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=0.42cm,>=Stealth]
+    \draw[->] (0,0) -- (9.5,0) node[right]{\scriptsize grupet};
+    \draw[->] (0,0) -- (0,10) node[above]{\scriptsize $y$};
+    \draw[dashed,gray] (0,5) -- (9,5) node[right]{\scriptsize $\bar y_{\cdot\cdot}$};
+    \foreach \x/\m/\c in {1.5/3/uptmid, 4.5/5.5/okgreen, 7.5/7.5/accent}{
+      \draw[thick,\c] (\x-0.8,\m) -- (\x+0.8,\m);}
+    \node[right,font=\scriptsize,uptmid] at (2.3,3) {$\bar y_{1\cdot}$};
+    \node[right,font=\scriptsize,accent] at (8.3,7.5) {$\bar y_{3\cdot}$};
+    \fill[accent] (7.5,9.3) circle (2.5pt) node[left,font=\scriptsize]{$y_{3j}$};
+    \draw[<->,thick,uptblue] (8.1,5) -- (8.1,9.3) node[midway,right,font=\scriptsize]{totali};
+    \draw[<->,thick,okgreen] (6.6,5) -- (6.6,7.5) node[midway,left,font=\scriptsize]{midis};
+    \draw[<->,thick,warnred] (6.6,7.5) -- (6.6,9.3) node[midway,left,font=\scriptsize]{brenda};
+  \end{tikzpicture}
+  \[ \underbrace{y_{ij}-\bar y_{\cdot\cdot}}_{\text{totali}}=\underbrace{(\bar y_{i\cdot}-\bar y_{\cdot\cdot})}_{\text{midis}}+\underbrace{(y_{ij}-\bar y_{i\cdot})}_{\text{brenda}} \]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Zbërthimi SST = SSB + SSW}
+% ------------------------------------------------------------
+
+\begin{frame}{Hapi 1: identiteti për një vëzhgim}
+  \begin{itemize}
+    \item<1-> Shto dhe zbrit $\bar y_{i\cdot}$:
+      \[ y_{ij}-\bar y_{\cdot\cdot}=(\bar y_{i\cdot}-\bar y_{\cdot\cdot})+(y_{ij}-\bar y_{i\cdot}). \]
+    \item<2-> Shkurtimi: $a_i=\bar y_{i\cdot}-\bar y_{\cdot\cdot}$, \ $e_{ij}=y_{ij}-\bar y_{i\cdot}$ (mbetja).
+    \item<3-> Pra $y_{ij}-\bar y_{\cdot\cdot}=a_i+e_{ij}$. Asgjë statistikore ende: vetëm algjebër.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 2: ngre në katror dhe mblidh}
+  \[ \sum_{i}\sum_{j}(y_{ij}-\bar y_{\cdot\cdot})^2=\sum_i\sum_j(a_i+e_{ij})^2 \]
+  \pause
+  \[ =\sum_i\sum_j a_i^2\;+\;2\sum_i\sum_j a_ie_{ij}\;+\;\sum_i\sum_j e_{ij}^2 \]
+  \pause
+  \begin{itemize}
+    \item Termi i parë: $a_i$ nuk varet nga $j$ $\Rightarrow\ \sum_i n_ia_i^2$.
+    \pause
+    \item Termi i tretë: shuma e katrorëve të mbetjeve.
+    \pause
+    \item Po termi i mesit?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 3: termi i kryqëzuar zhduket}
+  \[ \sum_i\sum_j a_ie_{ij}=\sum_i a_i\underbrace{\sum_j(y_{ij}-\bar y_{i\cdot})}_{=\,0} =0. \]
+  \pause
+  \begin{itemize}
+    \item Pse $=0$? Shuma e devijimeve nga mesatarja e vet është gjithmonë zero:
+      \[ \textstyle\sum_j y_{ij}-n_i\bar y_{i\cdot}=n_i\bar y_{i\cdot}-n_i\bar y_{i\cdot}=0. \]
+    \pause
+    \item Gjeometrikisht: vektori ``midis'' dhe vektori i mbetjeve janë pingulë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Teorema e zbërthimit}
+  \begin{Teoreme}[(Zbërthimi i shumave të katrorëve)]
+    \[ \underbrace{\sum_{i}\sum_{j}(y_{ij}-\bar y_{\cdot\cdot})^2}_{\text{SST}}
+      =\underbrace{\sum_i n_i(\bar y_{i\cdot}-\bar y_{\cdot\cdot})^2}_{\text{SSB}}
+      +\underbrace{\sum_i\sum_j(y_{ij}-\bar y_{i\cdot})^2}_{\text{SSW}} \]
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item SST: \termi{shuma totale}{total sum of squares}.
+    \item SSB: \termi{midis grupeve}{between groups}; në R: rreshti i faktorit.
+    \item SSW: \termi{brenda grupeve}{within groups}; në R: \texttt{Residuals}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë mat secila pjesë?}
+  \begin{itemize}
+    \item<1-> SSB $=0$ $\iff$ të gjitha $\bar y_{i\cdot}$ janë të barabarta.
+    \item<2-> SSW $=0$ $\iff$ brenda çdo grupi të gjitha vlerat janë njësoj.
+    \item<3-> SSB/SST: pjesa e ndryshueshmërisë që ``shpjegohet'' nga grupet. Si $r^2$ i Javës 3!
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Të harrosh peshën $n_i$ te SSB. Çdo vëzhgim i grupit kontribuon me $(\bar y_{i\cdot}-\bar y_{\cdot\cdot})^2$.\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Variant llogaritës}
+  \begin{itemize}
+    \item<1-> $\text{SSW}=\sum_i(n_i-1)s_i^2$, ku $s_i^2$ është varianca e zgjedhjes në grupin $i$.
+    \item<2-> $\text{SST}=(N-1)s_y^2$.
+    \item<3-> $\text{SSB}=\text{SST}-\text{SSW}$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Kur ke vetëm $n_i$, $\bar y_{i\cdot}$ dhe $s_i$ (p.sh.\ nga një raport INSTAT-i), mund ta ndërtosh tabelën ANOVA pa të dhënat individuale.\end{Keshille}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shkallët e lirisë dhe katrorët mesatarë}
+% ------------------------------------------------------------
+
+\begin{frame}{Shkallët e lirisë}
+  \begin{itemize}
+    \item<1-> SST: $N$ devijime me kufizimin $\sum(y_{ij}-\bar y_{\cdot\cdot})=0$ $\Rightarrow N-1$.
+    \item<2-> SSB: $k$ mesatare me kufizimin $\sum n_ia_i=0$ $\Rightarrow k-1$.
+    \item<3-> SSW: $k$ kufizime, një për çdo grup $\Rightarrow N-k$.
+    \item<4-> Ato mblidhen: $N-1=(k-1)+(N-k)$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Katrorët mesatarë}
+  \begin{Definicion}[(Katrorët mesatarë)]
+    \[ \text{MSB}=\frac{\text{SSB}}{k-1},\qquad \text{MSW}=\frac{\text{SSW}}{N-k},\qquad F=\frac{\text{MSB}}{\text{MSW}}. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item MSW $=\dfrac{\sum(n_i-1)s_i^2}{\sum(n_i-1)}$: varianca e përbashkët $s_p^2$ e testit $t$, për $k$ grupe.
+    \pause
+    \item Në R: \texttt{Mean Sq} dhe \texttt{F value}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vlera e pritur e MSW}
+  \begin{itemize}
+    \item<1-> Në çdo grup, $E[s_i^2]=\sigma^2$ (vlerësues i pazhvendosur).
+    \item<2-> Pra
+      \[ E[\text{MSW}]=\frac{\sum(n_i-1)E[s_i^2]}{N-k}=\frac{(N-k)\sigma^2}{N-k}=\sigma^2. \]
+    \item<3-> E vërtetë \textbf{gjithmonë}, edhe kur $H_0$ është e gabuar: MSW nuk ``sheh'' mesataret.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vlera e pritur e MSB}
+  \begin{Teoreme}[(Vlera e pritur e MSB)]
+    \[ E[\text{MSB}]=\sigma^2+\frac{\sum_i n_i\alpha_i^2}{k-1}. \]
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item Ideja e vërtetimit: $\bar y_{i\cdot}=\mu+\alpha_i+\bar\varepsilon_{i\cdot}$, me $\operatorname{Var}(\bar\varepsilon_{i\cdot})=\sigma^2/n_i$.
+    \pause
+    \item Pjesa e rastit jep $(k-1)\sigma^2$; pjesa sistematike jep $\sum n_i\alpha_i^2$.
+    \pause
+    \item Nën $H_0$: $E[\text{MSB}]=\sigma^2$. Nën $H_1$: $E[\text{MSB}]>\sigma^2$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Nën $H_0$: dy vlerësues të pavarur të $\sigma^2$ $\Rightarrow F\approx1$.
+    \item<2-> Nën $H_1$: numëruesi rritet $\Rightarrow F>1$.
+    \item<3-> Prandaj testi është i njëanshëm \textbf{në bishtin e djathtë}, megjithëse $H_1$ është ``$\neq$''.
+    \item<4-> Fuqia rritet me $\sum n_i\alpha_i^2/\sigma^2$: efekte më të mëdha, më shumë vëzhgime, më pak zhurmë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shpërndarja e $F$ nën $H_0$}
+  \begin{Teoreme}[(Cochran, rasti njëfaktorial)]
+    Nëse modeli është i saktë dhe $H_0$ e vërtetë:
+    \[ \frac{\text{SSB}}{\sigma^2}\sim\chi^2_{k-1},\qquad \frac{\text{SSW}}{\sigma^2}\sim\chi^2_{N-k},\qquad\text{të pavarura}. \]
+  \end{Teoreme}
+  \pause
+  \[ F=\frac{\text{SSB}/\big(\sigma^2(k-1)\big)}{\text{SSW}/\big(\sigma^2(N-k)\big)}=\frac{\text{MSB}}{\text{MSW}}\sim F_{k-1,\,N-k}. \]
+  \pause
+  \begin{itemize}
+    \item $\sigma^2$ shkurtohet: nuk duhet ta dimë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Tabela ANOVA}
+  \centering
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Burimi & df & SS & MS & $F$ \\ \midrule
+    Midis grupeve & $k-1$ & SSB & SSB$/(k-1)$ & MSB/MSW \\
+    Brenda grupeve & $N-k$ & SSW & SSW$/(N-k)$ & \\ \midrule
+    Totali & $N-1$ & SST & & \\ \bottomrule
+  \end{tabular}
+  \vspace{8pt}
+  \begin{itemize}
+    \item Vendimi: hidh poshtë $H_0$ nëse $F>F_{1-\alpha;\,k-1,\,N-k}$, ose nëse $p=P(F_{k-1,N-k}>F_{\text{obs}})<\alpha$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeF1]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Një analizë jep $F=0.4$. Çfarë do të thotë?\\[3pt]
+    \textbf{A)} Gabim llogaritjeje: $F$ nuk mund të jetë nën 1.\\
+    \textbf{B)} Mesataret e grupeve janë më afër njëra-tjetrës sesa pritet nga rastësia; nuk ka evidencë kundër $H_0$.\\
+    \textbf{C)} Grupet ndryshojnë në drejtimin e kundërt.
+  \end{Parashiko}
+  \shkoTe{zgjF1}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shembull pa ndihmën e PC}
+% ------------------------------------------------------------
+
+\begin{frame}{Të dhënat: 3 grupe $\times$ 3 vëzhgime}
+  \centering
+  \begin{tabular}{@{}lccc|c@{}}
+    \toprule
+    Grupi & \multicolumn{3}{c|}{Vëzhgimet} & $\bar y_{i\cdot}$ \\ \midrule
+    A & 3 & 5 & 7 & 5 \\
+    B & 7 & 8 & 9 & 8 \\
+    C & 8 & 11 & 14 & 11 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> $N=9$, $k=3$, $\bar y_{\cdot\cdot}=72/9=8$.
+    \item<3-> Shembull: rezistenca e një materiali (njësi arbitrare) nga tre furnitorë.
+  \end{itemize}
+  \onslide<3->{\footnotesize\textcolor{gray}{Të dhëna: sintetike, të zgjedhura për llogaritje pa ndihmën e PC.}}
+\end{frame}
+
+\begin{frame}{Hapi 1: SSB}
+  \[ \text{SSB}=\sum_i n_i(\bar y_{i\cdot}-\bar y_{\cdot\cdot})^2 \]
+  \pause
+  \[ =3(5-8)^2+3(8-8)^2+3(11-8)^2 \]
+  \pause
+  \[ =3\cdot9+0+3\cdot9=54,\qquad df=k-1=2. \]
+\end{frame}
+
+\begin{frame}{Hapi 2: SSW}
+  \begin{itemize}
+    \item<1-> A: $(3-5)^2+(5-5)^2+(7-5)^2=4+0+4=8$.
+    \item<2-> B: $(7-8)^2+0+(9-8)^2=2$.
+    \item<3-> C: $(8-11)^2+0+(14-11)^2=18$.
+    \item<4-> $\text{SSW}=8+2+18=28$, \quad $df=N-k=6$.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Grupi C ka variancë shumë më të madhe se B. A është problem? Kthehemi te kjo në Orën 4.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Hapi 3: kontrolli me SST}
+  \begin{itemize}
+    \item<1-> Devijimet nga 8: $-5,-3,-1,\ -1,0,1,\ 0,3,6$.
+    \item<2-> Katrorët: $25+9+1+1+0+1+0+9+36=82$.
+    \item<3-> $\text{SSB}+\text{SSW}=54+28=82$. \checkmark
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 4: tabela}
+  \centering
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Burimi & df & SS & MS & $F$ \\ \midrule
+    Midis & 2 & 54 & 27.00 & 5.79 \\
+    Brenda & 6 & 28 & 4.67 & \\ \midrule
+    Totali & 8 & 82 & & \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> $\text{MSW}=28/6\approx4.67$; \ $F=27/4.67\approx5.79$.
+    \item<3-> Vlera kritike: $F_{0.95;\,2,\,6}=5.14$.
+    \item<4-> $5.79>5.14$: hedhim poshtë $H_0$ në $\alpha=0.05$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<toy-aov>>=
+y <- c(3, 5, 7,  7, 8, 9,  8, 11, 14)
+g <- factor(rep(c("A", "B", "C"), each = 3))
+summary(aov(y ~ g))
+qf(0.95, 2, 6)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> R jep të njëjtat SS, MS dhe $F$.
+    \item<2-> $p\approx0.04$: afër kufirit. Me vetëm 9 vëzhgime, fuqia është e vogël.
+    \item<3-> ANOVA thotë: \emph{të paktën një} furnitor ndryshon. Cili? Ora 4.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushToy2]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta, pa ndihmën e PC)]
+    A $=(1,2,3)$, \ B $=(2,3,4)$, \ C $=(6,7,8)$.
+    \begin{enumerate}
+      \item Llogarit $\bar y_{i\cdot}$, $\bar y_{\cdot\cdot}$, SSB, SSW, SST.
+      \item Plotëso tabelën ANOVA. Vlera kritike: $F_{0.95;\,2,\,6}=5.14$.
+      \item Pse $F$ këtu është shumë më i madh se në shembullin e mëparshëm?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjToy2}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Madhësia e efektit}
+% ------------------------------------------------------------
+
+\begin{frame}{$\eta^2$: pjesa e shpjeguar}
+  \begin{Definicion}[($\eta^2$)]
+    \[ \eta^2=\frac{\text{SSB}}{\text{SST}}\in[0,1]. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Shembulli: $\eta^2=54/82\approx0.66$.
+    \pause
+    \item E njëjta ide si $R^2$ i regresionit (Java 5).
+    \pause
+    \item Por $\eta^2$ është i zhvendosur lart: edhe kur $H_0$ është e vërtetë, $E[\text{SSB}]>0$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{$\omega^2$: korrigjimi}
+  \[ \omega^2=\frac{\text{SSB}-(k-1)\,\text{MSW}}{\text{SST}+\text{MSW}} \]
+  \pause
+  \begin{itemize}
+    \item Numëruesi: hiq nga SSB pjesën që pritet nga zhurma, $(k-1)\sigma^2$.
+    \pause
+    \item Shembulli: $\omega^2=\dfrac{54-2\cdot4.67}{82+4.67}=\dfrac{44.67}{86.67}\approx0.52$.
+    \pause
+    \item Me $N$ të vogël, dallimi nga $\eta^2$ është i madh; me $N$ të madh, i vogël.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Te \texttt{Auto}}
+<<auto-eta>>=
+auto <- read.csv(file.path(W04DATA, "Auto.csv"), na.strings = "?")
+auto$origin <- factor(auto$origin, labels = c("USA", "Europe", "Japan"))
+tab <- summary(aov(mpg ~ origin, data = auto))[[1]]
+ssb <- tab$`Sum Sq`[1]; ssw <- tab$`Sum Sq`[2]; msw <- tab$`Mean Sq`[2]
+c(eta2 = ssb / (ssb + ssw), omega2 = (ssb - 2 * msw) / (ssb + ssw + msw))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Origjina ``shpjegon'' rreth një të tretën e ndryshueshmërisë së \texttt{mpg}.
+    \item<2-> Me $N=397$, $\eta^2$ dhe $\omega^2$ janë pothuajse të njëjta.
+    \item<3-> Dy të tretat mbeten brenda grupeve: pesha, motori, viti \dots
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Raportim vetëm i $p<0.001$. Raporto edhe madhësinë e efektit: me $N$ të madh, edhe $\eta^2=0.01$ del i rëndësishëm.\end{Gabim}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rasti $k=2$}
+% ------------------------------------------------------------
+
+\begin{frame}{Vërtetim: $F=t^2$ kur $k=2$}
+  Shënojmë $\Delta=\bar y_{1\cdot}-\bar y_{2\cdot}$ dhe $N=n_1+n_2$.
+  \pause
+  \begin{enumerate}
+    \item $\bar y_{\cdot\cdot}=(n_1\bar y_{1\cdot}+n_2\bar y_{2\cdot})/N$ $\Rightarrow$ $\bar y_{1\cdot}-\bar y_{\cdot\cdot}=\frac{n_2}{N}\Delta$, \ $\bar y_{2\cdot}-\bar y_{\cdot\cdot}=-\frac{n_1}{N}\Delta$.
+    \pause
+    \item $\text{SSB}=n_1\frac{n_2^2}{N^2}\Delta^2+n_2\frac{n_1^2}{N^2}\Delta^2=\frac{n_1n_2}{N}\Delta^2$, \ $df=1$.
+    \pause
+    \item MSW $=s_p^2$, dhe $\frac{n_1n_2}{N}=\big(\frac1{n_1}+\frac1{n_2}\big)^{-1}$.
+    \pause
+    \item $F=\dfrac{\Delta^2}{s_p^2(1/n_1+1/n_2)}=t^2$. \ $\blacksquare$
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[label=gjejGabTab]{Gjej gabimin!}
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Një student raporton për 4 grupe me nga 6 vëzhgime:\\[3pt]
+    \centering
+    \begin{tabular}{@{}lcccc@{}}
+      \toprule
+      Burimi & df & SS & MS & $F$ \\ \midrule
+      Midis & 4 & 60 & 15 & 3.0 \\
+      Brenda & 20 & 100 & 5 & \\ \midrule
+      Totali & 23 & 150 & & \\ \bottomrule
+    \end{tabular}\\[3pt]
+    \raggedright Gjej dy gabime dhe korrigjo tabelën.
+  \end{Ushtrim}
+  \shkoTe{zgjGabTab}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Supozimet: një pamje paraprake}
+  \centering
+  \begin{tikzpicture}[node distance=0.4cm and 0.5cm,
+      b/.style={rectangle,rounded corners=2pt,draw=uptblue,fill=uptlight,minimum width=3.2cm,minimum height=0.8cm,align=center,font=\scriptsize}]
+    \node[b] (n) {Normaliteti\\i gabimeve};
+    \node[b,right=of n] (v) {Varianca e njëjtë\\në grupe};
+    \node[b,right=of v] (i) {Pavarësia\\e vëzhgimeve};
+    \node[b,fill=white,below=0.8cm of v,minimum width=5cm] (f) {$F\sim F_{k-1,\,N-k}$ nën $H_0$};
+    \foreach \s in {n,v,i} \draw[-Stealth,thick,uptmid] (\s) -- (f);
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Si kontrollohen dhe çfarë bëjmë kur shkelen: Ora 4.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp42]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 2}
+  \begin{enumerate}
+    \item Pse termi i kryqëzuar në zbërthimin e SST është zero?
+    \item Sa vlen $E[\text{MSB}]$ nën $H_0$ dhe nën $H_1$?
+    \item Pse $\omega^2<\eta^2$?
+  \end{enumerate}
+  \shkoTe{zgjCp42}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 2}
+  \begin{itemize}
+    \item Modeli: $y_{ij}=\mu+\alpha_i+\varepsilon_{ij}$; $H_0:$ të gjitha $\alpha_i=0$.
+    \item SST = SSB + SSW, me $df$: $N-1=(k-1)+(N-k)$.
+    \item $E[\text{MSW}]=\sigma^2$; $E[\text{MSB}]=\sigma^2+\sum n_i\alpha_i^2/(k-1)$; $F\sim F_{k-1,N-k}$ nën $H_0$.
+    \item Madhësia e efektit: $\eta^2$, $\omega^2$. Për $k=2$: $F=t^2$.
+  \end{itemize}
+  \begin{Keshille}Ora 3: e ndërtojmë ANOVA-n nga zero në R dhe e krahasojmë me \texttt{aov()} dhe \texttt{lm()}.\end{Keshille}
+\end{frame}
