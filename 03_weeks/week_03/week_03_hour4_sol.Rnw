@@ -1,0 +1,48 @@
+% ============================================================
+%  Java 3 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjMethod]{Zgjidhja: zgjedhja e metodës}
+  \begin{enumerate}
+    \item \textbf{S/K}: arsimi është rendor; distancat midis niveleve nuk janë të barabarta.
+    \item \textbf{P}: të dyja sasiore, lidhje lineare, pa vlera ekstreme.
+    \item \textbf{S/K}: \texttt{crim} shumë e anuar (ose Pearson pas logaritmit).
+    \item \textbf{S/K}: renditjet janë vetë rangje; Kendall përdoret shpesh për krahasimin e renditjeve.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeMethod}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjN]{Zgjidhja: Parashiko ($n$ dhe rëndësia)}
+<<sol-n>>=
+n <- c(20, 50, 100, 1000); r <- 0.2
+t <- r * sqrt(n - 2) / sqrt(1 - r^2)
+round(rbind(n = n, t = t, p = 2 * pt(-t, n - 2)), 4)
+@
+  \begin{itemize}
+    \item \textbf{C)} dhe \textbf{D)}: nga $n\approx100$ e lart. I njëjti $r$, përfundime të ndryshme: $n$ vendos.
+  \end{itemize}
+  \vfill\kthehu{pyetjeN}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjCI]{Zgjidhja: Radha jote! ($r = 0.3$, $n = 103$)}
+  \begin{enumerate}
+    \item $t=\dfrac{0.3\sqrt{101}}{\sqrt{0.91}}=\dfrac{3.015}{0.954}\approx3.16>1.98$: e hedhim poshtë $H_0$.
+    \item $SE=1/\sqrt{100}=0.1$; \ $0.310\pm0.196=[0.114,\ 0.506]$ $\to$ $[0.113,\ 0.467]$.
+    \item ``Korrelacioni ishte $r=0.30$ (95\% IB: 0.11 deri 0.47; $n=103$; $p\approx0.002$).''
+  \end{enumerate}
+<<sol-ci>>=
+r <- 0.3; n <- 103
+c(t = r * sqrt(n - 2) / sqrt(1 - r^2), p = 2 * pt(-r * sqrt(n - 2) / sqrt(1 - r^2), n - 2),
+  ci = tanh(atanh(r) + c(-1, 1) * 1.96 / sqrt(n - 3)))
+@
+  \vfill\kthehu{ushCI}
+\end{frame}
+
+\begin{frame}[label=zgjCp34]{Përgjigjet: Checkpoint i Orës 4}
+  \begin{enumerate}
+    \item Kur lidhja është monotone por jo lineare, kur ka vlera të skajshme, ose kur variablat janë rendore.
+    \item $t=r\sqrt{n-2}/\sqrt{1-r^2}$, me $n-2$ shkallë lirie.
+    \item Shpërndarja e $r$ është e anuar dhe varianca e saj varet nga $\rho$; $z$ është gati normal me variancë $1/(n-3)$.
+  \end{enumerate}
+  \vfill\kthehu{cp34}
+\end{frame}

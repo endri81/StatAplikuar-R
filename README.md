@@ -23,7 +23,7 @@ Titullari: Prof. Asoc. Dr. Endri Raço (eraco@fimif.edu.al)
 |---|---|---|---|
 | 01 | Hyrje në R dhe RStudio; vizualizimi bazë | S4 | ✅ gati (347 frame, 536 faqe PDF) |
 | 02 | Statistikat përmbledhëse dhe EDA | K1, S4 | ✅ gati (299 frame, 552 faqe PDF) |
-| 03 | Korrelacioni dhe bashkëshoqërimet | K1 | 🔄 Orët 1–3 gati (90 slide) |
+| 03 | Korrelacioni dhe bashkëshoqërimet | K1 | 🔄 Orët 1–4 gati (122 slide) |
 | 04 | ANOVA njëfaktoriale dhe shumëfaktoriale, Tukey | K1, S3 | ⏳ |
 | 05 | Regresi i thjeshtë linear | K2, S2 | ⏳ |
 | 06 | Regresi i shumëfishtë, përzgjedhja, CV | K2, S2, S3 | ⏳ |
