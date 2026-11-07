@@ -1,0 +1,54 @@
+% ============================================================
+%  Java 7 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjLog]{Zgjidhja: Parashiko (tre transformime)}
+  \begin{enumerate}
+    \item Vetëm \texttt{log(sales) \textasciitilde{} TV} ($p_{\text{BP}}=0.27$).
+    \item \texttt{log(sales) \textasciitilde{} log(TV)} ($R^2=0.74$, kundrejt 0.61 dhe 0.62).
+    \item Jo: transformimi që rregullon variancën nuk është ai që rregullon formën.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeLog}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjLogAuto]{Zgjidhja: Radha jote! (\texttt{fit\_log})}
+<<sol-logauto, fig.height=2.2, fig.width=7.5, out.width="0.85\\textwidth">>=
+auto5 <- na.omit(read.csv(file.path(W07DATA, "Auto.csv"),
+                          na.strings = "?", stringsAsFactors = TRUE))
+fit_log5 <- lm(log(mpg) ~ horsepower + weight + year, data = auto5)
+par(mfrow = c(1, 2), cex = 0.7, mar = c(3.6, 3.6, 2, 0.8))
+plot(fit_log5, which = c(1, 3))
+@
+  \begin{itemize}
+    \item Forma U zbutet, por mbetet një prirje rënëse për $\hat y$ të vogël; Scale-Location pothuajse e sheshtë.
+    \item \texttt{crPlots(fit\_log5)}: lakim i lehtë mbetet te \texttt{horsepower}; Java 8: polinom ose spline.
+  \end{itemize}
+  \vfill\kthehu{ushLogAuto}
+\end{frame}
+
+\begin{frame}[label=zgjGab75]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item \texttt{Balance} ka 90 vlera $=0$; $\log 0=-\infty$, kështu që \texttt{lm} ndalon me gabim.
+    \item Box--Cox dhe log kërkojnë $y>0$.
+    \item Zgjidhje: $\log(\texttt{Balance}+1)$ (kujdes me interpretimin), Yeo--Johnson, ose model në dy pjesë: a ka borxh? (logjistik, Java 9) dhe sa? (te \texttt{Balance}$>0$).
+  \end{itemize}
+  \vfill\kthehu{gjejGab75}
+\end{frame}
+
+\begin{frame}[label=zgjHomo]{Zgjidhja: Ndrysho parametrin (homoskedasticitet)}
+  \begin{itemize}
+    \item Të dy japin $\approx5.7\%$: brenda gabimit Monte Carlo ($5\%\pm1\%$).
+    \item Kur varianca është konstante, HC3 nuk humbet madhësinë e testit.
+    \item Prandaj SE HC3 janë mbrojtje ``e lirë'' për $n$ të moderuar.
+  \end{itemize}
+  \vfill\kthehu{ushHomo}
+\end{frame}
+
+\begin{frame}[label=zgjCp75]{Përgjigjet: Checkpoint Ora 5}
+  \begin{enumerate}
+    \item \texttt{coeftest(fit, vcov. = vcovHC(fit, type = "HC3"))}.
+    \item Varianca është e madhe aty ku $x$ është larg $\bar x$; formula $\hat\sigma^2/S_{xx}$ e nënvlerëson $\operatorname{Var}(\hat\beta_1)$, prandaj $|t|$ del shumë i madh.
+    \item \texttt{Age} pothuajse e pakorreluar me \texttt{Rating} dhe \texttt{Limit} (VIF $\approx1.01$); $R^2_{\text{Age}}$ nuk ndryshon.
+  \end{enumerate}
+  \vfill\kthehu{cp75}
+\end{frame}

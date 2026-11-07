@@ -1,0 +1,382 @@
+% ============================================================
+%  Java 7 · Ora 5 — R Lab II: testet, SE robuste, transformimet, simulimet
+%  Rezultatet: S4, S3, C1
+%  Burimi: ISLR kap. 3.3.3, 3.6; dokumentacioni i lmtest, sandwich, car, MASS
+% ============================================================
+
+\section{R Lab II: testet dhe zgjidhjet}
+
+\begin{frame}{Ora 5: R Lab II --- testet, SE robuste, transformimet}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Plani}
+% ------------------------------------------------------------
+
+\begin{frame}{Plani i laboratorit \LO{S4} \LO{S3} \LO{C1}}
+  \begin{itemize}
+    \item<1-> \texttt{Advertising} (reale, ISLR): Breusch--Pagan, SE HC3, transformimi i $y$.
+    \item<2-> \texttt{Auto} (reale, ISLR): \texttt{crPlots}, Box--Cox, modeli me $\log(\texttt{mpg})$.
+    \item<3-> \texttt{Credit} (reale, ISLR): VIF dhe heqja e një variabli të dyfishtë.
+    \item<4-> Simulime (sintetike): madhësia e testit me SE klasike dhe HC; rritja e SE me $\rho$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Paketat dhe të dhënat}
+<<h5-setup>>=
+library(lmtest)     # bptest(), coeftest(), dwtest()
+library(sandwich)   # vcovHC()
+library(car)        # crPlots(), vif(), powerTransform()
+library(MASS)       # boxcox()
+adv  <- read.csv(file.path(W07DATA, "Advertising.csv"))[, -1]
+auto <- na.omit(read.csv(file.path(W07DATA, "Auto.csv"),
+                         na.strings = "?", stringsAsFactors = TRUE))
+c(adv = nrow(adv), auto = nrow(auto))
+@
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Heteroskedasticiteti: \texttt{Advertising}}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Breusch--Pagan në R}
+<<h5-bp>>=
+fit_tv <- lm(sales ~ TV, data = adv)
+bptest(fit_tv)          # studentized (Koenker) version by default
+@
+\end{frame}
+
+\begin{frame}[fragile]{SE klasike kundrejt HC3}
+<<h5-hc>>=
+se_classic <- sqrt(diag(vcov(fit_tv)))
+se_hc3     <- sqrt(diag(vcovHC(fit_tv, type = "HC3")))
+round(cbind(estimate = coef(fit_tv), se_classic, se_hc3,
+            ratio = se_hc3 / se_classic), 5)
+coeftest(fit_tv, vcov. = vcovHC(fit_tv, type = "HC3"))[2, ]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $\text{BP}=48.0$, $p\approx4\times10^{-12}$: heteroskedasticitet i qartë.
+    \item<2-> SE e pjerrësisë rritet vetëm 7\% me HC3; ajo e konstantes \textbf{zvogëlohet} 27\%.
+    \item<3-> \textbf{Pse?} SE robuste nuk janë gjithmonë më të mëdha: varet nga ku ndodhet varianca e madhe në raport me $\bar x$.
+    \item<4-> Përfundimi për \texttt{TV} nuk ndryshon ($t=16.5$), por tani SE janë të besueshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeLog]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Provojmë tre modele: \texttt{log(sales) \textasciitilde{} TV}, \texttt{sqrt(sales) \textasciitilde{} TV}, \texttt{log(sales) \textasciitilde{} log(TV)}.
+    \begin{enumerate}
+      \item Cili e zhduk heteroskedasticitetin ($p_{\text{BP}}>0.05$)?
+      \item Cili ka $R^2$ më të lartë?
+      \item A janë e njëjta përgjigje?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjLog}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Tre transformime}
+<<h5-trans>>=
+models <- list(
+  "sales ~ TV"           = fit_tv,
+  "log(sales) ~ TV"      = lm(log(sales) ~ TV, data = adv),
+  "sqrt(sales) ~ TV"     = lm(sqrt(sales) ~ TV, data = adv),
+  "log(sales) ~ log(TV)" = lm(log(sales) ~ log(TV), data = adv))
+round(t(sapply(models, function(m)
+  c(R2 = summary(m)$r.squared, BP_p = unname(bptest(m)$p.value)))), 4)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Mbetjet e dy modeleve}
+<<h5-trans-plot, fig.height=2.5, fig.width=7.5, out.width="0.9\\textwidth">>=
+par(mfrow = c(1, 2), cex = 0.8)
+for (nm in c("log(sales) ~ TV", "log(sales) ~ log(TV)")) {
+  m <- models[[nm]]
+  plot(fitted(m), resid(m), main = nm, xlab = "fitted", ylab = "residual",
+       col = "#2C5AA0", cex.main = 0.9)
+  abline(h = 0, lty = 2); lines(lowess(fitted(m), resid(m)), col = "#D97706", lwd = 2)
+}
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{log(sales) \textasciitilde{} TV}: varianca bëhet konstante ($p=0.27$), por lakimi mbetet.
+    \item<2-> \texttt{log(sales) \textasciitilde{} log(TV)}: $R^2=0.74$, më e mira për formën; heteroskedasticiteti mbetet ($p=0.001$).
+    \item<3-> Asnjë transformim i vetëm nuk i zgjidh të dyja.
+    \item<4-> Zgjidhje praktike: forma e mirë (\texttt{log-log}) + SE HC3.
+  \end{itemize}
+  \begin{Gabim}Zgjedhja e modelit vetëm sipas $p_{\text{BP}}$. Varianca konstante me formë të gabuar është më keq se forma e saktë me SE robuste.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Lineariteti dhe Box--Cox: \texttt{Auto}}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Grafikët CR për \texttt{Auto}}
+<<h5-cr, fig.height=2.4, fig.width=8, out.width="0.95\\textwidth">>=
+fit_auto <- lm(mpg ~ horsepower + weight + year, data = auto)
+crPlots(fit_auto, layout = c(1, 3), grid = FALSE, main = "")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vija e drejtë (blu) = $\hat\beta_j x_j$; kurba (rozë) = zbutje e mbetjeve të pjesshme.
+    \item<2-> \texttt{horsepower}: formë U; \texttt{weight}: lakim konveks, efekti zbutet për makinat e rënda.
+    \item<3-> \texttt{year}: pothuajse linear, me pak rritje në fund.
+    \item<4-> Kandidat: transformim i $y$, që zbut efektet në vlerat e mëdha të \texttt{mpg}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Box--Cox}
+<<h5-bc, fig.height=2.6, fig.width=5, out.width="0.5\\textwidth">>=
+bptest(fit_auto)$p.value
+bc <- boxcox(fit_auto, lambda = seq(-1.5, 1.5, 0.01))
+lambda_hat <- bc$x[which.max(bc$y)]
+ci <- range(bc$x[bc$y > max(bc$y) - qchisq(0.95, 1) / 2])
+c(lambda_hat = lambda_hat, lower = ci[1], upper = ci[2])
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $\hat\lambda=-0.38$, IB 95\%: $[-0.54,\,-0.22]$.
+    \item<2-> $\lambda=1$ (pa transformim) del jashtë IB: transformimi nevojitet.
+    \item<3-> $\lambda=-0.5$ ($1/\sqrt{\texttt{mpg}}$) është brenda; $\lambda=0$ (log) pak jashtë.
+    \item<4-> \textbf{Pse të mos zgjedhim $\hat\lambda$ automatikisht?} Box--Cox maksimizon përgjasinë nën normalitet; nuk optimizon drejtpërdrejt variancën ose interpretimin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Krahasim: $\lambda=1$, $-0.5$, $0$}
+<<h5-bc-compare>>=
+cand <- list(
+  identity = fit_auto,
+  inv_sqrt = lm(I(mpg^-0.5) ~ horsepower + weight + year, data = auto),
+  log      = lm(log(mpg)   ~ horsepower + weight + year, data = auto))
+round(t(sapply(cand, function(m) c(R2 = summary(m)$r.squared,
+  BP_p = unname(bptest(m)$p.value), n_t3 = sum(abs(rstudent(m)) > 3)))), 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $1/\sqrt{\texttt{mpg}}$: $R^2$ më i lartë, por BP ende refuzon ($p=0.002$).
+    \item<2-> $\log(\texttt{mpg})$: BP $p=0.40$, vetëm 2 pika me $|t|>3$ (nga 7).
+    \item<3-> Log ka edhe interpretim të qartë: ndryshim në përqindje.
+    \item<4-> Zgjedhja: $\log(\texttt{mpg})$, e arsyetuar me diagnostikim, jo vetëm me $\hat\lambda$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Modeli me $\log(\texttt{mpg})$}
+<<h5-log>>=
+fit_log <- cand$log
+round(coef(summary(fit_log)), 6)
+round(100 * (exp(coef(fit_log)[-1]) - 1), 3)   # % change per unit
+outlierTest(fit_log)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Çdo vit modeli: $e^{0.0298}=1.030$, pra $+3.0\%$ \texttt{mpg}, me fuqi dhe peshë të njëjtë.
+    \item<2-> 100 paund më shumë: $100\cdot(-0.028\%)\approx-2.8\%$.
+    \item<3-> \texttt{outlierTest}: asnjë vlerë ekstreme e rëndësishme pas Bonferroni (para: \texttt{mazda glc}, $p=0.009$).
+    \item<4-> Vlera ekstreme e Orës 3 ishte pasojë e formës së gabuar.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushLogAuto]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    Për \texttt{fit\_log}:
+    \begin{enumerate}
+      \item Ekzekuto \texttt{par(mfrow = c(1, 2)); plot(fit\_log, which = c(1, 3))}.
+      \item Krahaso me grafikët e Orës 3. A u zhduk forma U? Hinka?
+      \item Ekzekuto \texttt{crPlots(fit\_log)}. Cili parashikues ka ende lakim?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjLogAuto}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Multikolineariteti: \texttt{Credit}}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{VIF te \texttt{Credit}}
+<<h5-vif>>=
+credit <- read.csv(file.path(W07DATA, "Credit.csv"))
+credit <- credit[, c("Balance", "Age", "Rating", "Limit")]
+fit_c3 <- lm(Balance ~ Age + Rating + Limit, data = credit)
+round(vif(fit_c3), 2)
+round(coef(summary(fit_c3)), 4)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: \texttt{Credit} (ISLR), reale. Kolona e etnisë nuk përdoret në këtë kurs.}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> VIF $\approx160$ për \texttt{Rating} dhe \texttt{Limit}; $R^2_j=1-1/160.7=0.994$.
+    \item<2-> \texttt{Limit} nuk duket i rëndësishëm ($p=0.76$), por kjo nuk do të thotë se \texttt{Limit} nuk lidhet me \texttt{Balance}.
+    \item<3-> \textbf{Pse?} Me \texttt{Rating} në model, \texttt{Limit} nuk shton pothuajse asgjë.
+    \item<4-> \texttt{Age} (VIF $=1.01$) nuk preket.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pa \texttt{Limit}}
+<<h5-vif2>>=
+fit_c2 <- lm(Balance ~ Age + Rating, data = credit)
+round(vif(fit_c2), 3)
+se <- function(m) coef(summary(m))[, "Std. Error"]
+round(rbind(with_Limit = se(fit_c3)[c("Age", "Rating")],
+            without    = se(fit_c2)[c("Age", "Rating")]), 4)
+c(R2_with = summary(fit_c3)$r.squared, R2_without = summary(fit_c2)$r.squared)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> SE e \texttt{Rating}: $0.940\to0.074$, rreth 12.6 herë më e vogël ($\sqrt{160.7}=12.7$). \checkmark
+    \item<2-> SE e \texttt{Age} nuk ndryshon.
+    \item<3-> $R^2$ pothuajse i njëjtë (0.7536 kundrejt 0.7535): \texttt{Limit} ishte i tepërt.
+    \item<4-> Parashikimi nuk humbet asgjë; interpretimi fiton shumë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab75]{Gjej gabimin}
+<<h5-bug, error=TRUE>>=
+fit_bad <- lm(log(Balance) ~ Age + Rating, data = credit)
+bptest(fit_bad)
+@
+  \begin{itemize}
+    \item Çfarë nuk shkon? Si do ta zgjidhje?
+  \end{itemize}
+  \shkoTe{zgjGab75}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulim 1: madhësia e testit}
+% ------------------------------------------------------------
+
+\begin{frame}{Pyetja e simulimit}
+  \begin{itemize}
+    \item<1-> Teorikisht: me $\alpha=0.05$ dhe $H_0$ e vërtetë, refuzojmë 5\% të rasteve.
+    \item<2-> A vlen kjo me SE klasike kur varianca \textbf{rritet me $x$}?
+    \item<3-> Plan: $n=50$, $x\sim U(0,10)$, $\beta_1=0$ (pra $H_0$ e vërtetë), $\operatorname{sd}(\varepsilon_i)=0.3\,x_i^{1.5}$.
+    \item<4-> 2000 përsëritje; numërojmë sa herë $p<0.05$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kodi}
+<<h5-sim1>>=
+set.seed(2026)
+n <- 50; R <- 2000
+reject <- t(replicate(R, {
+  x <- runif(n, 0, 10)
+  y <- 1 + 0 * x + rnorm(n, sd = 0.3 * x^1.5)   # H0 true, heteroskedastic
+  f <- lm(y ~ x)
+  c(classic = coeftest(f)[2, 4] < 0.05,
+    HC0 = coeftest(f, vcov. = vcovHC(f, type = "HC0"))[2, 4] < 0.05,
+    HC3 = coeftest(f, vcov. = vcovHC(f, type = "HC3"))[2, 4] < 0.05)
+}))
+colMeans(reject)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Klasike: refuzon $\approx$ 11\%, pothuajse \textbf{dyfishi} i 5\%.
+    \item<2-> HC0: 7.6\%; më mirë, por me $n=50$ ende e tepërt.
+    \item<3-> HC3: 6.2\%, më afër 5\%.
+    \item<4-> Gabimi Monte Carlo: $\sqrt{0.05\cdot0.95/2000}\approx0.005$; prandaj 6.2\% është ende pak mbi 5\%.
+  \end{itemize}
+  \begin{Keshille}Për $n$ të vogël ose mesatar, preferoni HC3 (parazgjedhja e \texttt{vcovHC}).\end{Keshille}
+\end{frame}
+
+\begin{frame}[fragile,label=ushHomo]{Ndrysho parametrin dhe shiko}
+<<h5-sim1b>>=
+set.seed(2026)
+reject0 <- t(replicate(R, {
+  x <- runif(n, 0, 10)
+  y <- 1 + rnorm(n, sd = 1)                     # homoskedastic now
+  f <- lm(y ~ x)
+  c(classic = coeftest(f)[2, 4] < 0.05,
+    HC3 = coeftest(f, vcov. = vcovHC(f, type = "HC3"))[2, 4] < 0.05)
+}))
+colMeans(reject0)
+@
+  \shkoTe{zgjHomo}{Çfarë mësojmë?}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulim 2: kolineariteti}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Rritja e SE me $\rho$}
+<<h5-sim2>>=
+set.seed(2026)
+rhos <- c(0, 0.5, 0.8, 0.9, 0.95, 0.99); n2 <- 100; R2 <- 1000
+sim <- sapply(rhos, function(rho) {
+  b1 <- replicate(R2, {
+    x1 <- rnorm(n2); x2 <- rho * x1 + sqrt(1 - rho^2) * rnorm(n2)
+    y  <- 1 + 2 * x1 + 2 * x2 + rnorm(n2)        # true beta1 = 2
+    coef(lm(y ~ x1 + x2))[2] })
+  c(mean = mean(b1), sd = sd(b1)) })
+colnames(sim) <- rhos
+round(rbind(sim, ratio = sim["sd", ] / sim["sd", 1],
+            sqrt_VIF = sqrt(1 / (1 - rhos^2))), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon? (vlerësimi kundrejt së vërtetës)}
+  \begin{itemize}
+    \item<1-> Mesatarja e $\hat\beta_1$ mbetet $\approx2$ për çdo $\rho$: \textbf{pa zhvendosje}. \checkmark
+    \item<2-> sd e $\hat\beta_1$ rritet nga 0.10 në 0.72 kur $\rho=0.99$.
+    \item<3-> Raporti empirik ndjek $\sqrt{\text{VIF}}=1/\sqrt{1-\rho^2}$: 7.14 kundrejt 7.09.
+    \item<4-> Me dy parashikues: $R_1^2=\rho^2$, pra $\text{VIF}=1/(1-\rho^2)$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Grafiku: teoria kundrejt simulimit}
+<<h5-sim2-plot, fig.height=2.8, fig.width=5, out.width="0.55\\textwidth">>=
+curve(1 / sqrt(1 - x^2), 0, 0.99, n = 200, lwd = 2, col = "#D97706",
+      xlab = "rho", ylab = "sd ratio", ylim = c(0, 7.5))
+points(rhos, sim["sd", ] / sim["sd", 1], pch = 19, col = "#2C5AA0")
+legend("topleft", c("sqrt(VIF) theory", "simulation"), bty = "n",
+       lwd = c(2, NA), pch = c(NA, 19), col = c("#D97706", "#2C5AA0"))
+@
+\end{frame}
+
+\begin{frame}{Gabime të zakonshme në laborator}
+  \begin{Gabim}\texttt{coeftest(fit)} pa \texttt{vcov.}: jep SE klasike, jo robuste.\end{Gabim}
+  \pause
+  \begin{Gabim}\texttt{vcovHC(fit)} pa \texttt{type}: parazgjedhja është HC3; Stata përdor HC1. Shkruaj gjithmonë llojin për riprodhueshmëri.\end{Gabim}
+  \pause
+  \begin{Gabim}Krahasimi i $R^2$ midis \texttt{mpg} dhe \texttt{log(mpg)}: $y$ të ndryshëm, $R^2$ jo plotësisht të krahasueshëm. Krahaso diagnostikimin dhe parashikimet në shkallën origjinale.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp75]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Shkruaj komandën për testet $t$ me SE HC3.
+    \item Te simulimi 1, pse SE klasike refuzojnë $\approx$11\% në vend të 5\%?
+    \item Pse heqja e \texttt{Limit} nuk ndryshon SE e \texttt{Age}?
+  \end{enumerate}
+  \shkoTe{zgjCp75}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item \texttt{bptest} + \texttt{coeftest(fit, vcov. = vcovHC(fit, type = "HC3"))}.
+    \item Transformimet: log rregullon variancën ose formën, jo gjithmonë të dyja.
+    \item \texttt{Auto}: \texttt{crPlots} + Box--Cox $\Rightarrow$ $\log(\texttt{mpg})$; vlera ekstreme zhduket.
+    \item \texttt{Credit}: VIF 160; pa \texttt{Limit}, SE e \texttt{Rating} $\div12.6$.
+    \item Simulimet: klasike 11\% kundrejt HC3 6\%; sd $\propto1/\sqrt{1-\rho^2}$.
+  \end{itemize}
+  \begin{Keshille}Ora 6: rast studimi me \texttt{Boston}: modeli BIC i Javës 6, diagnostikim i plotë, $\log(\texttt{lstat})$, SE robuste, CV dhe raport.\end{Keshille}
+\end{frame}
