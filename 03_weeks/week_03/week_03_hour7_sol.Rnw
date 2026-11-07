@@ -1,0 +1,207 @@
+% ============================================================
+%  Java 3 · Ora 7 — Zgjidhjet e kuizit dhe të ushtrimeve
+% ============================================================
+
+\begin{frame}[label=s3T1]{Zgjidhja: Teori 1}
+  \begin{enumerate}
+    \item $s_{xy}=\frac{1}{n-1}\sum(x_i-\bar x)(y_i-\bar y)$; \ $r=s_{xy}/(s_xs_y)$. (4 pikë)
+    \item $F=1.8\,C+32$: zhvendosja nuk ndikon te devijimet; shkalla $1.8>0$ shkurtohet në numërues dhe emërues. Me $X\to-X$: $|r|$ njësoj, shenja ndryshon. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q3T1}
+\end{frame}
+
+\begin{frame}[label=s3T2]{Zgjidhja: Teori 2}
+  \begin{enumerate}
+    \item Të dhëna rendore (p.sh.\ vlerësime 1--5); lidhje monotone por jo lineare; vlera ekstreme ose shpërndarje shumë e anuar. (4 pikë)
+    \item Gabim. $r$ mat vetëm lidhjen lineare. Shembull: $X$ simetrike rreth 0 dhe $Y=X^2$: $r\approx0$, por $Y$ përcaktohet plotësisht nga $X$. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q3T2}
+\end{frame}
+
+\begin{frame}[label=s3T3]{Zgjidhja: Teori 3}
+  \begin{enumerate}
+    \item Shpërndarja e $r$ është e anuar kur $|\rho|$ është i madh dhe kufizohet te $[-1,1]$. $z=\operatorname{artanh}r$ është përafërsisht normale me $SE=1/\sqrt{n-3}$ që nuk varet nga $\rho$. (3 pikë)
+    \item FWER: probabiliteti i të paktën një zbulimi të rremë (Bonferroni, Holm). FDR: pjesa e pritur e zbulimeve të rreme mes zbulimeve (BH). (3 pikë)
+    \item Lidhja ka një shenjë brenda çdo grupi dhe shenjën e kundërt në të dhënat e bashkuara, sepse grupet ndryshojnë mesataret e $X$ dhe $Y$. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q3T3}
+\end{frame}
+
+\begin{frame}[label=s3E1]{Zgjidhja: Ushtrimi 1}
+  \begin{enumerate}
+    \item $\bar x=3$, $\bar y=30/5=6$; \ $d_x=(-2,-1,0,1,2)$, \ $d_y=(-4,-5,-2,-3,14)$. (3 pikë)
+    \item $\sum d_xd_y=8+5+0-3+28=38$, \ $s_{xy}=38/4=9.5$.\\
+          $\sum d_x^2=10$, $\sum d_y^2=250$; \ $r=38/\sqrt{2500}=0.76$. (5 pikë)
+    \item Pika e pestë: jep 28 nga 38 të shumës. Pa të, lidhja do të dukej ndryshe. (2 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q3E1}
+\end{frame}
+
+\begin{frame}[fragile,label=s3E2]{Zgjidhja: Ushtrimi 2}
+  \begin{enumerate}
+    \item Rangjet e $y$: $(2,1,4,3,5)$; $d=(-1,1,-1,1,0)$, $\sum d^2=4$; \ $r_s=1-24/120=0.8$. (4 pikë)
+    \item Diskordante: $(1,2)$ dhe $(3,4)$, pra $D=2$, $C=8$; \ $\tau=(8-2)/10=0.6$. (4 pikë)
+    \item Pika $y=20$ ndikon fort në $r$, por për rangjet është thjesht ``më e madhja''. (2 pikë)
+  \end{enumerate}
+<<sol-q3e2>>=
+x <- 1:5; y <- c(2, 1, 4, 3, 20)
+sapply(c("pearson", "spearman", "kendall"), function(m) cor(x, y, method = m))
+@
+  \vfill\kthehu{q3E2}
+\end{frame}
+
+\begin{frame}[label=s3E3]{Zgjidhja: Ushtrimi 3}
+  \begin{enumerate}
+    \item $H_0:\rho=0$, $H_1:\rho\ne0$; \ $t=r\sqrt{n-2}/\sqrt{1-r^2}$, $df=3$. (3 pikë)
+    \item $t=0.76\sqrt3/\sqrt{1-0.5776}=1.316/0.650\approx2.03$. (4 pikë)
+    \item $2.03<3.182$: nuk e hedhim poshtë $H_0$. Me 5 pika, edhe një $r$ i madh mund të dalë nga rastësia. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q3E3}
+\end{frame}
+
+\begin{frame}[fragile,label=s3E4]{Zgjidhja: Ushtrimi 4}
+  \begin{enumerate}
+    \item $SE=1/\sqrt{28-3}=0.2$. (3 pikë)
+    \item $0.549\pm1.96\cdot0.2=[0.157,\ 0.941]$ $\to$ $[0.156,\ 0.736]$. (5 pikë)
+    \item $\tanh$ është jolineare dhe ``shtypet'' afër 1: intervali shtrihet më shumë drejt 0. (2 pikë)
+  \end{enumerate}
+<<sol-q3e4>>=
+tanh(atanh(0.5) + c(-1, 1) * qnorm(0.975) / sqrt(28 - 3))
+@
+  \vfill\kthehu{q3E4}
+\end{frame}
+
+\begin{frame}[label=s3E5]{Zgjidhja: Ushtrimi 5}
+  \small
+  \begin{enumerate}
+    \item Pa korrigjim: 4. Bonferroni ($\times6$): $0.024,\ 0.048,\ 0.12,\dots$ $\Rightarrow$ 2. (3 pikë)
+    \item Holm ($\times6,5,4,3,2,1$): $0.024,\ 0.040,\ 0.080,\ 0.090,\ 0.50,\ 0.60$ $\Rightarrow$ 2. (3 pikë)
+    \item BH ($\times6/i$): $0.024,\ 0.024,\ 0.040,\ 0.045,\ 0.30,\ 0.60$ $\Rightarrow$ 4. (4 pikë)
+  \end{enumerate}
+  \begin{itemize}
+    \item BH: $p_{(1)}\cdot6=0.024$, $p_{(2)}\cdot3=0.024$, $p_{(3)}\cdot2=0.04$, $p_{(4)}\cdot1.5=0.045$.
+  \end{itemize}
+  \vfill\kthehu{q3E5}
+\end{frame}
+
+\begin{frame}[fragile]{Zgjidhja: Ushtrimi 5 (kontrolli me R)}
+<<sol-q3e5>>=
+p <- c(0.004, 0.008, 0.02, 0.03, 0.25, 0.6)
+adj <- rbind(bonferroni = p.adjust(p, "bonferroni"),
+             holm = p.adjust(p, "holm"), BH = p.adjust(p, "BH"))
+adj
+rowSums(adj < 0.05)
+@
+  \vfill\kthehu{q3E5}
+\end{frame}
+
+\begin{frame}[label=s3E6]{Zgjidhja: Ushtrimi 6}
+  \begin{enumerate}
+    \item $r=0.576$; \ $df=198\Rightarrow n=200$. (3 pikë)
+    \item IB 95\%: $[0.475,\ 0.662]$; $p<2.2\times10^{-16}$: e hedhim poshtë $H_0$. (3 pikë)
+    \item ``Shpenzimet për reklamë në radio lidhen pozitivisht me shitjet ($r=0.58$, 95\% IB [0.48, 0.66], $n=200$, $p<0.001$).'' (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q3E6}
+\end{frame}
+
+\begin{frame}[label=s3E7]{Zgjidhja: Ushtrimi 7}
+  \begin{enumerate}
+    \item $r_{XY\cdot Z}=\dfrac{0.40-0.80\cdot0.50}{\sqrt{(1-0.64)(1-0.25)}}=\dfrac{0}{0.52}=0$. (7 pikë)
+    \item Për bashki me të njëjtën popullsi, numri i farmacive nuk lidhet linearisht me numrin e lindjeve. (4 pikë)
+    \item Lidhja $r_{XY}=0.40$ vjen e tëra nga popullsia: bashkitë e mëdha kanë më shumë farmaci dhe më shumë lindje. Korrelacioni nuk është shkakësi. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q3E7}
+\end{frame}
+
+\begin{frame}[fragile,label=s3H1]{Zgjidhja: Shtëpi 1}
+<<sol-h1>>=
+auto <- na.omit(read.csv(file.path(W03DATA, "Auto.csv"), na.strings = "?"))
+v <- c("mpg", "horsepower", "weight", "displacement", "acceleration")
+D <- cor(auto[, v], method = "spearman") - cor(auto[, v])
+D[upper.tri(D, diag = TRUE)] <- NA
+which(abs(D) == max(abs(D), na.rm = TRUE), arr.ind = TRUE); round(min(D, na.rm = TRUE), 3)
+@
+  \begin{itemize}
+    \item \texttt{mpg}--\texttt{horsepower}: lidhja është e lakuar; $|r_s|>|r|$.
+  \end{itemize}
+  \vfill\kthehu{h3H1}
+\end{frame}
+
+\begin{frame}[fragile,label=s3H2]{Zgjidhja: Shtëpi 2}
+<<sol-h2>>=
+set.seed(1)
+f <- function(lo, hi) { x <- runif(500, lo, hi); y <- x^2 + rnorm(500, 0, 0.5)
+  c(pearson = cor(x, y), spearman = cor(x, y, method = "spearman")) }
+round(rbind(sym = f(-3, 3), pos = f(0, 3)), 3)
+@
+  \begin{itemize}
+    \item Simetrike: të dyja $\approx0$, megjithëse varësia është e fortë. Pozitive: lidhje monotone, $r_s>r$.
+  \end{itemize}
+  \vfill\kthehu{h3H1}
+\end{frame}
+
+\begin{frame}[fragile,label=s3H3]{Zgjidhja: Shtëpi 3}
+<<sol-h3>>=
+library(boot); library(MASS)
+set.seed(2026)
+b <- boot(Boston, function(d, i) cor(d$crim[i], d$medv[i], method = "spearman"),
+          R = 2000)
+c(estimate = b$t0, boot.ci(b, type = "perc")$percent[4:5])
+@
+  \vfill\kthehu{h3H3}
+\end{frame}
+
+\begin{frame}[fragile,label=s3H4]{Zgjidhja: Shtëpi 4}
+<<sol-h4>>=
+library(MASS)
+my_partial <- function(x, y, z) cor(resid(lm(x ~ z)), resid(lm(y ~ z)))
+formula_partial <- function(x, y, z) {
+  r <- cor(cbind(x, y, z))
+  (r[1, 2] - r[1, 3] * r[2, 3]) / sqrt((1 - r[1, 3]^2) * (1 - r[2, 3]^2))
+}
+x_vars <- c("age", "nox", "rm")                      # z = lstat, y = medv
+round(sapply(x_vars, function(v) c(
+  residuals = my_partial(Boston[[v]], Boston$medv, Boston$lstat),
+  formula   = formula_partial(Boston[[v]], Boston$medv, Boston$lstat))), 4)
+@
+  \vfill\kthehu{h3H3}
+\end{frame}
+
+\begin{frame}[fragile,label=s3H5]{Zgjidhja: Shtëpi 5}
+<<sol-h5>>=
+credit <- read.csv(file.path(W03DATA, "Credit.csv"))
+c(all = cor(credit$Income, credit$Balance),
+  sapply(split(credit, credit$Student), function(d) cor(d$Income, d$Balance)))
+@
+  \begin{itemize}
+    \item Lidhja ka të njëjtën shenjë kudo (pa Simpson), por është më e dobët te studentët: borxhi i tyre varet më pak nga të ardhurat.
+  \end{itemize}
+  \vfill\kthehu{h3H5}
+\end{frame}
+
+\begin{frame}[fragile,label=s3H6]{Zgjidhja: Shtëpi 6}
+<<sol-h6>>=
+library(corrplot)
+set.seed(2026)
+res <- replicate(1000, {
+  p <- cor.mtest(matrix(rnorm(50 * 10), ncol = 10))$p
+  p <- p[upper.tri(p)]
+  c(raw = any(p < 0.05), holm = any(p.adjust(p, "holm") < 0.05),
+    BH = any(p.adjust(p, "BH") < 0.05))
+})
+c(rowMeans(res), theory_raw = 1 - 0.95^45)
+@
+  \begin{itemize}
+    \item Testet nuk janë plotësisht të pavarura, prandaj vlera e simuluar ndryshon pak nga $1-0.95^{45}$.
+  \end{itemize}
+  \vfill\kthehu{h3H5}
+\end{frame}
+
+\begin{frame}[label=zgjCp37]{Përgjigjet: Checkpoint Ora 7}
+  \begin{enumerate}
+    \item $r$ (dhe metodën), IB 95\%, $n$, vlerën $p$ (të korrigjuar nëse ka shumë teste).
+    \item Grafikun: vlera ekstreme, lakim, grupe, barazime ose kufij artificialë.
+    \item Grafiku i shpërndarjes.
+  \end{enumerate}
+  \vfill\kthehu{cp37}
+\end{frame}

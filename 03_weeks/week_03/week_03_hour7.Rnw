@@ -1,0 +1,345 @@
+% ============================================================
+%  Java 3 · Ora 7 — Konsolidimi
+%  Rezultatet: K1, S1, S3, S4, C1
+% ============================================================
+
+\section{Konsolidimi}
+
+\begin{frame}{Ora 7: Konsolidimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuizi në stilin e provimit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuizi: si funksionon}
+  \begin{itemize}
+    \item<1-> Si në provim: \textbf{25\% teori, 75\% ushtrime}; 3 pyetje teorike (25 pikë) + 7 ushtrime (75 pikë).
+    \item<2-> Koha: 45 minuta. Ushtrimet 1--5 dhe 7 bëhen pa ndihmën e PC.
+    \item<3-> Ushtrimet 1--3 përdorin të njëjtat të dhëna: $x=(1,2,3,4,5)$, \ $y=(2,1,4,3,20)$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Shkruani çdo hap: në provim pikët jepen edhe për hapat e ndërmjetëm.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=q3T1]{Teori 1 (8 pikë)}
+  \begin{Ushtrim}[(Teori 1)]
+    \begin{enumerate}
+      \item Përkufizoni kovariancën e zgjedhjes dhe koeficientin e Pearson-it.
+      \item Pse $r$ nuk ndryshon kur $X$ shndërrohet nga °C në °F? Po kur $X\to-X$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s3T1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q3T2]{Teori 2 (8 pikë)}
+  \begin{Ushtrim}[(Teori 2)]
+    \begin{enumerate}
+      \item Jepni dy situata ku preferohet Spearman ose Kendall ndaj Pearson-it.
+      \item ``$r=0$, pra $X$ dhe $Y$ janë të pavarura.'' Saktë apo gabim? Jepni një shembull.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s3T2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q3T3]{Teori 3 (9 pikë)}
+  \begin{Ushtrim}[(Teori 3)]
+    \begin{enumerate}
+      \item Pse intervali i besimit për $\rho$ ndërtohet në shkallën $z$ të Fisher-it?
+      \item Dalloni FWER dhe FDR. Cila metodë kontrollon secilën?
+      \item Çfarë është paradoksi i Simpson-it?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s3T3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q3E1]{Ushtrimi 1 (10 pikë): Pearson}
+  \begin{Ushtrim}[(Ushtrimi 1, pa ndihmën e PC)]
+    $x=(1,2,3,4,5)$, \ $y=(2,1,4,3,20)$.
+    \begin{enumerate}
+      \item Llogaritni $\bar x$, $\bar y$ dhe devijimet.
+      \item Llogaritni $s_{xy}$ dhe $r$.
+      \item Cila pikë e dominon $r$-në? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s3E1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q3E2]{Ushtrimi 2 (10 pikë): rangjet}
+  \begin{Ushtrim}[(Ushtrimi 2, pa ndihmën e PC)]
+    Me të njëjtat të dhëna:
+    \begin{enumerate}
+      \item Llogaritni $r_s$ me formulën $1-6\sum d_i^2/\big(n(n^2-1)\big)$.
+      \item Numëroni çiftet konkordante dhe diskordante; llogaritni $\tau$.
+      \item Krahasoni $r$, $r_s$, $\tau$. Çfarë shpjegon dallimin?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s3E2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q3E3]{Ushtrimi 3 (10 pikë): testi}
+  \begin{Ushtrim}[(Ushtrimi 3, pa ndihmën e PC)]
+    Për $r=0.76$ dhe $n=5$:
+    \begin{enumerate}
+      \item Shkruani $H_0$, $H_1$ dhe statistikën $t$ me shkallët e lirisë.
+      \item Llogaritni $t$. Vlera kritike: $t_{0.975;\,3}=3.182$.
+      \item Përfundimi në $\alpha=0.05$? Pse një $r$ kaq i madh nuk mjafton?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s3E3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q3E4]{Ushtrimi 4 (10 pikë): intervali}
+  \begin{Ushtrim}[(Ushtrimi 4, pa ndihmën e PC)]
+    $r=0.5$, $n=28$. Jepen: $\operatorname{artanh}(0.5)=0.549$, \ $\tanh(0.157)=0.156$, \ $\tanh(0.941)=0.736$.
+    \begin{enumerate}
+      \item Llogaritni $SE$ në shkallën $z$.
+      \item Ndërtoni IB 95\% për $\rho$.
+      \item Pse intervali nuk është simetrik rreth 0.5?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s3E4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q3E5]{Ushtrimi 5 (10 pikë): krahasimet e shumëfishta}
+  \begin{Ushtrim}[(Ushtrimi 5, pa ndihmën e PC)]
+    Gjashtë teste korrelacioni japin $p=(0.004,\ 0.008,\ 0.02,\ 0.03,\ 0.25,\ 0.6)$.
+    \begin{enumerate}
+      \item Sa janë të rëndësishme në $\alpha=0.05$ pa korrigjim? Me Bonferroni?
+      \item Llogaritni vlerat $p$ sipas Holm-it. Sa mbeten?
+      \item Llogaritni vlerat $p$ sipas BH. Sa mbeten?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s3E5}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[fragile,label=q3E6]{Ushtrimi 6 (10 pikë): lexo output-in}
+<<quiz-radio, echo=FALSE>>=
+adv <- read.csv(file.path(W03DATA, "Advertising.csv"))[, -1]
+cor.test(adv$radio, adv$sales)
+@
+  \small
+  Gjeni $r$, $n$, IB 95\% dhe vendimin. Shkruani fjalinë e raportit. \hfill\shkoTe{s3E6}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q3E7]{Ushtrimi 7 (15 pikë): korrelacioni i pjesshëm}
+  \begin{Ushtrim}[(Ushtrimi 7, pa ndihmën e PC)]
+    Në 40 bashki: $X$ = numri i farmacive, $Y$ = numri i lindjeve, $Z$ = popullsia.\\
+    $r_{XY}=0.40$, \ $r_{XZ}=0.80$, \ $r_{YZ}=0.50$.
+    \begin{enumerate}
+      \item Llogaritni $r_{XY\cdot Z}$.
+      \item Interpretoni rezultatin me një fjali.
+      \item Një gazetar shkruan: ``Farmacitë rrisin lindjet.'' Ku është gabimi?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s3E7}{Zgjidhja}
+\end{frame}
+
+\begin{frame}{Tabela e pikëve}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Pjesa & Pyetjet & Pikët \\ \midrule
+    Teori (25\%) & T1, T2, T3 & 8 + 8 + 9 = 25 \\
+    Ushtrime (75\%) & U1--U6 & $6\times10=60$ \\
+     & U7 & 15 \\ \midrule
+    Gjithsej & 10 & 100 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Nën 50 pikë: përsëritni Orët 2 dhe 4 para Javës 4.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ushtrime për shtëpi}
+% ------------------------------------------------------------
+
+\begin{frame}[label=h3H1]{Ushtrime për shtëpi 1--2}
+  \begin{Ushtrim}[(Shtëpi 1: \texttt{Auto})]
+    Për \texttt{mpg}, \texttt{horsepower}, \texttt{weight}, \texttt{displacement}, \texttt{acceleration}: ndërtoni matricat Pearson dhe Spearman. Cili çift ka dallimin më të madh? Vizatojeni.
+  \end{Ushtrim}
+  \shkoTe{s3H1}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 2: varësi pa korrelacion)]
+    Me \texttt{set.seed(1)}, $x\sim U(-3,3)$, $n=500$, $y=x^2+\varepsilon$, $\varepsilon\sim N(0,0.5^2)$. Llogaritni $r$ dhe $r_s$. Përsëritni me $x\sim U(0,3)$.
+  \end{Ushtrim}
+  \shkoTe{s3H2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=h3H3]{Ushtrime për shtëpi 3--4}
+  \begin{Ushtrim}[(Shtëpi 3: bootstrap)]
+    Ndërtoni IB 95\% bootstrap (percentile, $B=2000$) për Spearman-in e \texttt{crim}--\texttt{medv} te \texttt{MASS::Boston}.
+  \end{Ushtrim}
+  \shkoTe{s3H3}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 4: funksion)]
+    Shkruani \texttt{my\_partial(x, y, z)} me mbetje. Kontrollojeni kundrejt formulës për tri treshe nga \texttt{Boston}.
+  \end{Ushtrim}
+  \shkoTe{s3H4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=h3H5]{Ushtrime për shtëpi 5--6}
+  \begin{Ushtrim}[(Shtëpi 5: grupet)]
+    Te \texttt{Credit}, llogaritni $r(\texttt{Income},\texttt{Balance})$ për të gjithë, për studentët dhe jo-studentët. Shpjegoni dallimin.
+  \end{Ushtrim}
+  \shkoTe{s3H5}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 6: simulim)]
+    10 variabla të pavarura, $n=50$, 1000 përsëritje. Përqindja e matricave me të paktën një $p<0.05$: pa korrigjim, Holm, BH. Krahasoni me $1-0.95^{45}$.
+  \end{Ushtrim}
+  \shkoTe{s3H6}{Zgjidhja}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gabimet e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet e zakonshme: interpretimi}
+  \begin{itemize}
+    \item<1-> $r=0$ $\Rightarrow$ ``nuk ka lidhje''. Gabim: mund të ketë lidhje jolineare.
+    \item<2-> $r$ i madh $\Rightarrow$ ``$X$ shkakton $Y$''. Gabim: ndoshta një $Z$ i përbashkët.
+    \item<3-> $r=0.6$ $\Rightarrow$ ``60\% e $Y$ shpjegohet''. Gabim: $r^2=0.36$.
+    \item<4-> $r=0.8$ është ``dyfish më i fortë'' se $0.4$. Gabim: $r$ nuk është shkallë raporti.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: llogaritja}
+  \begin{itemize}
+    \item<1-> \texttt{cor()} me \texttt{NA}: rezultati \texttt{NA}. Zgjidh \texttt{use =} me vetëdije.
+    \item<2-> \texttt{pairwise.complete.obs}: çdo çift me $n$ të ndryshëm.
+    \item<3-> Pearson mbi kategori të koduara 1, 2, 3 (p.sh.\ \texttt{origin}).
+    \item<4-> Kolona e indeksit (\texttt{X}) e përfshirë në matricë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: inferenca}
+  \begin{itemize}
+    \item<1-> Vlera $p$ e vogël $\Rightarrow$ lidhje e fortë. Gabim: me $n$ të madh edhe $r=0.1$ del i rëndësishëm.
+    \item<2-> Raportim vetëm i $p$, pa $r$ dhe IB.
+    \item<3-> 20 teste pa korrigjim, raportohet vetëm ``fitorja''.
+    \item<4-> Bashkimi i grupeve të ndryshme pa e kontrolluar (Simpson).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit e një analize korrelacioni}
+  \begin{enumerate}
+    \item Grafiku i shpërndarjes \textbf{para} çdo numri.
+    \item Shkalla e matjes: sasiore, rendore, binare?
+    \item Lidhja: lineare, monotone, e lakuar? Vlera ekstreme?
+    \item Pearson dhe Spearman; nëse ndryshojnë shumë, pse?
+    \item $r$, IB, $n$; korrigjim nëse ka shumë teste.
+    \item A mund ta shpjegojë një variabël e tretë?
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fletë-kujtesa}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë-kujtesa 1: formulat}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Masa & Formula \\ \midrule
+    Kovarianca & $s_{xy}=\frac{1}{n-1}\sum(x_i-\bar x)(y_i-\bar y)$ \\
+    Pearson & $r=s_{xy}/(s_xs_y)$ \\
+    Spearman (pa barazime) & $r_s=1-6\sum d_i^2/\big(n(n^2-1)\big)$ \\
+    Kendall & $\tau=(C-D)\big/\binom n2$ \\
+    Testi & $t=r\sqrt{n-2}/\sqrt{1-r^2}$, \ $df=n-2$ \\
+    Fisher & $z=\operatorname{artanh}r$, \ $SE=1/\sqrt{n-3}$ \\
+    I pjesshëm & $r_{XY\cdot Z}=\dfrac{r_{XY}-r_{XZ}r_{YZ}}{\sqrt{(1-r_{XZ}^2)(1-r_{YZ}^2)}}$ \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 2: funksionet R}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    Kovarianca, korrelacioni & \texttt{cov(x, y)}, \texttt{cor(x, y, method = )} \\
+    Matrica & \texttt{cor(df)}, \texttt{cov2cor(S)} \\
+    Vlerat që mungojnë & \texttt{use = "complete.obs"} / \texttt{"pairwise.complete.obs"} \\
+    Testi dhe IB & \texttt{cor.test(x, y, method = , alternative = )} \\
+    Matrica e $p$ & \texttt{corrplot::cor.mtest(df)\$p} \\
+    Korrigjimi & \texttt{p.adjust(p, method = "holm")} \\
+    Bootstrap & \texttt{boot::boot()}, \texttt{boot.ci()} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 3: grafikët}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Grafiku & Funksioni \\ \midrule
+    Shpërndarja e dy variablave & \texttt{plot(x, y)}, \texttt{geom\_point()} \\
+    Kurba e lëmuar & \texttt{geom\_smooth(method = "loess")} \\
+    Të gjitha çiftet & \texttt{pairs(df)}, \texttt{GGally::ggpairs(df)} \\
+    Matrica me ngjyra & \texttt{corrplot(R, order = "hclust")} \\
+    Fshih jo-të-rëndësishmet & \texttt{corrplot(R, p.mat = , insig = "blank")} \\
+    Sipas grupeve & \texttt{aes(colour = group)} + \texttt{geom\_smooth(method = "lm")} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pamje e Javës 4}
+% ------------------------------------------------------------
+
+\begin{frame}{Java 4: ANOVA \LO{K1} \LO{S3}}
+  \begin{itemize}
+    \item<1-> Sot: lidhja midis dy variablave \textbf{sasiore}.
+    \item<2-> Java 4: një variabël sasiore dhe një \textbf{faktor} me 3 ose më shumë kategori.
+    \item<3-> Shembull: a ndryshon \texttt{mpg} sipas \texttt{origin} (SHBA, Evropë, Japoni)?
+    \item<4-> ANOVA njëfaktoriale dhe shumëfaktoriale; krahasimet e Tukey-t; kontrolli i supozimeve.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Java 4: si lidhet me sot}
+  \begin{itemize}
+    \item<1-> Korrelacioni pikë-biserial (Ora 5) = krahasimi i dy mesatareve. ANOVA e zgjeron te $k$ grupe.
+    \item<2-> Zbërthimi ``brenda + midis grupeve'' (Simpson) është pikërisht ideja e ANOVA-s.
+    \item<3-> Krahasimet e shumëfishta kthehen: Tukey në vend të Holm-it.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Para Javës 4}
+  \begin{itemize}
+    \item Përsëritni testin $t$ për dy mesatare dhe shpërndarjen $F$ (Raço et al., kapitujt përkatës).
+    \item Mbaroni ushtrimet për shtëpi 1--6.
+    \item Instaloni paketën \texttt{car} (\texttt{install.packages("car")}).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Burime}
+  \footnotesize
+  \begin{itemize}
+    \item E.~Raço, E.~Llagami, K.~Haxhi, O.~Zaçaj, \emph{Teoria e Probabilitetit dhe Statistika Matematike me ilustrime në gjuhën R}, Kotti, 2021.
+    \item J.~Cohen, P.~Cohen, S.~G.~West, L.~S.~Aiken, \emph{Applied Multiple Regression/Correlation Analysis for the Behavioral Sciences}, LEA, 2003 (korrelacioni, korrelacioni i pjesshëm).
+    \item G.~James, D.~Witten, T.~Hastie, R.~Tibshirani, \emph{An Introduction to Statistical Learning}, Springer; \url{https://www.statlearning.com}.
+    \item N.~Lo, \emph{DS612 Data Mining with Business Applications (R)}, \url{https://github.com/NormanLo4319/DS612_Data_Mining_with_Business_Applications_R} (licencë MIT). Ora 5 bazohet te \texttt{DS612\_R-Code\_Linear\_Regression.R}, i rishkruar.
+    \item F.~J.~Anscombe (1973), Graphs in statistical analysis, \emph{The American Statistician} 27(1).
+    \item Y.~Benjamini, Y.~Hochberg (1995), Controlling the false discovery rate, \emph{JRSS B} 57(1); S.~Holm (1979), \emph{Scand.\ J.\ Statistics} 6(2).
+    \item D.~Harrison, D.~L.~Rubinfeld (1978), Hedonic prices and the demand for clean air, \emph{J.\ Environmental Economics and Management} 5.
+    \item Paketat: \texttt{corrplot}, \texttt{GGally}, \texttt{boot}, \texttt{MASS}. Të dhënat: \texttt{Advertising}, \texttt{Credit}, \texttt{Auto} (ISLR, nëpërmjet repo-s DS612); \texttt{MASS::Boston}; \texttt{anscombe} (R bazë).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp37]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 7}
+  \begin{enumerate}
+    \item Cilat katër gjëra raportoni për çdo korrelacion?
+    \item Kur $r$ dhe $r_s$ ndryshojnë shumë, çfarë kontrolloni?
+    \item Cili hap i listës së kontrollit vjen i pari?
+  \end{enumerate}
+  \shkoTe{zgjCp37}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje e Javës 3}
+  \begin{itemize}
+    \item Kovarianca $\to$ Pearson: lidhja \textbf{lineare}, pa njësi, $-1\le r\le1$.
+    \item Spearman dhe Kendall: lidhja \textbf{monotone}, e qëndrueshme ndaj vlerave ekstreme.
+    \item Inferenca: testi $t$, IB me Fisher $z$, bootstrap; korrigjimi Holm/BH.
+    \item Kujdes: grafiku i pari; Simpson; korrelacion $\ne$ shkakësi.
+    \item \Zgjerim Korrelacioni i pjesshëm: hapi i parë drejt regresionit të shumëfishtë.
+  \end{itemize}
+\end{frame}
