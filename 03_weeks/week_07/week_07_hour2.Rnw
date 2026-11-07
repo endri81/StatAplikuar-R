@@ -1,0 +1,416 @@
+% ============================================================
+%  Java 7 · Ora 2 — Teoria I: mbetjet, leverage dhe ndikimi
+%  Rezultatet: S3, C1, S1
+%  Burimi: ISLR kap. 3.3.3; Cohen et al. (2003), kapitulli për diagnostikimin e regresionit
+% ============================================================
+
+\section{Teoria I: mbetjet dhe pikat e veçanta}
+
+\begin{frame}{Ora 2: Teoria I --- mbetjet, leverage, ndikimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Matrica hat}
+% ------------------------------------------------------------
+
+\begin{frame}{Kujtesë: matrica hat \LO{S1}}
+  \begin{itemize}
+    \item<1-> Modeli: $y = X\beta + \varepsilon$, $X$ me përmasa $n\times(p+1)$, $\varepsilon\sim(0,\sigma^2 I)$.
+    \item<2-> OLS: $\hat\beta=(X^\top X)^{-1}X^\top y$.
+    \item<3-> Vlerat e përshtatura: $\hat y = X\hat\beta = \underbrace{X(X^\top X)^{-1}X^\top}_{H}\,y$.
+    \item<4-> $H$ = \termi{matrica hat}{hat matrix}: i ``vë kapelën'' $y$-it.
+    \item<5-> Mbetjet: $e = y-\hat y = (I-H)\,y$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vetitë e $H$}
+  \begin{Teoreme}[Vetitë]
+    \begin{enumerate}
+      \item $H^\top = H$ (simetrike).
+      \item $H^2 = H$ (idempotente): projeksion mbi hapësirën e kolonave të $X$.
+      \item $HX = X$, prandaj $(I-H)X = 0$.
+      \item $\operatorname{tr}(H) = p+1$.
+    \end{enumerate}
+  \end{Teoreme}
+  \pause
+  \textbf{Pse 4?} $\operatorname{tr}(H)=\operatorname{tr}\big((X^\top X)^{-1}X^\top X\big)=\operatorname{tr}(I_{p+1})=p+1$ (përdorim $\operatorname{tr}(AB)=\operatorname{tr}(BA)$).
+\end{frame}
+
+\begin{frame}{Leverage: elementi diagonal $h_{ii}$}
+  \begin{Definicion}[Leverage]
+    $h_{ii} = x_i^\top (X^\top X)^{-1} x_i$, ku $x_i^\top$ është rreshti $i$ i $X$.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item<2-> $\hat y_i = h_{ii}\,y_i + \sum_{j\ne i} h_{ij}\,y_j$.
+    \item<3-> $h_{ii}$ = sa ``peshë'' ka vetë $y_i$ në vlerën e vet të përshtatur.
+    \item<4-> \termi{Leverage}{leverage} varet \textbf{vetëm nga $X$}, jo nga $y$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kufijtë e $h_{ii}$}
+  \begin{Teoreme}
+    Për model me konstante: $\dfrac1n \le h_{ii} \le 1$, \quad $\displaystyle\sum_{i=1}^n h_{ii} = p+1$, \quad $\bar h=\dfrac{p+1}{n}$.
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item<2-> Shuma vjen nga $\operatorname{tr}(H)=p+1$.
+    \item<3-> $h_{ii}=1$: vlera e përshtatur është vetë $y_i$; vija detyrohet të kalojë nga pika.
+    \item<4-> Rregulla praktike: $h_{ii} > 2(p+1)/n$ (ose $3(p+1)/n$) $\Rightarrow$ leverage i lartë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Regresi i thjeshtë: formula e qartë}
+  Për $y=\beta_0+\beta_1x+\varepsilon$:
+  \[
+    h_{ii} = \frac1n + \frac{(x_i-\bar x)^2}{S_{xx}}, \qquad S_{xx}=\sum_{j}(x_j-\bar x)^2.
+  \]
+  \pause
+  \begin{itemize}
+    \item<2-> Minimumi $1/n$ arrihet te $x_i=\bar x$.
+    \item<3-> Rritet me \textbf{katrorin} e largësisë nga qendra.
+    \item<4-> Në regresin e shumëfishtë: largësia matet me Mahalanobis, jo me boshtet veç e veç.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Fotografia: leverage = largësi në $x$}
+  \centering
+  \begin{tikzpicture}[scale=0.9]
+    \begin{scope}[xshift=0cm]\end{scope}\draw[->] (0,0) -- (8.5,0) node[right] {$x$};
+    \draw[->] (0,0) -- (0,4.2) node[above] {$y$};
+    \foreach \x/\y in {1/1.2,1.5/1.9,2/1.7,2.4/2.4,2.8/2.2,3.2/2.9,3.5/2.6}
+      \fill[uptblue] (\x,\y) circle (2.2pt);
+    \draw[dashed,gray] (2.34,0) -- (2.34,3.9) node[above,black,font=\scriptsize] {$\bar x$};
+    \fill[accent] (7.6,3.3) circle (3pt) node[below,font=\scriptsize,yshift=-2pt] {leverage i lartë};
+    \draw[<->,accent] (2.34,0.35) -- (7.6,0.35) node[midway,above,font=\scriptsize] {$(x_i-\bar x)^2$ e madhe};
+    \fill[okgreen] (2.6,3.7) circle (3pt) node[right,font=\scriptsize] {mbetje e madhe, leverage i ulët};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[label=pyetjeLev]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    $x = (1,\,2,\,3,\,4,\,10)$, model $y\sim x$. Cila pikë ka leverage më të lartë, dhe a e kalon pragun $2(p+1)/n$?
+    \begin{enumerate}[A)]
+      \item Pika 1 ($x=1$), sepse është minimumi.
+      \item Pika 4 ($x=4$), sepse është më afër $\bar x$.
+      \item Pika 5 ($x=10$); po, e kalon pragun.
+      \item Pika 5 ($x=10$); jo, nuk e kalon pragun.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjLev}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Varianca e mbetjeve}
+% ------------------------------------------------------------
+
+\begin{frame}{Mbetjet nuk kanë të njëjtën variancë}
+  \begin{itemize}
+    \item<1-> $e=(I-H)y=(I-H)(X\beta+\varepsilon)=(I-H)\varepsilon$, \quad sepse $(I-H)X=0$.
+    \item<2-> $\operatorname{Var}(e)=(I-H)\,\sigma^2 I\,(I-H)^\top=\sigma^2(I-H)$.
+    \item<3-> Pra:
+      \[ \boxed{\operatorname{Var}(e_i)=\sigma^2\,(1-h_{ii})} \]
+    \item<4-> \textbf{Pse?} Pika me leverage të lartë e tërheq vijën drejt vetes: mbetja e saj del \textbf{e vogël} artificialisht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabim i zakonshëm}
+  \begin{Gabim}
+    ``Mbetja e pikës $i$ është e vogël, prandaj pika përputhet mirë me modelin.''\\[3pt]
+    Për $h_{ii}=0.92$: $\operatorname{sd}(e_i)=\sigma\sqrt{0.08}\approx 0.28\,\sigma$. Edhe një mbetje ``e vogël'' mund të jetë e jashtëzakonshme.
+  \end{Gabim}
+  \pause
+  \begin{Keshille}Mos krahaso kurrë mbetjet e papërpunuara; standardizoji më parë me $\sqrt{1-h_{ii}}$.\end{Keshille}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbetjet e standardizuara dhe të studentizuara}
+% ------------------------------------------------------------
+
+\begin{frame}{Mbetjet e standardizuara}
+  \begin{Definicion}[Mbetja e standardizuar (\emph{standardized / internally studentized})]
+    \[ r_i = \frac{e_i}{\hat\sigma\sqrt{1-h_{ii}}}, \qquad \hat\sigma^2=\frac{\text{SSE}}{n-p-1}. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item<2-> Të gjitha kanë afërsisht variancë 1.
+    \item<3-> Problem: $\hat\sigma$ përfshin edhe vetë pikën $i$; një vlerë ekstreme e fryn $\hat\sigma$ dhe ``fshihet''.
+    \item<4-> Në R: \texttt{rstandard(fit)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mbetjet e studentizuara}
+  \begin{Definicion}[Mbetja e studentizuar (\emph{externally studentized})]
+    \[ t_i = \frac{e_i}{\hat\sigma_{(i)}\sqrt{1-h_{ii}}}, \]
+    ku $\hat\sigma_{(i)}$ vlerësohet \textbf{pa} pikën $i$.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item<2-> Nën supozimet e modelit: $t_i \sim t_{\,n-p-2}$ ekzakt.
+    \item<3-> Nuk duhet rivlerësim $n$ herë:
+      \[ t_i = r_i\sqrt{\frac{n-p-2}{\,n-p-1-r_i^2\,}}. \]
+    \item<4-> Në R: \texttt{rstudent(fit)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testi i vlerës ekstreme (Bonferroni)}
+  \begin{itemize}
+    \item<1-> $H_0$: pika $i$ ndjek modelin. Kritere: $|t_i| > t_{1-\alpha/2;\,n-p-2}$.
+    \item<2-> Por testojmë \textbf{$n$ pika njëkohësisht} (Java 4: krahasimet e shumëfishta).
+    \item<3-> Bonferroni: përdor $\alpha/n$:
+      \[ |t_i| > t_{1-\alpha/(2n);\;n-p-2}. \]
+    \item<4-> Në R: \texttt{car::outlierTest(fit)} jep $p$ e rregulluar për $|t_i|$ maksimal.
+    \item<5-> Praktikë: $|t_i|>3$ si sinjal për ta parë më nga afër.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\Zgjerim Lidhja me LOOCV (Java 6)}
+  \begin{itemize}
+    \item<1-> Mbetja ``me një jashtë'' (PRESS): $e_{(i)} = y_i-\hat y_{i(i)} = \dfrac{e_i}{1-h_{ii}}$.
+    \item<2-> Kjo është e njëjta shkurtore e LOOCV nga Java 6:
+      $\text{CV}_{(n)}=\frac1n\sum_i \big(e_i/(1-h_{ii})\big)^2$.
+    \item<3-> $h_{ii}\to1$ $\Rightarrow$ $e_{(i)}$ shumë më e madhe se $e_i$: modeli e parashikon keq pikën kur ajo mungon.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ndikimi: Cook, DFFITS, DFBETAS}
+% ------------------------------------------------------------
+
+\begin{frame}{Ndikimi = leverage $\times$ largësi}
+  \centering
+  \begin{tikzpicture}[scale=0.85]
+    \draw[->] (0,0) -- (6.4,0) node[right,font=\small] {leverage $h_{ii}$};
+    \draw[->] (0,0) -- (0,4.4) node[above,font=\small] {$|t_i|$};
+    \draw[dashed,gray] (3,0) -- (3,4.1); \draw[dashed,gray] (0,2) -- (6.1,2);
+    \node[align=center,font=\scriptsize] at (1.5,1) {pikë e zakonshme};
+    \node[align=center,font=\scriptsize] at (1.5,3.1) {\textcolor{okgreen}{\textbf{vlerë ekstreme}}\\ndikim i moderuar};
+    \node[align=center,font=\scriptsize] at (4.5,1) {\textcolor{uptblue}{\textbf{leverage i lartë}}\\në vijë: ``e mirë''};
+    \node[align=center,font=\scriptsize] at (4.5,3.1) {\textcolor{accent}{\textbf{ndikim i madh}}\\e lëviz vijën};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Distanca e Cook-ut}
+  \begin{Definicion}[Distanca e Cook-ut (\emph{Cook's distance})]
+    \[ D_i = \frac{\sum_{j=1}^n\big(\hat y_j-\hat y_{j(i)}\big)^2}{(p+1)\,\hat\sigma^2} \]
+    \footnotesize $\hat y_{j(i)}$: parashikimi për pikën $j$ nga modeli pa pikën $i$.
+  \end{Definicion}
+  \pause
+  Formula pa rivlerësim:
+  \[ D_i = \frac{r_i^2}{p+1}\cdot\frac{h_{ii}}{1-h_{ii}} \]
+  \pause
+  \centering\small mbetja e standardizuar $\times$ fuqia e leverage-it.
+\end{frame}
+
+\begin{frame}{Pragjet për $D_i$}
+  \begin{itemize}
+    \item<1-> $D_i > 1$: ndikim i madh (rregulla klasike).
+    \item<2-> $D_i > 0.5$: vlen të shihet.
+    \item<3-> $D_i > 4/n$: prag i kujdesshëm për $n$ të madh.
+    \item<4-> Më e rëndësishme se pragu: \textbf{a dallohet një pikë qartë nga të tjerat?}
+  \end{itemize}
+  \pause[5]
+  \begin{Gabim}Pragjet janë rregulla praktike, jo teste. $D_i=0.6$ nuk do të thotë ``pika duhet hequr''.\end{Gabim}
+\end{frame}
+
+\begin{frame}{\Zgjerim DFFITS dhe DFBETAS}
+  \begin{itemize}
+    \item<1-> \textbf{DFFITS}: sa ndryshon $\hat y_i$, në njësi SE:
+      $\text{DFFITS}_i = t_i\sqrt{\dfrac{h_{ii}}{1-h_{ii}}}$; \; prag $2\sqrt{(p+1)/n}$.
+    \item<2-> \textbf{DFBETAS}: sa ndryshon secili koeficient:
+      $\text{DFBETAS}_{ij}=\dfrac{\hat\beta_j-\hat\beta_{j(i)}}{\text{SE}_{(i)}(\hat\beta_j)}$; \; prag $2/\sqrt n$.
+    \item<3-> DFBETAS tregon \textbf{cilin} koeficient lëviz pika.
+    \item<4-> Në R: \texttt{dffits()}, \texttt{dfbetas()}, \texttt{influence.measures()}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shembull pa ndihmën e PC}
+% ------------------------------------------------------------
+
+\begin{frame}{Shembull: 5 pika \hfill\small(sintetike)}
+  \begin{columns}[T]
+    \begin{column}{0.42\textwidth}
+      \centering
+      \begin{tabular}{ccc}
+        \toprule $i$ & $x_i$ & $y_i$\\ \midrule
+        1 & 1 & 1\\ 2 & 2 & 3\\ 3 & 3 & 5\\ 4 & 4 & 4\\ 5 & 10 & 7\\ \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.55\textwidth}
+      \begin{itemize}
+        \item<1-> $\bar x = 4$, \; $\bar y = 4$.
+        \item<2-> $S_{xx}=9+4+1+0+36=50$.
+        \item<3-> $S_{xy}=9+2-1+0+18=28$.
+        \item<4-> $b_1=28/50=0.56$, \; $b_0=4-0.56\cdot4=1.76$.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Hapi 1: leverage}
+  $h_{ii}=\dfrac15+\dfrac{(x_i-4)^2}{50}$
+  \vspace{4pt}
+  \centering
+  \begin{tabular}{cccccc}
+    \toprule $i$ & 1 & 2 & 3 & 4 & 5\\ \midrule
+    $(x_i-\bar x)^2$ & 9 & 4 & 1 & 0 & 36\\
+    $h_{ii}$ & 0.38 & 0.28 & 0.22 & 0.20 & \textcolor{accent}{\textbf{0.92}}\\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> Kontroll: $\sum h_{ii}=2.00=p+1$. \checkmark
+    \item<3-> Prag: $2(p+1)/n=0.8$; vetëm pika 5 e kalon.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 2: mbetjet dhe $\hat\sigma$}
+  \centering
+  \begin{tabular}{cccccc}
+    \toprule $i$ & 1 & 2 & 3 & 4 & 5\\ \midrule
+    $\hat y_i=1.76+0.56x_i$ & 2.32 & 2.88 & 3.44 & 4.00 & 7.36\\
+    $e_i$ & $-1.32$ & 0.12 & 1.56 & 0.00 & \textbf{$-0.36$}\\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> $\text{SSE}=1.7424+0.0144+2.4336+0+0.1296=4.32$.
+    \item<3-> $\hat\sigma^2=4.32/(5-2)=1.44$, \; $\hat\sigma=1.2$.
+    \item<4-> Pika 5: $|e_5|=0.36$, ndër mbetjet më të vogla (vetëm pikat 4 dhe 2 kanë më pak).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 3: mbetjet e standardizuara}
+  $r_i = e_i / (1.2\sqrt{1-h_{ii}})$
+  \vspace{4pt}
+  \centering
+  \begin{tabular}{cccccc}
+    \toprule $i$ & 1 & 2 & 3 & 4 & 5\\ \midrule
+    $\sqrt{1-h_{ii}}$ & 0.787 & 0.849 & 0.883 & 0.894 & \textbf{0.283}\\
+    $r_i$ & $-1.40$ & 0.12 & 1.47 & 0.00 & \textbf{$-1.06$}\\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> Pika 5: $-0.36\to-1.06$, rreth \textbf{3 herë} më e madhe pas standardizimit.
+    \item<3-> Asnjë $|r_i|>2$: nuk ka vlera ekstreme të qarta.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 4: distanca e Cook-ut}
+  $D_i=\dfrac{r_i^2}{2}\cdot\dfrac{h_{ii}}{1-h_{ii}}$
+  \vspace{4pt}
+  \centering
+  \begin{tabular}{cccccc}
+    \toprule $i$ & 1 & 2 & 3 & 4 & 5\\ \midrule
+    $r_i^2/2$ & 0.976 & 0.007 & 1.083 & 0 & 0.563\\
+    $h_{ii}/(1-h_{ii})$ & 0.613 & 0.389 & 0.282 & 0.25 & \textbf{11.5}\\
+    $D_i$ & 0.60 & 0.003 & 0.31 & 0 & \textcolor{accent}{\textbf{6.47}}\\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> Pika 5: mbetje e vogël, por $D_5=6.47\gg1$.
+    \item<3-> \textbf{Pse?} Faktori i leverage-it (11.5) e shumëzon mbetjen e moderuar.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 5: mbetjet e studentizuara dhe Bonferroni}
+  $t_i=r_i\sqrt{\dfrac{2}{3-r_i^2}}$ \qquad ($n-p-2=2$ shkallë lirie)
+  \vspace{4pt}
+  \centering
+  \begin{tabular}{cccccc}
+    \toprule $i$ & 1 & 2 & 3 & 4 & 5\\ \midrule
+    $t_i$ & $-1.93$ & 0.10 & 2.28 & 0.00 & $-1.10$\\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> Vlera kritike Bonferroni: $t_{1-0.05/10;\,2}=9.92$ (nga tabela ose R).
+    \item<3-> Asnjë pikë nuk është vlerë ekstreme, megjithatë pika 5 \textbf{ka ndikimin më të madh}.
+    \item<4-> Mësimi: vlerë ekstreme $\ne$ pikë me ndikim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=6]{Kontroll në R}
+<<toy-infl>>=
+x <- c(1, 2, 3, 4, 10)
+y <- c(1, 3, 5, 4, 7)
+fit_toy <- lm(y ~ x)
+round(cbind(h = hatvalues(fit_toy), e = resid(fit_toy),
+            r = rstandard(fit_toy), t = rstudent(fit_toy),
+            D = cooks.distance(fit_toy)), 3)
+qt(1 - 0.05 / (2 * 5), df = 2)   # Bonferroni critical value
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të gjithë numrat pa ndihmën e PC përputhen me R. \checkmark
+    \item<2-> \texttt{hatvalues}, \texttt{rstandard}, \texttt{rstudent}, \texttt{cooks.distance}: katër funksionet bazë.
+    \item<3-> Renditja sipas $|e_i|$ dhe sipas $D_i$ është \textbf{krejt e ndryshme}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushPa5]{Radha jote!}
+  \begin{Ushtrim}[(Pa ndihmën e PC, 6 minuta)]
+    Hiq pikën 5 dhe rivlerëso modelin me pikat 1--4.
+    \begin{enumerate}
+      \item Gjej $b_0$ dhe $b_1$.
+      \item Sa është parashikimi për $x=10$? Krahaso me $y_5=7$.
+      \item Kontrollo: $e_5/(1-h_{55})$ = ?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjPa5}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Me dhe pa pikën 5}
+<<toy-plot, fig.height=3, fig.width=5, out.width="0.6\\textwidth">>=
+plot(x, y, pch = 19, col = c(rep("#2C5AA0", 4), "#D97706"),
+     cex = 1.4, xlim = c(0, 11), ylim = c(0, 12))
+abline(fit_toy, col = "#D97706", lwd = 2)          # with point 5
+abline(lm(y[-5] ~ x[-5]), col = "#2C5AA0", lty = 2, lwd = 2)
+legend("topleft", c("with 5", "without 5"), lty = 1:2,
+       col = c("#D97706", "#2C5AA0"), bty = "n")
+@
+\end{frame}
+
+\begin{frame}[label=gjejGab72]{Gjej gabimin}
+  \begin{Parashiko}
+    Një student shkruan në raport:
+    \\[3pt]{\small\emph{``Mbetja e pikës 5 është vetëm $-0.36$, ndër më të voglat. Pika 5 përputhet mirë me modelin dhe nuk ndikon në rezultate.''}}\\[3pt]
+    Gjej dy gabime në arsyetim.
+  \end{Parashiko}
+  \shkoTe{zgjGab72}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Çfarë bëjmë me një pikë me ndikim?}
+  \begin{enumerate}
+    \item<1-> \textbf{Kontrollo burimin}: gabim shtypi, njësi të gabuara, kod mungese (p.sh.\ 999)?
+    \item<2-> Nëse është gabim: korrigjo ose hiq, dhe \textbf{raporto}.
+    \item<3-> Nëse është e vërtetë: raporto modelin me dhe pa të.
+    \item<4-> Mendo për modelin: transformim i $x$ (log), term jolinear, ose regres robust (Java 8).
+  \end{enumerate}
+  \pause[5]
+  \begin{Gabim}Heqja e pikës vetëm sepse ``prish'' rezultatin është manipulim i të dhënave.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp72]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 2}
+  \begin{enumerate}
+    \item Pse $\operatorname{Var}(e_i)=\sigma^2(1-h_{ii})$ dhe çfarë pasoje ka për pikat me leverage të lartë?
+    \item Ku ndryshojnë \texttt{rstandard} dhe \texttt{rstudent}?
+    \item Një pikë ka $h_{ii}=0.5$ dhe $r_i=2$ në model me $p=1$. Sa është $D_i$?
+  \end{enumerate}
+  \shkoTe{zgjCp72}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 2}
+  \begin{itemize}
+    \item $H=X(X^\top X)^{-1}X^\top$; $h_{ii}\in[1/n,1]$, $\sum h_{ii}=p+1$; prag $2(p+1)/n$.
+    \item $\operatorname{Var}(e_i)=\sigma^2(1-h_{ii})$ $\Rightarrow$ standardizo: $r_i$, $t_i\sim t_{n-p-2}$.
+    \item Vlerë ekstreme: $|t_i|$ me Bonferroni; ndikim: $D_i=\frac{r_i^2}{p+1}\frac{h_{ii}}{1-h_{ii}}$.
+    \item Vlerë ekstreme $\ne$ ndikim: pika 5 ($e=-0.36$, $D=6.47$).
+  \end{itemize}
+  \begin{Keshille}Ora 3: i llogarisim të gjitha nga zero në R dhe i krahasojmë me \texttt{plot(fit)}, \texttt{influencePlot} dhe \texttt{outlierTest} te \texttt{Auto}.\end{Keshille}
+\end{frame}

@@ -1,0 +1,42 @@
+% ============================================================
+%  Java 7 · Ora 2 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjLev]{Zgjidhja: Pyetje me zgjedhje (leverage)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}.
+    \item $\bar x=4$, $S_{xx}=50$; $h_{55}=0.2+36/50=0.92$.
+    \item Prag: $2(p+1)/n=2\cdot2/5=0.8<0.92$.
+    \item A gabim: pika 1 ka $h_{11}=0.38$; e rëndësishme është largësia nga $\bar x$, jo minimumi.
+    \item B gabim: pika 4 ka leverage-in \textbf{më të ulët} ($1/n=0.2$).
+  \end{itemize}
+  \vfill\kthehu{pyetjeLev}
+\end{frame}
+
+\begin{frame}[label=zgjPa5]{Zgjidhja: Radha jote! (pa pikën 5)}
+  \begin{itemize}
+    \item Pikat 1--4: $\bar x=2.5$, $\bar y=3.25$, $S_{xx}=5$, $S_{xy}=5.5$.
+    \item $b_1=5.5/5=1.1$, \; $b_0=3.25-1.1\cdot2.5=0.5$.
+    \item Parashikimi për $x=10$: $0.5+1.1\cdot10=11.5$; mbetja $7-11.5=-4.5$.
+    \item Kontroll: $e_5/(1-h_{55})=-0.36/0.08=-4.5$. \checkmark
+    \item Pjerrësia pothuajse dyfishohet ($0.56\to1.1$): ky është kuptimi i $D_5=6.47$.
+  \end{itemize}
+  \vfill\kthehu{ushPa5}
+\end{frame}
+
+\begin{frame}[label=zgjGab72]{Zgjidhja: Gjej gabimin}
+  \begin{enumerate}
+    \item Mbetja e papërpunuar nuk krahasohet: $\operatorname{sd}(e_5)=\sigma\sqrt{0.08}$, pra $r_5=-1.06$, 3 herë më e madhe se $e_5$.
+    \item Mbetje e vogël $\ne$ ndikim i vogël: pika me $h=0.92$ e tërheq vijën drejt vetes. $D_5=6.47$; pa të, pjerrësia bëhet 1.1.
+  \end{enumerate}
+  \vfill\kthehu{gjejGab72}
+\end{frame}
+
+\begin{frame}[label=zgjCp72]{Përgjigjet: Checkpoint Ora 2}
+  \begin{enumerate}
+    \item $e=(I-H)\varepsilon$ dhe $I-H$ është simetrike idempotente, pra $\operatorname{Var}(e)=\sigma^2(I-H)$. Pikat me $h_{ii}$ të lartë kanë mbetje artificialisht të vogla.
+    \item \texttt{rstandard} përdor $\hat\sigma$ nga të gjitha pikat; \texttt{rstudent} përdor $\hat\sigma_{(i)}$ pa pikën $i$ dhe ndjek $t_{n-p-2}$.
+    \item $D_i=\frac{2^2}{2}\cdot\frac{0.5}{0.5}=2>1$: ndikim i madh.
+  \end{enumerate}
+  \vfill\kthehu{cp72}
+\end{frame}
