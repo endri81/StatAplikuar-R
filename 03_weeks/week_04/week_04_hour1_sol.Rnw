@@ -1,0 +1,53 @@
+% ============================================================
+%  Java 4 · Ora 1 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjOrigin]{Zgjidhja: Parashiko (\texttt{origin})}
+<<sol-origin>>=
+auto <- read.csv(file.path(W04DATA, "Auto.csv"), na.strings = "?")
+auto$origin <- factor(auto$origin, labels = c("USA", "Europe", "Japan"))
+summary(aov(mpg ~ origin, data = auto))
+@
+  \begin{itemize}
+    \item \textbf{B}. $F$ shumë i madh: të paktën një mesatare ndryshon. ANOVA nuk thotë që ndryshojnë \emph{të tria}: këtë e kontrollon Tukey (Ora 4).
+  \end{itemize}
+  \vfill\kthehu{pyetjeOrigin}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjQf]{Zgjidhja: Radha jote! (\texttt{qf}, \texttt{pf})}
+<<sol-qf>>=
+qf(0.95, df1 = 2, df2 = 12)
+pf(3.375, df1 = 1, df2 = 4, lower.tail = FALSE)
+@
+  \begin{itemize}
+    \item Vlera $p$ e $F_{1,4}$ është e njëjtë me atë të testit $t$ të dyanshëm: $T^2\sim F_{1,d}$.
+  \end{itemize}
+  \vfill\kthehu{ushQf}
+\end{frame}
+
+\begin{frame}[label=zgjK4]{Zgjidhja: Radha jote! (4 sektorë)}
+  \begin{enumerate}
+    \item $\binom42=6$ teste.
+    \item $1-0.95^6\approx1-0.735=0.265$.
+    \item $\alpha=0.05/6\approx0.0083$ për çdo test.
+  \end{enumerate}
+  \vfill\kthehu{ushK4}
+\end{frame}
+
+\begin{frame}[label=zgjName]{Zgjidhja: Think--pair--share}
+  \begin{itemize}
+    \item Për të krahasuar mesataret, ANOVA zbërthen \textbf{variancën totale} në dy pjesë: brenda dhe midis grupeve.
+    \item Pastaj krahason dy vlerësime të variancës: nëse mesataret janë të barabarta, të dyja vlerësojnë $\sigma^2$.
+    \item Pra testi për mesataret bëhet përmes një raporti variancash.
+  \end{itemize}
+  \vfill\kthehu{ushName}
+\end{frame}
+
+\begin{frame}[label=zgjCp41]{Përgjigjet: Checkpoint Ora 1}
+  \begin{enumerate}
+    \item Gabimi familjar rritet shpejt me numrin e çifteve (për $k=6$: 15 teste, mbi 1/3 e rasteve me ``zbulim'' të rremë).
+    \item Ndryshueshmërinë midis mesatareve të grupeve me ndryshueshmërinë brenda grupeve.
+    \item $F=t^2$, me të njëjtën vlerë $p$.
+  \end{enumerate}
+  \vfill\kthehu{cp41}
+\end{frame}
