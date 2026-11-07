@@ -1,0 +1,43 @@
+% ============================================================
+%  Java 7 · Ora 1 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjAns]{Zgjidhja: Parashiko (Anscombe)}
+  \begin{itemize}
+    \item Grupi 1 $\to$ \textbf{B}: re pikash rreth një vije.
+    \item Grupi 2 $\to$ \textbf{A}: parabolë e përsosur.
+    \item Grupi 3 $\to$ \textbf{D}: 10 pika në vijë, një pikë ekstreme në $y$ ($x=13$).
+    \item Grupi 4 $\to$ \textbf{C}: të gjitha $x=8$ përveç një ($x=19$): pa atë pikë, pjerrësia nuk vlerësohet fare.
+  \end{itemize}
+  \vfill\kthehu{pyetjeAns}
+\end{frame}
+
+\begin{frame}[label=zgjR2]{Zgjidhja: Think--pair--share ($R^2=0.95$)}
+  \begin{itemize}
+    \item Lidhje e lakuar e fortë (p.sh.\ eksponenciale): vija e drejtë ka $R^2$ të lartë, por mbetjet kanë formë dhe parashikimet në skaje janë të gabuara $\to$ Residuals vs Fitted.
+    \item Seri kohore me prirje: $R^2$ i lartë, gabime të korreluara, SE shumë të vogla $\to$ mbetjet kundrejt kohës.
+    \item Një pikë me leverage ekstrem që ``krijon'' lidhjen (Anscombe 4) $\to$ Residuals vs Leverage.
+  \end{itemize}
+  \vfill\kthehu{ushR2}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjAdvDiag]{Zgjidhja: Radha jote! (\texttt{Advertising})}
+<<sol-advdiag, fig.height=3.2, fig.width=6, out.width="0.45\\textwidth">>=
+adv <- read.csv(file.path(W07DATA, "Advertising.csv"))[, -1]
+par(mfrow = c(2, 2), mar = c(3.5, 3.5, 1.8, 0.8), cex = 0.7)
+plot(lm(sales ~ TV, data = adv))
+@
+  \begin{itemize}
+    \item Residuals vs Fitted dhe Scale-Location: hinkë $\Rightarrow$ \textbf{heteroskedasticitet}; edhe pak lakim në fillim.
+  \end{itemize}
+  \vfill\kthehu{ushAdvDiag}
+\end{frame}
+
+\begin{frame}[label=zgjCp71]{Përgjigjet: Checkpoint Ora 1}
+  \begin{enumerate}
+    \item Që të njëjtat koeficientë, SE, $R^2$ dhe $p$ mund të vijnë nga të dhëna krejt të ndryshme; duhen grafikët.
+    \item Scale-Location (dhe forma e hinkës te Residuals vs Fitted).
+    \item SE nënvlerësohen, prandaj IB janë shumë të ngushta dhe $p$ shumë të vegjël.
+  \end{enumerate}
+  \vfill\kthehu{cp71}
+\end{frame}

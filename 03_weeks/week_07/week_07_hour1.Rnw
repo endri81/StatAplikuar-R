@@ -1,0 +1,263 @@
+% ============================================================
+%  Java 7 · Ora 1 — Motivimi: modeli është i rëndësishëm, por a është i saktë?
+%  Rezultatet: S3, C1
+%  Burimi: ISLR kap. 3.3.3; repo DS612 (Lecture_3: plot(fit)); Anscombe (1973)
+% ============================================================
+
+\section{Motivimi}
+
+\begin{frame}{Ora 1: Motivimi --- i rëndësishëm, por a është i saktë?}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi}
+% ------------------------------------------------------------
+
+\begin{frame}{Pyetja e ditës \LO{S3} \LO{C1}}
+  \begin{itemize}
+    \item<1-> Javët 5--6: \texttt{summary(lm)} jep koeficientë, SE, $p$, $R^2$.
+    \item<2-> Të gjithë këta numra varen nga \textbf{supozimet}: linearitet, pavarësi, variancë e njëjtë, normalitet.
+    \item<3-> Dhe nga disa vëzhgime që mund ta ``tërheqin'' vijën.
+    \item<4-> Sot: \textbf{si e dimë nëse modeli është i besueshëm, dhe çfarë bëjmë kur nuk është?}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Anscombe: katër grupe, një \texttt{summary}}
+<<ans-coef>>=
+a <- datasets::anscombe
+fits <- lapply(1:4, function(i) lm(a[[paste0("y", i)]] ~ a[[paste0("x", i)]]))
+round(t(sapply(fits, function(f) c(coef(f), R2 = summary(f)$r.squared,
+                                   p = summary(f)$coefficients[2, 4]))), 3)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: \texttt{datasets::anscombe} (Anscombe, 1973), të ndërtuara për këtë qëllim.}
+\end{frame}
+
+\begin{frame}[fragile]{Të njëjtat numra, katër histori}
+<<ans-plot, fig.height=1.9, fig.width=8, out.width="0.88\\textwidth">>=
+par(mfrow = c(1, 4))
+for (i in 1:4) {
+  plot(a[[paste0("x", i)]], a[[paste0("y", i)]], pch = 19, col = "#2C5AA0",
+       xlab = paste0("x", i), ylab = paste0("y", i), xlim = c(3, 20), ylim = c(3, 13))
+  abline(fits[[i]], col = "#D97706", lwd = 2)
+}
+@
+\end{frame}
+
+\begin{frame}[label=pyetjeAns]{Parashiko!}
+  \begin{Parashiko}
+    Lidh secilin grup (1--4) me përshkrimin:\\[3pt]
+    \textbf{A)} Lidhja është e lakuar; vija e drejtë është forma e gabuar.\\
+    \textbf{B)} Modeli linear është i përshtatshëm.\\
+    \textbf{C)} Një pikë e vetme me $x$ ekstrem përcakton plotësisht pjerrësinë.\\
+    \textbf{D)} Lidhja është lineare pothuajse e përsosur, por një pikë ekstreme në $y$ e zhvendos vijën.
+  \end{Parashiko}
+  \shkoTe{zgjAns}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{summary()} nuk i dallon dot katër grupet.
+    \item<2-> Grafikët po: secili tregon një problem tjetër.
+    \item<3-> Diagnostikimi = kontroll sistematik me grafikë dhe masa numerike, \textbf{para} se të besojmë $p$ dhe IB.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushR2]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(Think--pair--share, 4 minuta)]
+    ``Modeli ka $R^2=0.95$ dhe të gjithë koeficientët me $p<0.001$. Nuk ka nevojë për diagnostikim.''
+    \begin{enumerate}
+      \item Gjej dy situata ku modeli mund të jetë seriozisht i gabuar megjithatë.
+      \item Çfarë grafiku do t'i zbulonte?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjR2}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Grafikët e \texttt{plot(fit)}}
+% ------------------------------------------------------------
+
+\begin{frame}{Katër grafikët standardë}
+  \begin{enumerate}
+    \item<1-> \textbf{Residuals vs Fitted}: lineariteti (a ka formë?).
+    \item<2-> \textbf{Normal Q-Q}: normaliteti i mbetjeve të standardizuara.
+    \item<3-> \textbf{Scale-Location}: $\sqrt{|r_i|}$ kundrejt $\hat y$: varianca e njëjtë?
+    \item<4-> \textbf{Residuals vs Leverage}: pikat me ndikim, me konturet e distancës së Cook-ut.
+  \end{enumerate}
+  \onslide<5->{\begin{Keshille}Repo-ja (Lecture 3) i nxjerr me \texttt{par(mfrow = c(2, 2)); plot(fit)}.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{Boston}: \texttt{medv \textasciitilde{} lstat}}
+<<bos-diag, fig.height=3.5, fig.width=6, out.width="0.55\\textwidth">>=
+library(MASS)
+fit_b <- lm(medv ~ lstat, data = Boston)
+par(mfrow = c(2, 2), mar = c(3.5, 3.5, 1.8, 0.8), cex = 0.7)
+plot(fit_b)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Residuals vs Fitted: formë U e qartë $\Rightarrow$ jolinearitet (Java 5).
+    \item<2-> Q-Q: bishti i djathtë mbi vijë $\Rightarrow$ mbetje të mëdha pozitive (zonat me \texttt{medv} $=50$).
+    \item<3-> Scale-Location: vija nuk është horizontale $\Rightarrow$ varianca ndryshon me $\hat y$.
+    \item<4-> Residuals vs Leverage: disa pika me mbetje të mëdha, por asnjë jashtë konturit të Cook-ut 0.5.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë kërkojmë në secilin grafik}
+  \small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Grafiku & Mirë & Problem \\ \midrule
+    Residuals vs Fitted & re pa formë rreth 0 & U, valë: jolinearitet \\
+    Normal Q-Q & pikat në vijë & bishta, S: jo-normalitet \\
+    Scale-Location & vijë horizontale & rritje: heteroskedasticitet \\
+    Residuals vs Leverage & asnjë pikë jashtë Cook 0.5 & pikë me ndikim \\ \bottomrule
+  \end{tabular}
+  \normalsize
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> Vija e kuqe (lowess) ndihmon syrin, por me pak pika luhatet shumë.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gjashtë problemet}
+% ------------------------------------------------------------
+
+\begin{frame}{Gjashtë problemet (ISLR, kap.~3.3.3)}
+  \small
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    Problemi & Si duket & Pasoja & Java \\ \midrule
+    Jolineariteti & U te mbetjet & $\hat\beta$ i zhvendosur & 7--8 \\
+    Gabime të korreluara & mbetje ``valë'' në kohë & SE shumë të vogla & 7 \\
+    Heteroskedasticiteti & hinkë & SE, IB, $p$ të gabuara & 7 \\
+    Vlera ekstreme ($y$) & $|r_i|$ i madh & RSE, $R^2$ të prishur & 7 \\
+    Leverage i lartë ($x$) & $h_{ii}$ i madh & vija tërhiqet & 7 \\
+    Multikolineariteti & VIF i madh & SE të fryra & 7 \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[fragile]{Gabimet e korreluara: një shembull sintetik}
+<<ar-sim, fig.height=2.2, fig.width=5.5, out.width="0.58\\textwidth">>=
+set.seed(701)
+n <- 100; t_idx <- 1:n
+e <- as.numeric(arima.sim(list(ar = 0.8), n))        # autocorrelated errors
+y <- 5 + 0.05 * t_idx + e
+fit_t <- lm(y ~ t_idx)
+plot(t_idx, residuals(fit_t), type = "b", pch = 19, cex = 0.5,
+     xlab = "time", ylab = "residuals"); abline(h = 0, lty = 2)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike, gabime AR(1) me $\phi=0.8$ (p.sh.\ seri mujore e një treguesi).}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mbetjet ngjitin dhe zbresin në ``valë'': fqinjët në kohë ngjajnë.
+    \item<2-> OLS e trajton çdo vëzhgim si informacion të pavarur $\Rightarrow$ SE shumë optimiste.
+    \item<3-> Tipike për seritë kohore të statistikave zyrtare (p.sh.\ indekse mujore). Durbin--Watson: Ora 4.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Multikolineariteti: një kujtim nga Java 6}
+<<colin-prev>>=
+credit <- read.csv(file.path(W07DATA, "Credit.csv"))
+rbind(Rating_only  = summary(lm(Balance ~ Rating, data = credit))$coefficients[2, 1:2],
+      Rating_Limit = summary(lm(Balance ~ Rating + Limit, data = credit))$coefficients[2, 1:2])
+@
+  \begin{itemize}
+    \item<2-> SE e \texttt{Rating} 13 herë më e madhe kur shtohet \texttt{Limit}. Si e masim këtë? VIF (Ora 4).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Objektivat}
+% ------------------------------------------------------------
+
+\begin{frame}{Objektivat e ditës}
+  Në fund të ditës do të jesh në gjendje:
+  \begin{enumerate}
+    \item \LO{S3} të lexosh grafikët diagnostikë dhe të njohësh gjashtë problemet;
+    \item \LO{K2} të llogaritësh leverage, mbetjet e studentizuara dhe distancën e Cook-ut;
+    \item \LO{S3} të testosh heteroskedasticitetin dhe të përdorësh SE robuste;
+    \item \LO{S4} të masësh multikolinearitetin me VIF;
+    \item \LO{C1} të përmirësosh një model me transformime dhe të raportosh kufizimet.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Lidhja me javët e tjera}
+  \begin{itemize}
+    \item<1-> Java 5: mbetjet U dhe hinkë; Java 6: matrica hat, FWL, LOOCV me $h_{ii}$.
+    \item<2-> Java 4: supozimet e ANOVA-s, Welch; sot: e njëjta ide për regresionin (SE robuste).
+    \item<3-> Java 8: zgjidhjet për jolinearitetin dhe për vlerat ekstreme (regresi robust).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plani i ditës}
+  \centering
+  \begin{tikzpicture}[x=1.55cm,
+      hr/.style={rectangle,draw=white,thick,minimum width=1.55cm,minimum height=1.25cm,align=center,font=\scriptsize\bfseries,text=white}]
+    \node[hr,fill=uptblue] at (0,0) {Ora 1\\Motivimi};
+    \node[hr,fill=uptmid]  at (1,0) {Ora 2\\Mbetjet,\\leverage};
+    \node[hr,fill=okgreen] at (2,0) {Ora 3\\Nga zero};
+    \node[hr,fill=uptmid]  at (3,0) {Ora 4\\Supozimet,\\VIF};
+    \node[hr,fill=okgreen] at (4,0) {Ora 5\\SE robuste,\\simulime};
+    \node[hr,fill=accent]  at (5,0) {Ora 6\\\texttt{Boston}};
+    \node[hr,fill=uptblue] at (6,0) {Ora 7\\Konsolidim};
+  \end{tikzpicture}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Në praktikë}
+% ------------------------------------------------------------
+
+\begin{frame}{Ku ka rëndësi diagnostikimi?}
+  \begin{itemize}
+    \item<1-> \textbf{Statistika zyrtare:} një bashki shumë e madhe (Tirana) mund të ketë leverage të lartë në një model sipas bashkive.
+    \item<2-> \textbf{Inxhinieri:} kalibrimi i sensorëve; një matje e gabuar mund të ndryshojë kurbën e kalibrimit.
+    \item<3-> \textbf{Mjedis:} përqendrimet e ndotësve janë shpesh të anuara: varianca rritet me nivelin.
+    \item<4-> \textbf{Financë:} variablat e kredisë (\texttt{Rating}, \texttt{Limit}) janë thuajse kopje të njëra-tjetrës.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushAdvDiag]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    Përshtat \texttt{lm(sales \textasciitilde{} TV, data = adv)} dhe ekzekuto \texttt{par(mfrow = c(2, 2)); plot(fit)}.
+    \begin{enumerate}
+      \item Cili nga katër grafikët tregon problemin kryesor?
+      \item Cili nga gjashtë problemet është?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjAdvDiag}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Gabime të zakonshme për fillim}
+  \begin{Gabim}``Të gjithë $p<0.001$, pra modeli është në rregull.'' Vlerat $p$ supozojnë që modeli është i saktë; ato nuk e testojnë atë.\end{Gabim}
+  \pause
+  \begin{Gabim}Fshirja automatike e çdo pike me mbetje të madhe. Një vlerë ekstreme mund të jetë gabim, por edhe informacioni më i rëndësishëm. Së pari: kontrollo burimin.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp71]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 1}
+  \begin{enumerate}
+    \item Çfarë tregon kuarteti i Anscombe-s për \texttt{summary(lm)}?
+    \item Cili grafik i \texttt{plot(fit)} tregon heteroskedasticitetin?
+    \item Cila është pasoja kryesore e gabimeve të korreluara?
+  \end{enumerate}
+  \shkoTe{zgjCp71}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 1}
+  \begin{itemize}
+    \item Numrat e \texttt{summary()} nuk mjaftojnë: Anscombe.
+    \item \texttt{plot(fit)}: Residuals vs Fitted, Q-Q, Scale-Location, Residuals vs Leverage.
+    \item Gjashtë probleme: jolinearitet, gabime të korreluara, heteroskedasticitet, vlera ekstreme, leverage, multikolinearitet.
+  \end{itemize}
+  \begin{Keshille}Ora 2: matematika e mbetjeve: $h_{ii}$, mbetjet e studentizuara, distanca e Cook-ut, me shembull pa ndihmën e PC.\end{Keshille}
+\end{frame}
