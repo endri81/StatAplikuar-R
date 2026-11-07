@@ -1,0 +1,64 @@
+% ============================================================
+%  Java 4 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjPredF]{Zgjidhja: Parashiko ($F$ për \texttt{Auto})}
+  \begin{enumerate}
+    \item $df_1=k-1=2$, \ $df_2=N-k=394$.
+    \item Shumë më i madh se 10. Dallimet e mesatareve ($\approx10$ \texttt{mpg}) janë të mëdha krahasuar me $s/\sqrt{n_i}$ ($\approx6.5/\sqrt{70}\approx0.8$ për grupin më të vogël). Rezultati: $F\approx98$.
+  \end{enumerate}
+  \vfill\kthehu{pyetjePredF}
+\end{frame}
+
+\begin{frame}[label=zgjGabNum]{Zgjidhja: Gjej gabimin (\texttt{origin} numerik)}
+  \begin{itemize}
+    \item \texttt{origin} është lexuar si numër (1, 2, 3): R e trajton si variabël sasiore, $df=1$, $df_{\text{res}}=395$.
+    \item Testi bëhet për një \textbf{vijë të drejtë} në kodet 1, 2, 3: supozon që Evropa është ``në mes'' të SHBA dhe Japonisë dhe që hapat janë të barabartë.
+    \item Kodet janë etiketa, jo masa. Zgjidhja: \texttt{factor(origin)} para \texttt{aov()}.
+  \end{itemize}
+  \vfill\kthehu{gjejGabNum}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjEta]{Zgjidhja: Radha jote! (\texttt{effect\_sizes})}
+<<sol-eta>>=
+effect_sizes <- function(tab) {
+  ssb <- tab$SS[1]; ssw <- tab$SS[2]; msw <- tab$MS[2]; k1 <- tab$df[1]
+  c(eta2 = ssb / (ssb + ssw), omega2 = (ssb - k1 * msw) / (ssb + ssw + msw))
+}
+y <- c(3, 5, 7, 7, 8, 9, 8, 11, 14); g <- gl(3, 3)   # my_anova() from Hour 3
+auto <- read.csv(file.path(W04DATA, "Auto.csv"), na.strings = "?")
+auto$origin <- factor(auto$origin)
+round(effect_sizes(my_anova(y, g)), 3)
+round(effect_sizes(my_anova(auto$mpg, auto$origin)), 3)
+@
+  \vfill\kthehu{ushEta}
+\end{frame}
+
+\begin{frame}[label=zgjNk]{Zgjidhja: Ndrysho parametrin}
+  \begin{enumerate}
+    \item \texttt{curve(df(x, 4, 15), \dots)}: $df_1=k-1=4$, $df_2=N-k=20-5=15$. Vlera kritike ndryshon gjithashtu: \texttt{qf(0.95, 4, 15)}.
+    \item Jo. Nën $H_0$, $F$ nuk varet nga $\sigma$ (as nga $\mu$): $\sigma^2$ shkurtohet në raportin MSB/MSW.
+  \end{enumerate}
+  \vfill\kthehu{ushNk}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjPowN]{Zgjidhja: Radha jote! (madhësia e zgjedhjes)}
+<<sol-pown>>=
+m_c <- c(10, 11, 13)
+sapply(c(0.9, 0.8), function(p) power.anova.test(groups = 3,
+       between.var = var(m_c), within.var = 3^2, power = p)$n)
+@
+  \begin{itemize}
+    \item Rrumbullakojmë lart: 26 kampione për furnitor për 90\%, 20 për 80\%.
+  \end{itemize}
+  \vfill\kthehu{ushPowN}
+\end{frame}
+
+\begin{frame}[label=zgjCp43]{Përgjigjet: Checkpoint Ora 3}
+  \begin{enumerate}
+    \item Trajtohet si variabël sasiore me $df=1$: testohet një prirje lineare në kode, jo dallimi i grupeve.
+    \item Gjenero shumë zgjedhje me mesatare të barabarta, llogarit $F$ dhe shiko pjesën mbi $F_{0.95}$: duhet të jetë $\approx0.05$.
+    \item Efekt më i madh ($\sum\alpha_i^2$), më shumë vëzhgime ($n_i$), më pak zhurmë ($\sigma$).
+  \end{enumerate}
+  \vfill\kthehu{cp43}
+\end{frame}

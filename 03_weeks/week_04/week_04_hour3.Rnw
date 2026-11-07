@@ -1,0 +1,368 @@
+% ============================================================
+%  Java 4 · Ora 3 — Laborator I: ANOVA nga zero
+%  Rezultatet: S4, S1, S3
+%  Material plotësues (R bazë)
+% ============================================================
+
+\section{Laborator I}
+
+\begin{frame}{Ora 3: Laborator I --- ANOVA nga zero}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Funksioni \texttt{my\_anova()}}
+% ------------------------------------------------------------
+
+\begin{frame}{Plani i laboratorit \LO{S4}}
+  \begin{enumerate}
+    \item<1-> Mesataret dhe madhësitë e grupeve.
+    \item<2-> SSB, SSW, SST: kontrolli i zbërthimit.
+    \item<3-> Funksioni \texttt{my\_anova()}: tabela e plotë.
+    \item<4-> Krahasimi me \texttt{aov()} dhe \texttt{lm()}.
+    \item<5-> Simulimi: shpërndarja $F$ nën $H_0$ dhe fuqia e testit.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 1: mesataret e grupeve}
+<<lab-means>>=
+y <- c(3, 5, 7,  7, 8, 9,  8, 11, 14)          # toy data from Hour 2
+g <- factor(rep(c("A", "B", "C"), each = 3))
+n_i    <- tapply(y, g, length)                  # group sizes
+ybar_i <- tapply(y, g, mean)                    # group means
+ybar   <- mean(y)                               # grand mean
+rbind(n_i, ybar_i); ybar
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 2: SSB}
+<<lab-ssb>>=
+ssb <- sum(n_i * (ybar_i - ybar)^2)    # weights n_i!
+ssb
+@
+  \begin{itemize}
+    \item \texttt{n\_i * (ybar\_i - ybar)\^{}2}: vektor me 3 elemente, një për çdo grup.
+    \item E njëjta si $3\cdot9+0+3\cdot9=54$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 3: SSW}
+<<lab-ssw>>=
+fit_i <- ybar_i[as.character(g)]      # each observation's group mean
+e_ij  <- y - fit_i                     # within-group deviations
+ssw <- sum(e_ij^2)
+ssw
+round(unname(e_ij), 2)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 4: SST dhe kontrolli}
+<<lab-sst>>=
+sst <- sum((y - ybar)^2)
+c(SST = sst, SSB_plus_SSW = ssb + ssw)
+all.equal(sst, ssb + ssw)
+sum((fit_i - ybar) * e_ij)                 # orthogonality: cross term
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Zbërthimi vlen numerikisht: $82=54+28$.
+    \item<2-> \texttt{fit\_i}: vlera e ``parashikuar'' e çdo vëzhgimi = mesatarja e grupit të tij.
+    \item<3-> Prodhimi skalar i devijimeve ``midis'' me mbetjet = 0: termi i kryqëzuar i Orës 2.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}\texttt{all.equal()} në vend të \texttt{==} për numra realë: gabimet e rrumbullakimit janë të pashmangshme.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 5: funksioni}
+<<lab-fun>>=
+my_anova <- function(y, g) {
+  g <- factor(g); k <- nlevels(g); N <- length(y)
+  n_i <- tapply(y, g, length); ybar_i <- tapply(y, g, mean)
+  ssb <- sum(n_i * (ybar_i - mean(y))^2)
+  ssw <- sum((y - ybar_i[as.character(g)])^2)
+  df  <- c(k - 1, N - k); ss <- c(ssb, ssw); ms <- ss / df
+  F   <- ms[1] / ms[2]
+  data.frame(df = df, SS = ss, MS = ms,
+             F = c(F, NA), p = c(pf(F, df[1], df[2], lower.tail = FALSE), NA),
+             row.names = c("Between", "Within"))
+}
+@
+\end{frame}
+
+\begin{frame}[fragile]{Prova e parë}
+<<lab-fun-run>>=
+my_anova(y, g)
+@
+  \begin{itemize}
+    \item<2-> Krahaso me tabelën që ndërtuam pa ndihmën e PC: $F=5.79$, $p\approx0.04$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{factor(g)} brenda funksionit: funksionon edhe kur \texttt{g} jepet si tekst.
+    \item<2-> \texttt{pf(..., lower.tail = FALSE)}: bishti i djathtë, $P(F_{k-1,N-k}>F_{\text{obs}})$.
+    \item<3-> 10 rreshta kod $=$ e gjithë teoria e Orës 2.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjePredF]{Parashiko!}
+  \begin{Parashiko}
+    Para se ta ekzekutosh \texttt{my\_anova(auto\$mpg, auto\$origin)}:
+    \begin{enumerate}
+      \item Sa do të jenë shkallët e lirisë? ($N=397$, $k=3$.)
+      \item A pret $F$ afër 1, afër 10, apo shumë më të madh? Pse?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjPredF}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{my\_anova()} kundrejt \texttt{aov()}}
+<<lab-auto>>=
+auto <- read.csv(file.path(W04DATA, "Auto.csv"), na.strings = "?")
+auto$origin <- factor(auto$origin, labels = c("USA", "Europe", "Japan"))
+my_anova(auto$mpg, auto$origin)
+summary(aov(mpg ~ origin, data = auto))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rruga e tretë: \texttt{lm()}}
+<<lab-lm>>=
+fit_lm <- lm(mpg ~ origin, data = auto)
+anova(fit_lm)
+coef(fit_lm)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Tre rrugë, e njëjta tabelë: \texttt{aov()} është një mbështjellës (\emph{wrapper}) i \texttt{lm()}.
+    \item<2-> Koeficientët e \texttt{lm()}: \texttt{(Intercept)} = mesatarja e SHBA; të tjerët = \textbf{dallimet} nga SHBA.
+    \item<3-> $20.07+7.82=27.89$ (Evropa), $20.07+10.38=30.45$ (Japonia). Kodimi me dummy: Java 6.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{ANOVA nga tabelat e përmbledhura}
+<<lab-summary>>=
+anova_from_summary <- function(n, m, s) {
+  N <- sum(n); k <- length(n); grand <- sum(n * m) / N
+  ssb <- sum(n * (m - grand)^2); ssw <- sum((n - 1) * s^2)
+  F <- (ssb / (k - 1)) / (ssw / (N - k))
+  c(F = F, df1 = k - 1, df2 = N - k, p = pf(F, k - 1, N - k, lower.tail = FALSE))
+}
+n <- tapply(auto$mpg, auto$origin, length)
+m <- tapply(auto$mpg, auto$origin, mean); s <- tapply(auto$mpg, auto$origin, sd)
+anova_from_summary(n, m, s)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vetëm $n_i$, $\bar y_i$, $s_i$ mjaftojnë për testin $F$.
+    \item<2-> Shumë raporte zyrtare (INSTAT, Eurostat) publikojnë pikërisht këto tre kolona sipas grupeve.
+    \item<3-> Kujdes: pa të dhënat individuale nuk mund të kontrollosh supozimet (Ora 4).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGabNum]{Gjej gabimin!}
+<<lab-bug>>=
+auto_raw <- read.csv(file.path(W04DATA, "Auto.csv"), na.strings = "?")
+summary(aov(mpg ~ origin, data = auto_raw))
+@
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Krahaso këtë tabelë me atë të mëparshme. Çfarë ka ndodhur? Pse rezultati është i gabuar edhe pse duket ``i rëndësishëm''?
+  \end{Ushtrim}
+  \shkoTe{zgjGabNum}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushEta]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    Shkruaj \texttt{effect\_sizes(tab)} që merr daljen e \texttt{my\_anova()} dhe kthen $\eta^2$ dhe $\omega^2$.
+    \begin{enumerate}
+      \item Provoje te të dhënat e vogla: duhet të marrësh 0.66 dhe 0.52.
+      \item Provoje te \texttt{Auto}.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjEta}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shpërndarja $F$ me simulim}
+% ------------------------------------------------------------
+
+\begin{frame}{Ideja}
+  \begin{itemize}
+    \item<1-> Teorema e Cochran-it thotë: nën $H_0$, $F\sim F_{k-1,N-k}$.
+    \item<2-> Le ta kontrollojmë: gjenerojmë shumë herë të dhëna me $\mu_1=\mu_2=\mu_3$.
+    \item<3-> Për çdo përsëritje llogaritim $F$. Histogrami duhet të përputhet me \texttt{df()}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Simulimi nën $H_0$}
+<<sim-h0>>=
+f_stat <- function(y, g) {                      # fast F, no table
+  ybar_i <- tapply(y, g, mean); n_i <- tabulate(g)
+  ssb <- sum(n_i * (ybar_i - mean(y))^2); ssw <- sum((y - ybar_i[g])^2)
+  (ssb / (nlevels(g) - 1)) / (ssw / (length(y) - nlevels(g)))
+}
+set.seed(4)
+g3 <- gl(3, 10)                                 # k = 3, n_i = 10, N = 30
+F_null <- replicate(5000, f_stat(rnorm(30, mean = 50, sd = 5), g3))
+c(mean = mean(F_null), theory_mean = 27 / (27 - 2))
+@
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike ($\mu=50$, $\sigma=5$ për të tri grupet).}
+\end{frame}
+
+\begin{frame}[fragile]{Histogrami kundrejt teorisë}
+<<sim-h0-plot, fig.height=2.5, fig.width=5.5, out.width="0.6\\textwidth">>=
+hist(F_null, breaks = 60, freq = FALSE, col = "grey85", border = "white",
+     main = "", xlab = "F", xlim = c(0, 8))
+curve(df(x, 2, 27), add = TRUE, col = "#D97706", lwd = 2)
+abline(v = qf(0.95, 2, 27), lty = 2, col = "#B91C1C")
+@
+\end{frame}
+
+\begin{frame}[fragile]{Madhësia e testit}
+<<sim-size>>=
+crit <- qf(0.95, 2, 27)
+c(critical = crit, share_above = mean(F_null > crit))
+@
+  \begin{itemize}
+    \item<2-> Rreth 5\% e $F$-ve kalojnë vlerën kritike: testi ka madhësinë që premton.
+    \item<3-> Mesatarja e $F_{d_1,d_2}$ është $d_2/(d_2-2)=27/25=1.08$, jo saktësisht 1.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Kurba portokalli (\texttt{df(x, 2, 27)}) puthitet me histogramin.
+    \item<2-> Vija e kuqe: $F_{0.95;\,2,27}=\Sexpr{fmt(qf(0.95, 2, 27), 2)}$. Djathtas saj: zona e hedhjes poshtë.
+    \item<3-> Kjo vlen kur supozimet plotësohen. Në Orën 5 shohim çfarë ndodh kur nuk plotësohen.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushNk]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Ndrysho në \texttt{g3 <- gl(5, 4)} ($k=5$, $N=20$). Cilat df duhet të përdorë \texttt{curve()}?
+      \item Ndrysho \texttt{sd = 5} në \texttt{sd = 50}. A ndryshon shpërndarja e $F$? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjNk}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fuqia e testit}
+% ------------------------------------------------------------
+
+\begin{frame}{Fuqia}
+  \begin{itemize}
+    \item<1-> \termi{Fuqia}{power}: $P(\text{hedhim poshtë } H_0 \mid H_1 \text{ e vërtetë})=1-\beta$.
+    \item<2-> Nën $H_1$, $F$ ndjek \termi{shpërndarjen $F$ jo-qendrore}{noncentral F} me parametër
+      \[ \lambda=\frac{\sum_i n_i\alpha_i^2}{\sigma^2}. \]
+    \item<3-> Fuqia rritet kur rritet $\lambda$: efekte më të mëdha, $n$ më i madh, $\sigma$ më i vogël.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Simulim: fuqia për një efekt të njohur}
+<<power-sim>>=
+mu <- c(10, 12, 14); sigma <- 4; n <- 10           # truth
+g  <- gl(3, n)
+set.seed(44)
+F_alt <- replicate(4000, f_stat(rep(mu, each = n) + rnorm(3 * n, 0, sigma), g))
+power_sim <- mean(F_alt > qf(0.95, 2, 3 * n - 3))
+lambda <- n * sum((mu - mean(mu))^2) / sigma^2
+power_th <- pf(qf(0.95, 2, 3 * n - 3), 2, 3 * n - 3, ncp = lambda, lower.tail = FALSE)
+c(simulated = power_sim, theory = power_th, lambda = lambda)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike (mesataret 10, 12, 14; $\sigma=4$; $n_i=10$).}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Me $n_i=10$, testi e ``gjen'' efektin vetëm në rreth \Sexpr{fmt(100 * power_sim, 0)}\% të rasteve.
+    \item<2-> Simulimi dhe formula me \texttt{ncp} pajtohen.
+    \item<3-> Kujto Orën 1: paneli djathtas ($\sigma=4$) dukej si zhurmë. Tani e dimë sa shpesh.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kurba e fuqisë sipas $n_i$}
+<<power-curve, fig.height=2.4, fig.width=5.5, out.width="0.58\\textwidth">>=
+n_grid <- c(5, 10, 15, 20, 30, 40)
+pw <- sapply(n_grid, function(n) power.anova.test(groups = 3, n = n,
+       between.var = var(mu), within.var = sigma^2)$power)
+plot(n_grid, pw, type = "b", pch = 19, ylim = c(0, 1),
+     xlab = "n per group", ylab = "power"); abline(h = 0.8, lty = 2)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Sa vëzhgime duhen?}
+<<power-n>>=
+power.anova.test(groups = 3, between.var = var(mu), within.var = sigma^2,
+                 power = 0.80)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{between.var}: varianca e \textbf{mesatareve} të vërteta (\texttt{var(mu)} $=4$); \texttt{within.var} $=\sigma^2=16$.
+    \item<2-> Për fuqi 80\% duhen $n_i=21$ (rrumbullakojmë lart): 63 vëzhgime gjithsej.
+    \item<3-> Kjo bëhet \textbf{para} mbledhjes së të dhënave: planifikimi i një vrojtimi ose eksperimenti.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}``Fuqia post-hoc'': llogaritja e fuqisë nga efekti i \emph{vëzhguar} pas testit. Nuk jep informacion të ri përtej vlerës $p$.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[label=ushPowN]{Radha jote!}
+  \begin{Ushtrim}[(4 minuta)]
+    Një inxhinier pret mesatare $10$, $11$, $13$ (MPa) për tre furnitorë betoni, me $\sigma=3$.
+    \begin{enumerate}
+      \item Sa kampione për furnitor duhen për fuqi 90\%?
+      \item Po për fuqi 80\%?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjPowN}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Vlerësimi kundrejt së vërtetës}
+<<est-truth>>=
+set.seed(2026)
+n <- 50; g <- gl(3, n, labels = c("A", "B", "C"))
+y_sim <- rep(mu, each = n) + rnorm(3 * n, 0, sigma)
+tab <- my_anova(y_sim, g)
+rbind(estimate = c(tapply(y_sim, g, mean) - mean(y_sim), sigma2 = tab$MS[2]),
+      truth    = c(mu - mean(mu), sigma2 = sigma^2))
+@
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike ($\alpha=(-2,0,2)$, $\sigma^2=16$, $n_i=50$).}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $\hat\alpha_i=\bar y_{i\cdot}-\bar y_{\cdot\cdot}$ ndryshojnë nga $(-2,0,2)$ me më pak se 1.5 gabime standarde (shiko pikën 3): luhatje e zakonshme.
+    \item<2-> MSW është afër $\sigma^2=16$: vlerësues i pazhvendosur, siç vërtetuam.
+    \item<3-> Me $n_i=50$, gabimi standard i çdo $\bar y_{i\cdot}$ është $4/\sqrt{50}\approx0.57$; ai i $\hat\alpha_i$ është $0.57\sqrt{2/3}\approx0.46$.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp43]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Çfarë ndodh nëse faktori ruhet si numër te \texttt{aov()}?
+    \item Si e kontrollon me simulim që testi $F$ ka madhësi 5\%?
+    \item Cilat tre gjëra e rrisin fuqinë e testit?
+  \end{enumerate}
+  \shkoTe{zgjCp43}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item \texttt{my\_anova()}: SSB, SSW, df, MS, $F$, $p$ në 10 rreshta; e njëjtë me \Rkey{aov()} dhe \Rkey{anova(lm())}.
+    \item Nga $n_i$, $\bar y_i$, $s_i$ ndërtohet testi pa të dhënat individuale.
+    \item Faktori duhet të jetë \Rkey{factor()}: përndryshe $df=1$.
+    \item Simulimi konfirmon $F_{k-1,N-k}$; fuqia: \Rkey{pf(..., ncp = )}, \Rkey{power.anova.test()}.
+  \end{itemize}
+  \begin{Keshille}Ora 4: supozimet, alternativat (Welch, Kruskal--Wallis) dhe krahasimet e shumëfishta (Tukey).\end{Keshille}
+\end{frame}
