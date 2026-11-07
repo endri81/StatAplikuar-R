@@ -1,0 +1,311 @@
+% ============================================================
+%  Java 6 · Ora 2 — Teoria I: modeli i shumëfishtë dhe testet
+%  Rezultatet: K2, S1
+%  Burimi: ISLR kap. 3.2; Cohen et al. kap. 3
+% ============================================================
+
+\section{Teoria I}
+
+\begin{frame}{Ora 2: Teoria I --- modeli i shumëfishtë}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Modeli dhe vlerësimi}
+% ------------------------------------------------------------
+
+\begin{frame}{Modeli \LO{S1}}
+  \begin{Definicion}[(Regresi linear i shumëfishtë)]
+    \[ y_i=\beta_0+\beta_1x_{i1}+\beta_2x_{i2}+\dots+\beta_px_{ip}+\varepsilon_i,\qquad i=1,\dots,n. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item $p$ shpjegues, $p+1$ parametra $\beta$, plus $\sigma^2$.
+    \pause
+    \item Supozimet LINE si në Javën 5: $E[\varepsilon_i]=0$, pavarësi, varianca $\sigma^2$, normalitet.
+    \pause
+    \item ``Linear'' do të thotë linear në $\beta$: $x_2=x_1^2$ ose $x_3=x_1x_2$ lejohen.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Forma matricore}
+  \[ \bm y=\bm X\bm\beta+\bm\varepsilon,\qquad
+     \bm X=\begin{pmatrix}1&x_{11}&\cdots&x_{1p}\\ \vdots&\vdots&&\vdots\\ 1&x_{n1}&\cdots&x_{np}\end{pmatrix}_{n\times(p+1)},\qquad
+     \bm\beta=\begin{pmatrix}\beta_0\\ \vdots\\ \beta_p\end{pmatrix}. \]
+  \pause
+  \begin{itemize}
+    \item Kusht: $\bm X$ ka rang të plotë $p+1$, pra asnjë kolonë nuk është kombinim linear i të tjerave.
+    \pause
+    \item Pa këtë, $\bm X^\top\bm X$ është singulare (shembull: \texttt{x2 = 2 * x1}).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pamja gjeometrike: një plan}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=7cm,height=5cm,view={30}{25},xlabel={$x_1$},ylabel={$x_2$},zlabel={$y$},
+        xlabel style={font=\scriptsize},ylabel style={font=\scriptsize},zlabel style={font=\scriptsize},
+        tick label style={font=\tiny},colormap/cool]
+      \addplot3[surf,domain=-2:2,y domain=-1:1,samples=9,samples y=5,opacity=0.5] {4+1.7*x+0.5*y};
+      \addplot3[only marks,mark=*,mark size=1.8pt,color=accent] coordinates {(-2,1,1)(-1,-1,2)(0,0,4)(1,-1,5)(2,1,8)};
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Me dy shpjegues: OLS gjen \textbf{planin} që minimizon distancat vertikale në katror.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vlerësuesi OLS}
+  \begin{itemize}
+    \item<1-> SSE$(\bm b)=(\bm y-\bm X\bm b)^\top(\bm y-\bm X\bm b)$; gradienti $-2\bm X^\top(\bm y-\bm X\bm b)=\bm0$.
+    \item<2-> Ekuacionet normale: $\bm X^\top\bm X\,\hat{\bm\beta}=\bm X^\top\bm y$.
+  \end{itemize}
+  \onslide<3->{\[ \boxed{\,\hat{\bm\beta}=(\bm X^\top\bm X)^{-1}\bm X^\top\bm y\,} \]}
+  \begin{itemize}
+    \item<4-> Mbetjet $\bm e=\bm y-\bm X\hat{\bm\beta}$ plotësojnë $\bm X^\top\bm e=\bm0$: pingule me \textbf{çdo} kolonë të $\bm X$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Matrica \emph{hat} dhe projeksioni}
+  \begin{itemize}
+    \item<1-> $\hat{\bm y}=\bm X\hat{\bm\beta}=\underbrace{\bm X(\bm X^\top\bm X)^{-1}\bm X^\top}_{\bm H}\bm y$.
+    \item<2-> $\bm H$ ``i vë kapelën'' $\bm y$-së; është projeksion ortogonal: $\bm H^2=\bm H$, $\bm H^\top=\bm H$.
+    \item<3-> $\hat{\bm y}$ = pika më e afërt e hapësirës së kolonave të $\bm X$ me $\bm y$.
+    \item<4-> Diagonalja $h_{ii}$: \termi{leverage}{leverage} i vëzhgimit $i$ (Java 7).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vetitë e $\hat{\bm\beta}$}
+  \begin{itemize}
+    \item<1-> I pazhvendosur: $E[\hat{\bm\beta}]=(\bm X^\top\bm X)^{-1}\bm X^\top\bm X\bm\beta=\bm\beta$.
+    \item<2-> Matrica e kovariancës:
+      \[ \operatorname{Var}(\hat{\bm\beta})=\sigma^2(\bm X^\top\bm X)^{-1}. \]
+    \item<3-> $\hat\sigma^2=\dfrac{\text{SSE}}{n-p-1}$: $p+1$ kufizime ($\bm X^\top\bm e=\bm0$).
+    \item<4-> $SE(\hat\beta_j)=\hat\sigma\sqrt{[(\bm X^\top\bm X)^{-1}]_{jj}}$.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Teorema Frisch--Waugh--Lovell}
+% ------------------------------------------------------------
+
+\begin{frame}{Teorema FWL}
+  \begin{Teoreme}[(Frisch--Waugh--Lovell)]
+    Le të jenë $\tilde{\bm x}_j$ mbetjet e regresionit të $x_j$ mbi të gjithë shpjeguesit e tjerë, dhe $\tilde{\bm y}$ mbetjet e $y$ mbi të njëjtët shpjegues. Atëherë
+    \[ \hat\beta_j=\frac{\tilde{\bm x}_j^\top\tilde{\bm y}}{\tilde{\bm x}_j^\top\tilde{\bm x}_j}, \]
+    pra pjerrësia e regresionit të thjeshtë të $\tilde{\bm y}$ mbi $\tilde{\bm x}_j$.
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item E pamë numerikisht në Orën 1 me \texttt{newspaper}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë do të thotë FWL?}
+  \begin{itemize}
+    \item<1-> $\hat\beta_j$ përdor vetëm pjesën e $x_j$ që \textbf{nuk} shpjegohet nga të tjerët.
+    \item<2-> Nëse $x_j$ shpjegohet pothuajse plotësisht nga të tjerët: $\tilde{\bm x}_j\approx\bm0$, $\tilde{\bm x}_j^\top\tilde{\bm x}_j$ i vogël $\Rightarrow$ SE e madhe (multikolinearitet, Java 7).
+    \item<3-> Nëse $x_j$ është ortogonal me të tjerët: $\tilde{\bm x}_j=\bm x_j-\bar x_j$, dhe $\hat\beta_j$ = pjerrësia e thjeshtë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Dy shpjegues: formula me korrelacione}
+  \[ \hat\beta_1=\frac{r_{y1}-r_{y2}\,r_{12}}{1-r_{12}^2}\cdot\frac{s_y}{s_1} \]
+  \pause
+  \begin{itemize}
+    \item Numëruesi: si te korrelacioni i pjesshëm (Java 3): lidhja totale minus pjesa që kalon nga $x_2$.
+    \pause
+    \item $r_{12}=0$ $\Rightarrow$ $\hat\beta_1=r_{y1}s_y/s_1$: pjerrësia e thjeshtë.
+    \pause
+    \item $|r_{12}|\to1$ $\Rightarrow$ emëruesi $\to0$: vlerësime të paqëndrueshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeOrth]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Në një eksperiment të planifikuar, temperatura $x_1$ dhe presioni $x_2$ zgjidhen që të kenë $r_{12}=0$. Pjerrësia e $x_1$ në modelin $y\sim x_1+x_2$ krahasuar me modelin $y\sim x_1$ është:\\[3pt]
+    \textbf{A)} gjithmonë më e madhe \quad \textbf{B)} e njëjtë \quad \textbf{C)} gjithmonë më e vogël \quad \textbf{D)} varet nga $r_{y2}$
+  \end{Parashiko}
+  \shkoTe{zgjOrth}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shembull pa ndihmën e PC}
+% ------------------------------------------------------------
+
+\begin{frame}{Të dhënat: dy shpjegues ortogonalë}
+  \centering
+  \begin{tabular}{@{}ccc|ccc@{}}
+    \toprule
+    $x_1$ & $x_2$ & $y$ & $x_1y$ & $x_2y$ & $x_1x_2$ \\ \midrule
+    $-2$ & 1 & 1 & $-2$ & 1 & $-2$ \\
+    $-1$ & $-1$ & 2 & $-2$ & $-2$ & 1 \\
+    0 & 0 & 4 & 0 & 0 & 0 \\
+    1 & $-1$ & 5 & 5 & $-5$ & $-1$ \\
+    2 & 1 & 8 & 16 & 8 & 2 \\ \midrule
+    $\sum=0$ & $\sum=0$ & $\sum=20$ & 17 & 2 & $\sum=0$ \\ \bottomrule
+  \end{tabular}
+  \vspace{4pt}
+  \begin{itemize}
+    \item<2-> $\sum x_1^2=10$, $\sum x_2^2=4$, $\sum x_1x_2=0$: kolonat janë ortogonale.
+  \end{itemize}
+  \onslide<2->{\footnotesize\textcolor{gray}{Të dhëna: sintetike, të zgjedhura për llogaritje pa ndihmën e PC.}}
+\end{frame}
+
+\begin{frame}{Matricat}
+  \[ \bm X^\top\bm X=\begin{pmatrix}5&0&0\\0&10&0\\0&0&4\end{pmatrix},\qquad \bm X^\top\bm y=\begin{pmatrix}20\\17\\2\end{pmatrix}. \]
+  \pause
+  \[ \hat{\bm\beta}=\begin{pmatrix}1/5&0&0\\0&1/10&0\\0&0&1/4\end{pmatrix}\begin{pmatrix}20\\17\\2\end{pmatrix}=\begin{pmatrix}4\\1.7\\0.5\end{pmatrix}. \]
+  \pause
+  \begin{itemize}
+    \item Matrica diagonale: secili koeficient llogaritet veç e veç. Pa ndihmën e PC!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vlerat e përshtatura dhe mbetjet}
+  \centering
+  \begin{tabular}{@{}cc|ccc@{}}
+    \toprule
+    $x_1$ & $x_2$ & $y$ & $\hat y=4+1.7x_1+0.5x_2$ & $e$ \\ \midrule
+    $-2$ & 1 & 1 & 1.1 & $-0.1$ \\
+    $-1$ & $-1$ & 2 & 1.8 & 0.2 \\
+    0 & 0 & 4 & 4.0 & 0 \\
+    1 & $-1$ & 5 & 5.2 & $-0.2$ \\
+    2 & 1 & 8 & 7.9 & 0.1 \\ \bottomrule
+  \end{tabular}
+  \vspace{4pt}
+  \begin{itemize}
+    \item<2-> SSE $=0.01+0.04+0+0.04+0.01=0.10$; \ $\hat\sigma^2=0.10/(5-2-1)=0.05$.
+    \item<3-> SST $=9+4+0+1+16=30$ \ $\Rightarrow$ \ SSR $=29.9$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Krahaso me regresionet e thjeshta}
+  \begin{itemize}
+    \item<1-> $y\sim x_1$: pjerrësia $=\sum x_1y/\sum x_1^2=17/10=1.7$. E njëjtë!
+    \item<2-> $y\sim x_2$: pjerrësia $=2/4=0.5$. E njëjtë!
+    \item<3-> Sepse $r_{12}=0$: FWL. Me shpjegues të korreluar (Ora 1, \texttt{Auto}) koeficientët ndryshojnë.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Në eksperimentet e planifikuara (inxhinieri, bujqësi) faktorët zgjidhen ortogonalë pikërisht për këtë: efektet ndahen pastër.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=ushToy5]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta, pa ndihmën e PC)]
+    Të njëjtat $x_1$, $x_2$, por $y=(2,1,3,6,8)$.
+    \begin{enumerate}
+      \item Llogarit $\bm X^\top\bm y$ dhe $\hat{\bm\beta}$.
+      \item Llogarit mbetjet dhe SSE.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjToy5}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{$R^2$ dhe $R^2_{adj}$}
+% ------------------------------------------------------------
+
+\begin{frame}{$R^2$ nuk ulet kurrë}
+  \begin{itemize}
+    \item<1-> SST = SSR + SSE vlen sërish (nëse modeli ka konstante).
+    \item<2-> $R^2=1-\text{SSE}/\text{SST}$; shembulli: $1-0.1/30\approx0.997$.
+    \item<3-> Shtimi i një shpjeguesi: OLS mund të zgjedhë $\hat\beta_{\text{ri}}=0$ dhe të marrë SSE e vjetër; zakonisht gjen diçka më të mirë. Pra SSE nuk rritet, $R^2$ nuk ulet.
+    \item<4-> Edhe një variabël krejt e rastit e rrit $R^2$ (Ora 3: simulim).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{$R^2$ i rregulluar}
+  \begin{Definicion}[($R^2_{adj}$)]
+    \[ R^2_{adj}=1-\frac{\text{SSE}/(n-p-1)}{\text{SST}/(n-1)}=1-(1-R^2)\frac{n-1}{n-p-1}. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Penalizon çdo shpjegues: rritet vetëm nëse SSE bie mjaftueshëm.
+    \pause
+    \item Shembulli: $1-\dfrac{0.10/2}{30/4}=1-\dfrac{0.05}{7.5}\approx0.993$.
+    \pause
+    \item Mund të jetë negativ; nuk ka interpretim si ``pjesë e shpjeguar''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabim i zakonshëm}
+  \begin{Gabim}``Modeli B ka $R^2$ më të lartë, pra është më i mirë.'' Nëse B ka më shumë shpjegues, $R^2$ do të ishte më i lartë gjithsesi. Krahaso me $R^2_{adj}$, AIC/BIC ose CV (Ora 6).\end{Gabim}
+  \pause
+  \begin{Gabim}$R^2$ i modeleve me $y$ të ndryshëm (p.sh.\ $y$ dhe $\log y$): nuk krahasohen (Java 5).\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Testet: $F$ global, $t$, $F$ i pjesshëm}
+% ------------------------------------------------------------
+
+\begin{frame}{Testi $F$ global}
+  \begin{itemize}
+    \item<1-> $H_0:\beta_1=\dots=\beta_p=0$ kundrejt $H_1$: të paktën një $\beta_j\neq0$.
+    \item<2-> \[ F=\frac{\text{SSR}/p}{\text{SSE}/(n-p-1)}\ \overset{H_0}{\sim}\ F_{p,\,n-p-1}. \]
+    \item<3-> Shembulli: $F=\dfrac{29.9/2}{0.10/2}=299$, \ $F_{0.95;\,2,2}=19$: hedhim poshtë $H_0$.
+    \item<4-> Pse jo vetëm testet $t$? Me $p$ të madh, disa $p<0.05$ dalin nga rastësia (Java 3). $F$ është një test i vetëm.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testet $t$ për çdo koeficient}
+  \begin{itemize}
+    \item<1-> $H_0:\beta_j=0$ \textbf{duke pasur parasysh shpjeguesit e tjerë}; $t=\hat\beta_j/SE(\hat\beta_j)\sim t_{n-p-1}$.
+    \item<2-> Shembulli: $SE(\hat\beta_1)=\sqrt{0.05/10}=0.071$, $t=1.7/0.071\approx24.0$.
+    \item<3-> $SE(\hat\beta_2)=\sqrt{0.05/4}=0.112$, $t=0.5/0.112\approx4.47$.
+    \item<4-> $t_{0.975;\,2}=4.303$: të dy të rëndësishëm (i dyti për pak). Me $df=2$ vlerat kritike janë të mëdha!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testi $F$ i pjesshëm: modele të mbivendosura}
+  \begin{itemize}
+    \item<1-> Modeli i plotë (F) me $p$ shpjegues; modeli i reduktuar (R) pa $q$ prej tyre.
+    \item<2-> $H_0$: koeficientët e $q$ shpjeguesve $=0$.
+      \[ F=\frac{(\text{SSE}_R-\text{SSE}_F)/q}{\text{SSE}_F/(n-p-1)}\ \sim\ F_{q,\,n-p-1}. \]
+    \item<3-> Shembulli, pa $x_2$: SSE$_R=30-1.7^2\times10=1.1$; \ $F=\dfrac{(1.1-0.1)/1}{0.1/2}=20=4.47^2$. \checkmark
+    \item<4-> Me $q=1$: $F=t^2$. Me $q>1$: teston një \emph{grup} (p.sh.\ të gjitha dummy-t e një faktori).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeAnova]{Parashiko!}
+  \begin{Parashiko}
+    Te \texttt{Advertising}, \texttt{newspaper} kishte $t=-0.177$ ($p=0.86$) në modelin e plotë. Nëse bëjmë \texttt{anova(lm(sales \textasciitilde{} TV + radio), fit\_all)}:
+    \begin{enumerate}
+      \item Sa do të jetë $F$?
+      \item Sa do të jetë vlera $p$?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjAnova}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=gjejGabMult]{Gjej gabimin!}
+  \begin{Ushtrim}[(Gjej gabimin)]
+    \small
+    Një model me dy shpjegues shumë të korreluar ($r_{12}=0.98$) jep:
+    $F$ global $=85$, $p<0.001$; \ $t_1=1.2$ ($p=0.24$); \ $t_2=1.5$ ($p=0.14$).\\[3pt]
+    Studenti shkruan: ``Asnjë shpjegues nuk është i rëndësishëm, pra modeli nuk shpjegon asgjë.''\\[3pt]
+    \normalsize Çfarë nuk shkon?
+  \end{Ushtrim}
+  \shkoTe{zgjGabMult}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp62]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 2}
+  \begin{enumerate}
+    \item Pse $\hat\sigma^2=\text{SSE}/(n-p-1)$?
+    \item Kur pjerrësia e pjesshme është e barabartë me pjerrësinë e thjeshtë?
+    \item Çfarë teston $F$ i pjesshëm që nuk e teston testi $t$?
+  \end{enumerate}
+  \shkoTe{zgjCp62}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 2}
+  \begin{itemize}
+    \item $\hat{\bm\beta}=(\bm X^\top\bm X)^{-1}\bm X^\top\bm y$; $\operatorname{Var}(\hat{\bm\beta})=\sigma^2(\bm X^\top\bm X)^{-1}$; $\hat\sigma^2=\text{SSE}/(n-p-1)$.
+    \item FWL: $\hat\beta_j$ = pjerrësia e mbetjeve; e njëjtë me të thjeshtën vetëm kur shpjeguesit janë ortogonalë.
+    \item $R^2$ nuk ulet kurrë; $R^2_{adj}$ penalizon.
+    \item Testet: $F$ global, $t$ për çdo $\beta_j$, $F$ i pjesshëm për grupe; $F=t^2$ kur $q=1$.
+  \end{itemize}
+  \begin{Keshille}Ora 3: e gjithë kjo në R, nga zero dhe me \texttt{lm()}, plus një simulim i $R^2$ me variabla të rastit.\end{Keshille}
+\end{frame}

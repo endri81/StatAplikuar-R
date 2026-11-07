@@ -1,0 +1,52 @@
+% ============================================================
+%  Java 6 · Ora 2 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjOrth]{Zgjidhja: Pyetje me zgjedhje (ortogonaliteti)}
+  \begin{itemize}
+    \item \textbf{B}. Me $r_{12}=0$, formula jep $\hat\beta_1=(r_{y1}-r_{y2}\cdot0)/(1-0)\cdot s_y/s_1=r_{y1}s_y/s_1$: e njëjtë.
+    \item Por SE e $\hat\beta_1$ zakonisht \textbf{zvogëlohet}, sepse $x_2$ shpjegon një pjesë të zhurmës.
+  \end{itemize}
+  \vfill\kthehu{pyetjeOrth}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjToy5]{Zgjidhja: Radha jote! ($y=(2,1,3,6,8)$)}
+  \begin{enumerate}
+    \item $\bm X^\top\bm y=(20,\ -4-1+0+6+16,\ 2-1+0-6+8)=(20,17,3)$; \ $\hat{\bm\beta}=(4,\ 1.7,\ 0.75)$.
+    \item $\hat y=(1.35,1.55,4,4.95,8.15)$; $e=(0.65,-0.55,-1,1.05,-0.15)$; SSE $=2.85$.
+  \end{enumerate}
+<<sol-toy5>>=
+x1 <- c(-2, -1, 0, 1, 2); x2 <- c(1, -1, 0, -1, 1); y5 <- c(2, 1, 3, 6, 8)
+f5 <- lm(y5 ~ x1 + x2); coef(f5); sum(residuals(f5)^2)
+@
+  \vfill\kthehu{ushToy5}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjAnova]{Zgjidhja: Parashiko (\texttt{anova})}
+<<sol-anova>>=
+adv <- read.csv(file.path(W06DATA, "Advertising.csv"))[, -1]
+anova(lm(sales ~ TV + radio, data = adv), lm(sales ~ TV + radio + newspaper, data = adv))
+@
+  \begin{itemize}
+    \item $F=t^2=(-0.177)^2\approx0.031$, me të njëjtën $p=0.86$: një koeficient ($q=1$).
+  \end{itemize}
+  \vfill\kthehu{pyetjeAnova}
+\end{frame}
+
+\begin{frame}[label=zgjGabMult]{Zgjidhja: Gjej gabimin (multikolineariteti)}
+  \begin{itemize}
+    \item $F$ global i madh: \textbf{bashkë} shpjeguesit shpjegojnë shumë.
+    \item Çdo $t$ teston $x_j$ \emph{duke mbajtur tjetrin konstant}. Me $r_{12}=0.98$, pothuajse nuk ka informacion për efektin e njërit kur tjetri është fiks: SE të mëdha, $t$ të vegjël.
+    \item Përfundimi i saktë: ``të paktën njëri ka lidhje, por të dhënat nuk i ndajnë dot efektet''. Zgjidhje: hiq njërin, kombinoji, ose mblidh të dhëna ku ata ndryshojnë veç e veç (Java 7: VIF).
+  \end{itemize}
+  \vfill\kthehu{gjejGabMult}
+\end{frame}
+
+\begin{frame}[label=zgjCp62]{Përgjigjet: Checkpoint Ora 2}
+  \begin{enumerate}
+    \item Mbetjet kanë $p+1$ kufizime lineare ($\bm X^\top\bm e=\bm0$); $E[\text{SSE}]=(n-p-1)\sigma^2$.
+    \item Kur $x_j$ është i pakorreluar (ortogonal) me shpjeguesit e tjerë.
+    \item Një grup koeficientësh njëherësh (p.sh.\ të gjitha dummy-t e një faktori, ose disa variabla), jo vetëm një.
+  \end{enumerate}
+  \vfill\kthehu{cp62}
+\end{frame}
