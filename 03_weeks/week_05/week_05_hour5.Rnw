@@ -1,0 +1,325 @@
+% ============================================================
+%  Java 5 · Ora 5 — Laborator II: simulimi, parashikimi, mbetjet
+%  Rezultatet: S3, S4, S2
+%  Burimi: repo DS612 (DS612_R-Code_Lecture_3.R: Boston, confint, predict), rishkruar
+% ============================================================
+
+\section{Laborator II}
+
+\begin{frame}{Ora 5: Laborator II --- simulimi dhe parashikimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulimi: shpërndarja e $\hat\beta_1$}
+% ------------------------------------------------------------
+
+\begin{frame}{Ideja \LO{S3}}
+  \begin{itemize}
+    \item<1-> Në realitet kemi \textbf{një} zgjedhje dhe \textbf{një} $\hat\beta_1$.
+    \item<2-> Me simulim njohim të vërtetën: $y=2+0.5\,x+\varepsilon$, $\varepsilon\sim N(0,1)$.
+    \item<3-> Mbajmë $x$ fiks ($n=30$), gjenerojmë $y$ shumë herë dhe shohim si luhatet $\hat\beta_1$.
+    \item<4-> Krahasojmë me teorinë: $E[\hat\beta_1]=0.5$, \ $SD(\hat\beta_1)=\sigma/\sqrt{S_{xx}}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Një zgjedhje}
+<<sim-one>>=
+set.seed(505)
+n <- 30; beta0 <- 2; beta1 <- 0.5; sigma <- 1      # truth
+x <- runif(n, 0, 10)                               # fixed design
+y <- beta0 + beta1 * x + rnorm(n, 0, sigma)
+fit_sim <- lm(y ~ x)
+rbind(estimate = coef(fit_sim), truth = c(beta0, beta1))
+c(RSE = sigma(fit_sim), sigma_true = sigma)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike ($\beta_0=2$, $\beta_1=0.5$, $\sigma=1$, $n=30$).}
+\end{frame}
+
+<<sim-store, include=FALSE>>=
+Sxx_sim <- sum((x - mean(x))^2)   # kept for the appendix
+@
+
+\begin{frame}[label=pyetjeSD]{Parashiko!}
+  \begin{Parashiko}
+    Për këtë $x$, $S_{xx}=\Sexpr{fmt(sum((x - mean(x))^2), 1)}$. Nëse përsërisim eksperimentin 5000 herë:
+    \begin{enumerate}
+      \item Rreth cilës vlerë do të jetë mesatarja e $\hat\beta_1$?
+      \item Sa do të jetë shmangia standarde e $\hat\beta_1$? (Llogarite me formulë.)
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjSD}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{5000 përsëritje}
+<<sim-many>>=
+ols_b1 <- function(x, y) sum((x - mean(x)) * (y - mean(y))) / sum((x - mean(x))^2)
+b1_sim <- replicate(5000, ols_b1(x, beta0 + beta1 * x + rnorm(n, 0, sigma)))
+c(mean_b1 = mean(b1_sim), sd_b1 = sd(b1_sim),
+  theory_sd = sigma / sqrt(sum((x - mean(x))^2)))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Histogrami kundrejt teorisë}
+<<sim-hist, fig.height=2.6, fig.width=4.2, out.width="0.45\\textwidth">>=
+se_th <- sigma / sqrt(sum((x - mean(x))^2))
+hist(b1_sim, breaks = 50, freq = FALSE, col = "grey85", border = "white",
+     main = "", xlab = "estimated slope")
+curve(dnorm(x, beta1, se_th), add = TRUE, col = "#D97706", lwd = 2)
+abline(v = beta1, lty = 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mesatarja $\approx0.500$: $\hat\beta_1$ është i pazhvendosur (Ora 4).
+    \item<2-> SD e simuluar $\approx$ SD teorike $=\Sexpr{fmt(se_th, 4)}$.
+    \item<3-> Shpërndarja është normale: me gabime normale, $\hat\beta_1$ është kombinim linear i normaleve.
+    \item<4-> Çdo \texttt{Std. Error} në \texttt{summary(lm)} është një \emph{vlerësim} i kësaj SD nga një zgjedhje e vetme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Mbulimi i intervalit 95\%}
+<<sim-cover>>=
+covers <- replicate(2000, {
+  y_new <- beta0 + beta1 * x + rnorm(n, 0, sigma)
+  ci <- confint(lm(y_new ~ x))[2, ]
+  ci[1] <= beta1 & beta1 <= ci[2]
+})
+mean(covers)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Rreth \Sexpr{fmt(100 * mean(covers), 1)}\% e intervaleve e përmbajnë $\beta_1=0.5$.
+    \item<2-> 95\% i referohet \textbf{procedurës}: çdo interval i veçantë ose e përmban, ose jo.
+    \item<3-> Me 2000 përsëritje, gabimi i Monte Carlo-s është $\sqrt{0.95\cdot0.05/2000}\approx0.005$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Po nëse gabimet nuk janë normale?}
+<<sim-cover-skew>>=
+covers_exp <- replicate(2000, {
+  eps <- rexp(n, rate = 1) - 1                     # skewed, mean 0, sd 1
+  ci <- confint(lm(beta0 + beta1 * x + eps ~ x))[2, ]
+  ci[1] <= beta1 & beta1 <= ci[2]
+})
+mean(covers_exp)
+@
+  \begin{itemize}
+    \item<2-> Edhe me gabime shumë të anuara, mbulimi mbetet afër 95\% me $n=30$: teorema qendrore limite.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Funksion për SE sipas planit}
+<<sim-design-fun>>=
+sim_se <- function(n, sigma, x_range, reps = 2000) {
+  x <- seq(x_range[1], x_range[2], length.out = n)       # evenly spread design
+  b <- replicate(reps, ols_b1(x, 2 + 0.5 * x + rnorm(n, 0, sigma)))
+  c(n = n, sigma = sigma, width = diff(x_range), sd_sim = sd(b),
+    sd_theory = sigma / sqrt(sum((x - mean(x))^2)))
+}
+@
+\end{frame}
+
+\begin{frame}[label=ushDesign]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(6 minuta)]
+    Pa e ekzekutuar, rendit nga SE më e vogël te më e madhja:
+    \begin{enumerate}
+      \item \texttt{sim\_se(30, 1, c(0, 10))}
+      \item \texttt{sim\_se(120, 1, c(0, 10))}
+      \item \texttt{sim\_se(30, 3, c(0, 10))}
+      \item \texttt{sim\_se(30, 1, c(4, 6))}
+    \end{enumerate}
+    Pastaj ekzekuto. Sa herë ndryshon SE kur $n$ katërfishohet? Kur gjerësia e $x$ ndahet me 5?
+  \end{Ushtrim}
+  \shkoTe{zgjDesign}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\texttt{Boston}: \texttt{medv \textasciitilde{} lstat}}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Të dhënat dhe grafiku}
+<<bos-plot, fig.height=2.3, fig.width=5, out.width="0.52\\textwidth">>=
+library(MASS); library(ggplot2)
+bos <- Boston[, c("medv", "lstat")]       # only the columns used here
+ggplot(bos, aes(lstat, medv)) + geom_point(alpha = 0.4, size = 0.8) +
+  labs(x = "lstat (% lower status)", y = "medv (1000 USD)") +
+  theme_minimal(base_size = 10)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: reale, \texttt{MASS::Boston} (Harrison \& Rubinfeld, 1978); kolona e racës nuk përdoret.}
+\end{frame}
+
+\begin{frame}[fragile]{Modeli (si në repo, \texttt{fit1})}
+<<bos-fit>>=
+fit_b <- lm(medv ~ lstat, data = bos)
+round(summary(fit_b)$coefficients, 4)
+c(R2 = summary(fit_b)$r.squared, RSE = sigma(fit_b))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Çdo pikë përqindjeje më shumë e popullsisë me status të ulët lidhet me $\Sexpr{fmt(-1000 * coef(fit_b)[2], 0)}$ \$ më pak në vlerën mesatare të banesave.
+    \item<2-> $\hat\beta_0=\Sexpr{fmt(coef(fit_b)[1], 2)}$: vlera e pritur kur \texttt{lstat} $=0$, pak jashtë të dhënave (min $=\Sexpr{fmt(min(bos$lstat), 2)}$).
+    \item<3-> $R^2=\Sexpr{fmt(summary(fit_b)$r.squared, 2)}$; RSE $=\Sexpr{fmt(sigma(fit_b), 2)}$ mijë \$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Intervalet e besimit (repo: 95\% dhe 99\%)}
+<<bos-ci>>=
+confint(fit_b)
+confint(fit_b, level = 0.99)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Parashikimi: mesatarja dhe një zonë e re}
+<<bos-pred>>=
+new_l <- data.frame(lstat = c(5, 10, 15))
+predict(fit_b, new_l, interval = "confidence")
+predict(fit_b, new_l, interval = "prediction")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> E njëjta $\hat y$ ($29.8$, $25.1$, $20.3$) në të dyja tabelat.
+    \item<2-> IB: gjerësi rreth 1--1.6 mijë \$; IP: rreth 24 mijë \$.
+    \item<3-> Me $n=506$, vija njihet mirë; zonat individuale ndryshojnë shumë rreth saj.
+    \item<4-> IB më i ngushtë te \texttt{lstat} $=10$ dhe $15$ se te $5$: më afër $\bar x=\Sexpr{fmt(mean(bos$lstat), 1)}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushExtra]{Radha jote!}
+  \begin{Ushtrim}[(4 minuta)]
+    \begin{enumerate}
+      \item Parashiko \texttt{medv} për \texttt{lstat} $=30$ dhe $40$, me IP.
+      \item Çfarë vëren për \texttt{lstat} $=40$? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjExtra}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Brezat në një grafik}
+<<bos-bands, fig.height=2.3, fig.width=5.5, out.width="0.58\\textwidth">>=
+grid <- data.frame(lstat = seq(min(bos$lstat), max(bos$lstat), length.out = 100))
+pi_b <- cbind(grid, predict(fit_b, grid, interval = "prediction"))
+ggplot(bos, aes(lstat, medv)) + geom_point(alpha = 0.3, size = 0.7) +
+  geom_ribbon(data = pi_b, aes(x = lstat, ymin = lwr, ymax = upr), inherit.aes = FALSE,
+              fill = "#2C5AA0", alpha = 0.15) +
+  geom_smooth(method = "lm", formula = y ~ x, colour = "#D97706") + theme_minimal(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Brezi gri i ngushtë (\texttt{geom\_smooth}) = IB për mesataren; brezi blu = IP.
+    \item<2-> Rreth 95\% e pikave duhet të jenë brenda brezit blu: shumë nga ato jashtë janë te \texttt{medv} $=50$ (censurimi, Java 3).
+    \item<3-> Te \texttt{lstat} i lartë, IP shkon nën zero: modeli parashikon çmime negative!
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbetjet: a është vija e duhur?}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Mbetjet kundrejt vlerave të përshtatura}
+<<bos-resid, fig.height=2.6, fig.width=4.2, out.width="0.45\\textwidth">>=
+plot(fitted(fit_b), residuals(fit_b), pch = 19, col = "#2C5AA066", cex = 0.6,
+     xlab = "fitted values", ylab = "residuals")
+abline(h = 0, lty = 2)
+lines(lowess(fitted(fit_b), residuals(fit_b)), col = "#D97706", lwd = 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Nëse modeli do ishte i saktë: një re pa formë rreth 0.
+    \item<2-> Këtu: formë \textbf{U}. Mbetjet janë pozitive në të dy skajet dhe negative në mes.
+    \item<3-> Shenjë e qartë lakimi: lidhja nuk është lineare (Java 3 e sugjeroi; Java 8 e trajton).
+    \item<4-> Ku janë pikat e rreshtuara në diagonale? Te \texttt{medv} $=50$ (censurimi).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{Advertising}: një problem tjetër}
+<<adv-resid, fig.height=2.6, fig.width=4.2, out.width="0.45\\textwidth">>=
+adv <- read.csv(file.path(W05DATA, "Advertising.csv"))[, -1]
+fit_a <- lm(sales ~ TV, data = adv)
+plot(fitted(fit_a), residuals(fit_a), pch = 19, col = "#2C5AA066", cex = 0.6,
+     xlab = "fitted values", ylab = "residuals"); abline(h = 0, lty = 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Forma e \textbf{hinkës}: shpërndarja e mbetjeve rritet me $\hat y$.
+    \item<2-> Shkelje e variancës së njëjtë (\termi{heteroskedasticitet}{heteroscedasticity}).
+    \item<3-> $\hat\beta$ mbetet i pazhvendosur, por SE dhe intervalet nuk janë më të besueshme. Java 7.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeLogL]{Parashiko!}
+  \begin{Parashiko}
+    Për \texttt{Boston}, provojmë \texttt{medv \textasciitilde{} log(lstat)}.
+    \begin{enumerate}
+      \item A pret që $R^2$ të rritet apo të ulet nga 0.54?
+      \item A pret që forma U e mbetjeve të zhduket plotësisht?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjLogL}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{log(lstat)}}
+<<bos-log, fig.height=2.3, fig.width=4.4, out.width="0.36\\textwidth">>=
+fit_log <- lm(medv ~ log(lstat), data = bos)
+c(R2_linear = summary(fit_b)$r.squared, R2_log = summary(fit_log)$r.squared)
+plot(fitted(fit_log), residuals(fit_log), pch = 19, col = "#2C5AA066", cex = 0.6,
+     xlab = "fitted", ylab = "residuals"); abline(h = 0, lty = 2)
+lines(lowess(fitted(fit_log), residuals(fit_log)), col = "#D97706", lwd = 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $R^2$ rritet në $\Sexpr{fmt(summary(fit_log)$r.squared, 2)}$; RSE ulet nga $\Sexpr{fmt(sigma(fit_b), 2)}$ në $\Sexpr{fmt(sigma(fit_log), 2)}$.
+    \item<2-> Forma U zbutet shumë. Modeli është ende \textbf{linear në parametra}: $\beta_0+\beta_1\log(x)$.
+    \item<3-> Interpretimi: rritja 1\% e \texttt{lstat} lidhet me $\hat\beta_1/100\approx\Sexpr{fmt(coef(fit_log)[2] / 100, 3)}$ mijë \$ ndryshim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGabPred]{Gjej gabimin!}
+<<bug-predict, warning=TRUE>>=
+bad <- lm(Boston$medv ~ Boston$lstat)              # variables taken with $
+p <- predict(bad, newdata = data.frame(lstat = c(5, 10, 15)))
+length(p)
+@
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Studenti donte 3 parashikime dhe mori \Sexpr{length(p)}. Pse? Si rregullohet?
+  \end{Ushtrim}
+  \shkoTe{zgjGabPred}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp55]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Çfarë tregon simulimi i mbulimit të IB 95\%?
+    \item Cili argument i \texttt{predict()} jep IP?
+    \item Çfarë do të thotë forma U e mbetjeve? Po forma e hinkës?
+  \end{enumerate}
+  \shkoTe{zgjCp55}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item Simulimi: $\hat\beta_1$ i pazhvendosur, $SD=\sigma/\sqrt{S_{xx}}$, mbulim $\approx95\%$ (edhe me gabime të anuara, $n=30$).
+    \item SE zvogëlohet me $\sqrt n$ dhe me gjerësinë e $x$; rritet me $\sigma$.
+    \item \texttt{Boston}: \Rkey{confint()}, \Rkey{predict(interval = )}, brezat me \Rkey{geom\_ribbon()}.
+    \item Mbetjet: U $\Rightarrow$ lakim; hinkë $\Rightarrow$ heteroskedasticitet. Formula me \texttt{data =}.
+  \end{itemize}
+  \begin{Keshille}Ora 6: rast studimi i plotë me \texttt{Auto}: nga EDA te raporti.\end{Keshille}
+\end{frame}

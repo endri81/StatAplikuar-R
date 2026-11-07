@@ -1,0 +1,60 @@
+% ============================================================
+%  Java 5 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjSD]{Zgjidhja: Parashiko (SD e $\hat\beta_1$)}
+  \begin{enumerate}
+    \item Rreth $\beta_1=0.5$: vlerësuesi është i pazhvendosur.
+    \item $SD(\hat\beta_1)=\sigma/\sqrt{S_{xx}}=1/\sqrt{\Sexpr{fmt(Sxx_sim, 1)}}\approx\Sexpr{fmt(1 / sqrt(Sxx_sim), 4)}$.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeSD}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjDesign]{Zgjidhja: Ndrysho parametrin (plani)}
+<<sol-design>>=
+set.seed(55)
+round(rbind(sim_se(30, 1, c(0, 10)), sim_se(120, 1, c(0, 10)),
+            sim_se(30, 3, c(0, 10)), sim_se(30, 1, c(4, 6))), 4)
+@
+  \begin{itemize}
+    \item Renditja: 2 < 1 < 3 < 4. $n\times4$ $\Rightarrow$ SE$/2$; $\sigma\times3$ $\Rightarrow$ SE$\times3$; gjerësia$/5$ $\Rightarrow$ SE$\times5$.
+  \end{itemize}
+  \vfill\kthehu{ushDesign}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjExtra]{Zgjidhja: Radha jote! (ekstrapolimi)}
+<<sol-extra>>=
+predict(fit_b, data.frame(lstat = c(30, 40)), interval = "prediction")
+range(bos$lstat)
+@
+  \begin{itemize}
+    \item Te \texttt{lstat} $=40$ (jashtë të dhënave, max $=37.97$) vlera e parashikuar është \textbf{negative}. Vija e drejtë nuk ka kufi; çmimi ka. Modeli nuk vlen atje.
+  \end{itemize}
+  \vfill\kthehu{ushExtra}
+\end{frame}
+
+\begin{frame}[label=zgjLogL]{Zgjidhja: Parashiko (\texttt{log(lstat)})}
+  \begin{enumerate}
+    \item Rritet (në 0.66): logaritmi ``drejton'' kurbën që zbret shpejt e pastaj rrafshohet.
+    \item Jo plotësisht: mbetet pak lakim dhe vija diagonale e pikave me \texttt{medv} $=50$.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeLogL}
+\end{frame}
+
+\begin{frame}[label=zgjGabPred]{Zgjidhja: Gjej gabimin (\texttt{predict})}
+  \begin{itemize}
+    \item Modeli u përshtat me emrat \texttt{Boston\$medv} dhe \texttt{Boston\$lstat}. Në \texttt{newdata} nuk ka kolonë me këtë emër, prandaj R merr sërish \texttt{Boston\$lstat} (506 vlera) dhe paralajmëron.
+    \item Rregullimi: \texttt{lm(medv \textasciitilde{} lstat, data = Boston)}, pastaj \texttt{predict(fit, data.frame(lstat = c(5, 10, 15)))}.
+    \item Rregull: \textbf{kurrë} \texttt{\$} brenda formulës.
+  \end{itemize}
+  \vfill\kthehu{gjejGabPred}
+\end{frame}
+
+\begin{frame}[label=zgjCp55]{Përgjigjet: Checkpoint Ora 5}
+  \begin{enumerate}
+    \item Që rreth 95\% e intervaleve të ndërtuara me këtë procedurë e përmbajnë $\beta_1$ e vërtetë.
+    \item \texttt{interval = "prediction"} (dhe \texttt{"confidence"} për mesataren).
+    \item U: lidhje jolineare (lakim). Hinkë: varianca rritet me $\hat y$ (heteroskedasticitet).
+  \end{enumerate}
+  \vfill\kthehu{cp55}
+\end{frame}

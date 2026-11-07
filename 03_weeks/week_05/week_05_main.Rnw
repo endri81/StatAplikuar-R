@@ -118,13 +118,16 @@ knit_hooks$set(
     paste0("\\begin{lstlisting}\n", paste(x, collapse = "\n"), "\n\\end{lstlisting}\n"),
   output  = wrap_out, warning = wrap_out, message = wrap_out, error = wrap_out,
   chunk   = function(x, options) x,
-  plot    = knitr::hook_plot_tex
+  plot    = knitr::hook_plot_tex,
+  # tighter base-graphics margins, so small figures keep a usable plot area
+  par     = function(before, options, envir)
+    if (before) graphics::par(mar = c(3.6, 3.6, 0.8, 0.8), mgp = c(2.2, 0.7, 0), cex = 0.9)
 )
 })
 set_header(highlight = "", framed = "", tikz = "")
 opts_chunk$set(comment = NA, fig.path = "figure/w05-", dev = "pdf",
                fig.align = "center", results = "hold", out.width = "0.70\\textwidth",
-               fig.width = 7, fig.height = 3.6, message = FALSE)
+               fig.width = 7, fig.height = 3.6, message = FALSE, par = TRUE)
 options(width = 70, digits = 6, scipen = 5)
 # Helpers live outside the global environment, so ls() in the slides stays clean
 # and they survive rm(list = ls()).
@@ -161,6 +164,9 @@ attach(list(
 <<hour4, child='week_05_hour4.Rnw'>>=
 @
 
+<<hour5, child='week_05_hour5.Rnw'>>=
+@
+
 % ===================== SHTOJCA =====================
 \appendix
 \section*{Zgjidhjet}
@@ -175,6 +181,9 @@ attach(list(
 @
 
 <<hour4sol, child='week_05_hour4_sol.Rnw'>>=
+@
+
+<<hour5sol, child='week_05_hour5_sol.Rnw'>>=
 @
 
 \end{document}
