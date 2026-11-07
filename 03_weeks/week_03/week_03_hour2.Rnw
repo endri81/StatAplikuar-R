@@ -1,0 +1,394 @@
+% ============================================================
+%  Java 3 · Ora 2 — Teori I: kovarianca dhe korrelacioni i Pearson-it
+%  Rezultatet: K1, S1
+%  Material plotësues (Cohen et al. 2003; Raço et al. 2021)
+% ============================================================
+
+\section{Pearson}
+
+\begin{frame}{Ora 2: Kovarianca dhe korrelacioni i Pearson-it}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kovarianca e mostrës}
+% ------------------------------------------------------------
+
+\begin{frame}{Kovarianca e mostrës \LO{S1} \Plotesues}
+  \begin{Definicion}[(Kovarianca e mostrës)]
+    \[ s_{xy}=\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar x)(y_i-\bar y) \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Analogu i $\operatorname{Cov}(X,Y)$ për mostrën; emëruesi $n-1$ si te varianca.
+    \pause
+    \item $s_{xx}=s_x^2$: varianca është kovarianca e një variabli me vetveten.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pse funksionon? Katër kuadrantet}
+  \centering
+  \begin{tikzpicture}[scale=0.9]
+    \fill[green!10] (0,0) rectangle (3,2.2);
+    \fill[green!10] (0,0) rectangle (-3,-2.2);
+    \fill[red!8] (0,0) rectangle (-3,2.2);
+    \fill[red!8] (0,0) rectangle (3,-2.2);
+    \draw[->,gray] (-3.2,0)--(3.3,0) node[right,font=\scriptsize]{$x$};
+    \draw[->,gray] (0,-2.4)--(0,2.5) node[above,font=\scriptsize]{$y$};
+    \node[font=\scriptsize] at (0.35,-0.25) {$(\bar x,\bar y)$};
+    \node[font=\scriptsize,text=okgreen] at (1.6,1.6) {$(+)(+)=+$};
+    \node[font=\scriptsize,text=okgreen] at (-1.6,-1.6) {$(-)(-)=+$};
+    \node[font=\scriptsize,text=warnred] at (-1.6,1.6) {$(-)(+)=-$};
+    \node[font=\scriptsize,text=warnred] at (1.6,-1.6) {$(+)(-)=-$};
+    \foreach \p in {(1.2,0.9),(2.1,1.5),(0.6,0.3),(-0.9,-0.7),(-1.8,-1.1),(-0.4,-0.6),(1.5,-0.3),(-1.1,0.4)} \fill[uptmid] \p circle (2pt);
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Shumica e pikave në kuadrantet jeshile $\Rightarrow$ shuma pozitive $\Rightarrow$ $s_{xy}>0$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC (1)}
+  $x=(1,2,3,4,5)$, \ $y=(2,4,5,4,5)$, \ $n=5$.
+  \pause
+  \begin{enumerate}
+    \item $\bar x=15/5=3$, \ $\bar y=20/5=4$.
+    \pause
+    \item $x_i-\bar x$: $-2,-1,0,1,2$; \quad $y_i-\bar y$: $-2,0,1,0,1$.
+    \pause
+    \item Prodhimet: $4,\ 0,\ 0,\ 0,\ 2$; shuma $=6$.
+    \pause
+    \item $s_{xy}=6/4=1.5$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC (2)}
+  \begin{enumerate}
+    \item<1-> $\sum(x_i-\bar x)^2=4+1+0+1+4=10$ $\Rightarrow$ $s_x^2=2.5$, \ $s_x\approx1.581$.
+    \item<2-> $\sum(y_i-\bar y)^2=4+0+1+0+1=6$ $\Rightarrow$ $s_y^2=1.5$, \ $s_y\approx1.225$.
+    \item<3-> $r=\dfrac{1.5}{1.581\cdot1.225}=\dfrac{6}{\sqrt{10\cdot6}}=\dfrac{6}{\sqrt{60}}\approx0.775$.
+  \end{enumerate}
+  \onslide<4->{\begin{Keshille}Forma $\sum d_xd_y/\sqrt{\sum d_x^2\sum d_y^2}$ shmang emëruesit $n-1$: ata thjeshtohen.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<toy-check>>=
+x <- c(1, 2, 3, 4, 5)
+y <- c(2, 4, 5, 4, 5)
+cov(x, y)
+c(sd_x = sd(x), sd_y = sd(y))
+cor(x, y)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: kovarianca varet nga njësitë}
+<<cov-units>>=
+height_m  <- c(1.62, 1.70, 1.75, 1.81, 1.90)   # synthetic heights, metres
+weight_kg <- c(58, 66, 70, 79, 88)
+cov(height_m, weight_kg)
+cov(100 * height_m, weight_kg)                  # same data in centimetres
+cor(height_m, weight_kg); cor(100 * height_m, weight_kg)
+@
+  \begin{Gabim}``Kovarianca \Sexpr{fmt(cov(100 * height_m, weight_kg), 1)} tregon lidhje më të fortë se \Sexpr{fmt(cov(height_m, weight_kg), 3)}''. Jo: është e njëjta lidhje në njësi të tjera. Krahaso korrelacionet.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Korrelacioni i Pearson-it}
+% ------------------------------------------------------------
+
+\begin{frame}{Tri forma të së njëjtës formule}
+  \begin{Definicion}[(Korrelacioni i Pearson-it)]
+    \[
+      r=\frac{s_{xy}}{s_x\,s_y}
+       =\frac{\sum(x_i-\bar x)(y_i-\bar y)}{\sqrt{\sum(x_i-\bar x)^2\,\sum(y_i-\bar y)^2}}
+       =\frac{1}{n-1}\sum_{i=1}^{n}z_{x,i}\,z_{y,i}
+    \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Forma e tretë: $r$ është ``mesatarja'' e prodhimeve të vlerave $z$.
+    \pause
+    \item Kur $z_x$ dhe $z_y$ kanë shpesh të njëjtën shenjë dhe madhësi, $r$ afrohet te 1.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Interpretimi gjeometrik}
+  \begin{columns}[c]
+    \column{0.42\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth,scale=1.1]
+        \draw[->,uptmid,very thick] (0,0)--(2.6,0.6) node[right,font=\scriptsize]{$\mathbf d_x$};
+        \draw[->,accent,very thick] (0,0)--(1.6,2.0) node[above,font=\scriptsize]{$\mathbf d_y$};
+        \draw[gray] (0.7,0.16) arc (13:51:0.72);
+        \node[font=\scriptsize] at (0.95,0.55) {$\theta$};
+      \end{tikzpicture}
+    \column{0.56\textwidth}
+      \begin{itemize}
+        \item $\mathbf d_x=(x_1-\bar x,\dots,x_n-\bar x)$: vektori i devijimeve në $\mathbb R^n$.
+        \item $r=\dfrac{\mathbf d_x^\top\mathbf d_y}{\|\mathbf d_x\|\,\|\mathbf d_y\|}=\cos\theta$.
+        \item $r=1$: vektorë paralelë. $r=0$: pingulë. $r=-1$: të kundërt.
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Vetitë e $r$}
+  \begin{Teoreme}[(Vetitë e korrelacionit)]
+    \begin{enumerate}
+      \item $-1\le r\le1$.
+      \item $r(x,y)=r(y,x)$: simetrik.
+      \item $r(a+bx,\ c+dy)=\operatorname{sign}(bd)\,r(x,y)$ për $b,d\neq0$.
+      \item $|r|=1$ vetëm kur të gjitha pikat janë në një vijë të drejtë jo-horizontale.
+    \end{enumerate}
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item Vetia 3: ndryshimi i njësive nuk e ndryshon $r$; ndryshimi i drejtimit i ndryshon vetëm shenjën.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vërtetim: $-1\le r\le1$}
+  Le të jenë $z_{x,i}$, $z_{y,i}$ vlerat e standardizuara; atëherë $\frac{1}{n-1}\sum z_{x,i}^2=1$.
+  \begin{align*}
+    \onslide<2->{0 &\le \frac{1}{n-1}\sum_{i}\big(z_{x,i}+z_{y,i}\big)^2} \\
+    \onslide<3->{&= \frac{1}{n-1}\sum z_{x,i}^2 + \frac{2}{n-1}\sum z_{x,i}z_{y,i} + \frac{1}{n-1}\sum z_{y,i}^2} \\
+    \onslide<4->{&= 1 + 2r + 1 = 2(1+r) \ \Rightarrow\ r\ge-1.}
+  \end{align*}
+  \onslide<5->{Me $(z_x-z_y)^2$ në vend të $(z_x+z_y)^2$: $0\le2(1-r)$, pra $r\le1$. \hfill$\blacksquare$}
+\end{frame}
+
+\begin{frame}[label=pyetjeTrans]{Parashiko!}
+  \begin{Parashiko}
+    Temperatura $x$ (°C) dhe shitjet e akullores $y$ kanë $r=0.8$.
+    Kalojmë në °F ($32+1.8x$) dhe e matim $y$ si ``humbje'' ($-y$). Sa bëhet $r$?\\[3pt]
+    \textbf{A)} 0.8 \quad \textbf{B)} $-0.8$ \quad \textbf{C)} $-1.44$ \quad \textbf{D)} e pamundur të thuhet
+  \end{Parashiko}
+  \shkoTe{zgjTrans}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Koeficienti i përcaktimit}
+% ------------------------------------------------------------
+
+\begin{frame}{$r^2$: koeficienti i përcaktimit}
+  \begin{itemize}
+    \item<1-> $r^2$ = pjesa e variancës së $y$ që ``shpjegohet'' nga vija më e mirë lineare në $x$.
+    \item<2-> E vërtetojmë në Javën 5: $r^2=R^2$ i regresionit të thjeshtë.
+    \item<3-> Shembulli ynë: $r=0.775$ $\Rightarrow$ $r^2=0.6$: 60\% e variancës së $y$.
+    \item<4-> \texttt{Advertising}, TV: $r=\Sexpr{fmt(cor(adv$TV, adv$sales), 3)}$ $\Rightarrow$ $r^2=\Sexpr{fmt(cor(adv$TV, adv$sales)^2, 3)}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabim i zakonshëm: leximi linear i $r$}
+  \centering
+  \begin{tabular}{@{}ccc@{}}
+    \toprule
+    $r$ & $r^2$ & Varianca e shpjeguar \\ \midrule
+    0.1 & 0.01 & 1\% \\
+    0.3 & 0.09 & 9\% \\
+    0.5 & 0.25 & 25\% \\
+    0.7 & 0.49 & 49\% \\
+    0.9 & 0.81 & 81\% \\ \bottomrule
+  \end{tabular}
+  \begin{Gabim}$r=0.5$ nuk është ``gjysmë e fortë'' sa $r=1$: shpjegon vetëm një të katërtën e variancës.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=ushR2]{Radha jote!}
+  \begin{Ushtrim}[(pa ndihmën e PC, 3 minuta)]
+    \begin{enumerate}
+      \item Te \texttt{Advertising}, radio ka $r=0.58$. Sa \% e variancës së shitjeve shpjegon?
+      \item Sa duhet të jetë $r$ që të shpjegojë 50\% të variancës?
+      \item Dy studime gjejnë $r=0.3$ dhe $r=0.6$. Sa herë më shumë variancë shpjegon i dyti?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjR2}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kurthet e korrelacionit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kurthi 1: lidhja jolineare}
+  \begin{itemize}
+    \item<1-> $r$ mat vetëm lidhjen \textbf{lineare}.
+    \item<2-> Anscombe 2: lidhje e lakuar perfekte, $r=0.82$.
+    \item<3-> $Y=X^2$ me $X$ simetrik: lidhje perfekte, $r\approx0$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Para çdo $r$: grafiku i shpërndarjes. Nëse forma është e lakuar, provo një shndërrim ose Spearman-in (Ora 4).\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Kurthi 2: një pikë me levë}
+<<leverage>>=
+set.seed(2026)
+x0 <- rnorm(20); y0 <- rnorm(20)            # no relationship
+r_without <- cor(x0, y0)
+x1 <- c(x0, 8); y1 <- c(y0, 8)              # add one extreme point
+r_with <- cor(x1, y1)
+round(c(without = r_without, with = r_with), 3)
+@
+  \begin{itemize}
+    \item Të dhëna: sintetike, $\rho=0$ e vërtetë për 20 pikat e para.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Grafiku: një pikë krijon korrelacion}
+<<leverage-plot, echo=FALSE, fig.height=2.7>>=
+par(mar = c(4, 4, 1, 1))
+plot(x1, y1, pch = 19, col = c(rep("#2C5AA0", 20), "#B91C1C"), xlab = "x", ylab = "y")
+abline(lm(y1 ~ x1), col = "#D97706", lwd = 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pa pikën e kuqe: $r=\Sexpr{fmt(r_without, 2)}$. Me të: $r=\Sexpr{fmt(r_with, 2)}$.
+    \item<2-> Një vrojtim nga 21 (5\%) ``krijon'' një lidhje të fortë.
+    \item<3-> Si te mesatarja: pika e prishjes së $r$ është afër 0.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Raportimi i $r$ pa kontrolluar pikat ekstreme në $x$ dhe në $y$. Në Javën 7 i quajmë pika me \emph{levë} (leverage).\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile]{Kurthi 3: kufizimi i intervalit}
+<<restrict>>=
+set.seed(2026)
+z <- MASS::mvrnorm(1000, mu = c(0, 0), Sigma = matrix(c(1, 0.7, 0.7, 1), 2))
+full <- cor(z[, 1], z[, 2])                       # truth: rho = 0.7
+top <- z[, 1] > quantile(z[, 1], 0.8)             # keep only top 20% of x
+restricted <- cor(z[top, 1], z[top, 2])
+round(c(full = full, top20 = restricted), 3)
+@
+  \begin{itemize}
+    \item Të dhëna: sintetike, $\rho=0.7$ e njohur.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kufizimi i intervalit: grafiku}
+<<restrict-plot, echo=FALSE, fig.height=2.7>>=
+par(mar = c(4, 4, 1, 1))
+plot(z, pch = 19, cex = 0.5, col = ifelse(top, "#D97706", "#2C5AA044"),
+     xlab = "x (e.g. entrance test)", ylab = "y (e.g. later performance)")
+abline(v = quantile(z[, 1], 0.8), lty = 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Në gjithë popullatën $r\approx\Sexpr{fmt(full, 2)}$; në 20\% më të mirët $r\approx\Sexpr{fmt(restricted, 2)}$.
+    \item<2-> Shembull: testi i pranimit dhe notat e mëvonshme. Te studentët e pranuar (vetëm $x$ të larta), korrelacioni duket i dobët.
+    \item<3-> Përfundimi i gabuar: ``testi nuk parashikon asgjë''.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Kur krahason korrelacione midis studimeve, kontrollo nëse intervalet e $x$ janë të krahasueshme.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Kurthi 4: korrelacioni i të dhënave të agreguara}
+<<ecological>>=
+set.seed(2026)
+g <- rep(1:10, each = 50)                         # 10 groups (e.g. municipalities)
+gx <- rnorm(10, 0, 2)[g]                          # group-level x
+xi <- gx + rnorm(500, 0, 2)
+yi <- 0.5 * gx + rnorm(500, 0, 2)                 # y depends on the group level
+r_ind <- cor(xi, yi)
+r_grp <- cor(tapply(xi, g, mean), tapply(yi, g, mean))
+round(c(individuals = r_ind, group_means = r_grp), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Te individët: $r=\Sexpr{fmt(r_ind, 2)}$. Te mesataret e 10 grupeve: $r=\Sexpr{fmt(r_grp, 2)}$.
+    \item<2-> Agregimi heq variancën brenda grupeve dhe e ``fryn'' korrelacionin.
+    \item<3-> W.~S.~Robinson (1950) e quajti këtë problem \termi{korrelacion ekologjik}{ecological correlation}.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Të dhënat e INSTAT-it sipas bashkive tregojnë lidhjen midis \emph{bashkive}, jo midis \emph{individëve}. Mos i përgjithëso te individët.\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Kurthi 5: korrelacioni nuk është shkakësi}
+  \centering
+  \begin{tikzpicture}[>=Stealth,
+      nd/.style={rectangle,rounded corners=2pt,draw=uptblue,fill=uptlight,font=\footnotesize,minimum width=2.6cm,minimum height=7mm,align=center}]
+    \node[nd,fill=orange!15] (z) at (0,1.6) {$Z$: pesha e makinës};
+    \node[nd] (x) at (-2.6,0) {$X$: fuqia};
+    \node[nd] (y) at (2.6,0) {$Y$: konsumi (mpg)};
+    \draw[->,accent,thick] (z)--(x);
+    \draw[->,accent,thick] (z)--(y);
+    \draw[<->,gray,dashed] (x)--node[below,font=\scriptsize]{korrelacion}(y);
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Një variabël e tretë $Z$ mund të krijojë korrelacion midis $X$ dhe $Y$ pa lidhje shkakësore të drejtpërdrejtë.
+    \item Shkakësia kërkon eksperiment, ose model që kontrollon $Z$ (Java 6, korrelacioni i pjesshëm në Orën 6).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGab9]{Gjej gabimin!}
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Një artikull shkruan:\\[3pt]
+    \emph{``Studentët që ulen në rreshtat e parë marrin nota më të larta ($r=0.4$, $n=200$). Prandaj, nëse e detyrojmë çdo student të ulet përpara, notat do të rriten.''}\\[3pt]
+    Gjeni të paktën dy probleme në këtë përfundim.
+  \end{Ushtrim}
+  \shkoTe{zgjGab9}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Përmbledhje e kurtheve}
+  \footnotesize
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Kurthi & Efekti mbi $r$ & Çfarë bëjmë \\ \midrule
+    Jolineariteti & e nënvlerëson lidhjen & grafiku, shndërrimi, Spearman \\
+    Pikë me levë & e krijon ose e zhduk & grafiku, me/pa pikën, Spearman \\
+    Kufizimi i intervalit & e zvogëlon & krahaso intervalet \\
+    Agregimi & e fryn & mos përgjithëso te individët \\
+    Variabël e tretë & krijon lidhje pa shkak & korrelacion i pjesshëm, modele \\
+    Grupe të përziera & mund ta përmbysë & analizo sipas grupeve (Simpson) \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pearson-i dhe shkalla}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{$r$ varet nga shkalla e zgjedhur}
+<<scale-boston>>=
+b <- MASS::Boston
+round(c(original = cor(b$lstat, b$medv),
+        log_log  = cor(log(b$lstat), log(b$medv)),
+        log_x    = cor(log(b$lstat), b$medv)), 3)
+@
+  \begin{itemize}
+    \item Transformimet \emph{lineare} nuk e ndryshojnë $r$; ato \emph{jolineare} po.
+    \item Në cilën shkallë lidhja është më afër vijës së drejtë? Aty $|r|$ është më i madh.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushOut]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    Përdor kodin e ``pikës me levë'' (Kurthi 2):
+    \begin{enumerate}
+      \item Zëvendëso pikën $(8, 8)$ me $(8, -8)$. Parashiko shenjën e $r$; provoje.
+      \item Provo $(8, 0)$. Çfarë ndodh me $r$?
+      \item Provo $(0, 8)$: pikë ekstreme vetëm në $y$. Ndikon më shumë apo më pak se $(8,8)$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjOut3}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp32]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 2}
+  \begin{enumerate}
+    \item Shkruani $r$ si mesatare e prodhimeve të vlerave $z$.
+    \item Pse $r$ nuk ndryshon kur kalojmë nga metra në centimetra?
+    \item Emërtoni tre kurthe që mund ta bëjnë $r$ të madh pa lidhje reale.
+  \end{enumerate}
+  \shkoTe{zgjCp32}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 2}
+  \begin{itemize}
+    \item $s_{xy}$ varet nga njësitë; $r=s_{xy}/(s_xs_y)$ jo.
+    \item $r$ = mesatarja e $z_xz_y$ = $\cos\theta$; $-1\le r\le1$ (vërtetuar).
+    \item $r^2$: pjesa e variancës së shpjeguar linearisht.
+    \item Kurthet: jolineariteti, leva, kufizimi i intervalit, agregimi, variabla e tretë.
+  \end{itemize}
+  \begin{Keshille}Ora 3: kovarianca dhe korrelacioni nga zero në R, dhe simulimi me $\rho$ të njohur.\end{Keshille}
+\end{frame}

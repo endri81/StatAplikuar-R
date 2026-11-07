@@ -1,0 +1,55 @@
+% ============================================================
+%  Java 3 · Ora 2 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjTrans]{Zgjidhja: Parashiko (transformimet)}
+  \textbf{B)} $-0.8$. Me $b=1.8>0$ dhe $d=-1<0$: $\operatorname{sign}(bd)=-1$.
+<<sol-trans>>=
+set.seed(1)
+tc <- rnorm(30, 20, 5); ice <- 2 * tc + rnorm(30, 0, 6)   # synthetic
+round(c(original = cor(tc, ice), transformed = cor(32 + 1.8 * tc, -ice)), 3)
+@
+  \vfill\kthehu{pyetjeTrans}
+\end{frame}
+
+\begin{frame}[label=zgjR2]{Zgjidhja: Radha jote! ($r^2$)}
+  \begin{enumerate}
+    \item $0.58^2\approx0.336$: rreth 34\%.
+    \item $r=\sqrt{0.5}\approx0.707$.
+    \item $(0.6/0.3)^2=4$: katër herë më shumë variancë ($0.36$ kundrejt $0.09$).
+  \end{enumerate}
+  \vfill\kthehu{ushR2}
+\end{frame}
+
+\begin{frame}[label=zgjGab9]{Zgjidhja: Gjej gabimin (rreshtat e parë)}
+  \begin{enumerate}
+    \item \textbf{Korrelacion, jo shkakësi}: studentët zgjedhin vetë ku ulen.
+    \item \textbf{Variabël e tretë}: motivimi ose interesi mund të shkaktojë edhe uljen përpara, edhe notat e larta.
+    \item \textbf{Madhësia}: $r=0.4$ $\Rightarrow$ $r^2=0.16$; edhe sikur të ishte shkakësor, efekti do të ishte i kufizuar.
+    \item Për ta provuar: eksperiment me caktim të rastësishëm të vendeve.
+  \end{enumerate}
+  \vfill\kthehu{gjejGab9}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjOut3]{Zgjidhja: Ndrysho parametrin (pika me levë)}
+<<sol-out3>>=
+set.seed(2026)
+x0 <- rnorm(20); y0 <- rnorm(20)
+r_point <- function(px, py) cor(c(x0, px), c(y0, py))
+round(c("(8,8)" = r_point(8, 8), "(8,-8)" = r_point(8, -8),
+        "(8,0)" = r_point(8, 0), "(0,8)" = r_point(0, 8)), 3)
+@
+  \begin{itemize}
+    \item $(8,-8)$ krijon korrelacion të fortë negativ. $(8,0)$ dhe $(0,8)$ e ndryshojnë pak: ndikimi më i madh vjen kur pika është ekstreme \emph{njëherësh} në $x$ dhe në $y$.
+  \end{itemize}
+  \vfill\kthehu{ushOut}
+\end{frame}
+
+\begin{frame}[label=zgjCp32]{Përgjigjet: Checkpoint i Orës 2}
+  \begin{enumerate}
+    \item $r=\frac{1}{n-1}\sum z_{x,i}z_{y,i}$, me $z_{x,i}=(x_i-\bar x)/s_x$.
+    \item Transformim linear me $b>0$: $\operatorname{sign}(b)=+1$, prandaj $r$ nuk ndryshon.
+    \item Pika me levë, agregimi i të dhënave, variabla e tretë (ngatërruese).
+  \end{enumerate}
+  \vfill\kthehu{cp32}
+\end{frame}
