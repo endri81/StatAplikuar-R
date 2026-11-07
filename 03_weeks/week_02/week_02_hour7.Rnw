@@ -1,0 +1,362 @@
+% ============================================================
+%  Java 2 · Ora 7 — Konsolidimi
+%  Rezultatet: K1, S1, S4
+% ============================================================
+
+\section{Konsolidimi}
+
+\begin{frame}{Ora 7: Konsolidimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuizi në stilin e provimit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuizi: si funksionon}
+  \begin{itemize}
+    \item<1-> Si në provim: \textbf{25\% teori, 75\% ushtrime}; 3 pyetje teorike (25 pikë) + 7 ushtrime (75 pikë).
+    \item<2-> Koha: 45 minuta. Ushtrimet 1--5 bëhen pa ndihmën e PC.
+    \item<3-> Ushtrimet 1--4 përdorin të njëjtat të dhëna: $x=(4,\ 6,\ 6,\ 8,\ 26)$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Shkruani çdo hap: në provim pikët jepen edhe për hapat e ndërmjetëm.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=q2T1]{Teori 1 (8 pikë)}
+  \begin{Ushtrim}[(Teori 1)]
+    \begin{enumerate}
+      \item Pse statistika zyrtare raporton medianën e të ardhurave dhe jo mesataren?
+      \item Përkufizoni pikën e prishjes. Sa është ajo për mesataren dhe për medianën?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s2T1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q2T2]{Teori 2 (8 pikë)}
+  \begin{Ushtrim}[(Teori 2)]
+    Për secilën variabël, jepni shkallën e matjes dhe një masë qendre të lejuar:
+    \begin{enumerate}
+      \item qyteti i lindjes;
+      \item kategoria e hotelit (1--5 yje);
+      \item temperatura në °C;
+      \item të ardhurat mujore në lekë.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s2T2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q2T3]{Teori 3 (9 pikë)}
+  \begin{Ushtrim}[(Teori 3)]
+    \begin{enumerate}
+      \item Shkruani formulat e $g_1$ dhe $g_2$ (kurtoza e tepërt).
+      \item Çfarë do të thotë $g_2=0$? Po $g_2>0$?
+      \item Shpjegoni efektin e maskimit te rregulli $|z|>3$.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s2T3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q2E1]{Ushtrimi 1 (10 pikë): qendra}
+  \begin{Ushtrim}[(Ushtrimi 1, pa ndihmën e PC)]
+    Për $x=(4,\ 6,\ 6,\ 8,\ 26)$ llogaritni:
+    \begin{enumerate}
+      \item mesataren, medianën dhe modën;
+      \item mesataren e prerë 20\%;
+      \item gjerësinë.
+    \end{enumerate}
+    Cila masë qendre e përshkruan më mirë ``vlerën tipike''? Pse?
+  \end{Ushtrim}
+  \shkoTe{s2E1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q2E2]{Ushtrimi 2 (10 pikë): shpërndarja}
+  \begin{Ushtrim}[(Ushtrimi 2, pa ndihmën e PC)]
+    Për të njëjtin $x$:
+    \begin{enumerate}
+      \item llogaritni $s^2$ dhe $s$;
+      \item llogaritni MAD-in e pashkallëzuar dhe të shkallëzuarin (1.4826);
+      \item me $Q_1=6$ dhe $Q_3=8$ (tipi 7), sa është IQR?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s2E2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q2E3]{Ushtrimi 3 (10 pikë): vlerat e skajshme}
+  \begin{Ushtrim}[(Ushtrimi 3, pa ndihmën e PC)]
+    A shënohet vlera 26 si e skajshme nga:
+    \begin{enumerate}
+      \item rregulli $|z|>3$?
+      \item rregulli i qëndrueshëm $|x-\tilde x|/\mathrm{MAD}>3$?
+      \item gardhet e Tukey-t me $k=1.5$?
+    \end{enumerate}
+    Shpjegoni pse përgjigjet ndryshojnë.
+  \end{Ushtrim}
+  \shkoTe{s2E3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q2E4]{Ushtrimi 4 (10 pikë): anshmëria}
+  \begin{Ushtrim}[(Ushtrimi 4, pa ndihmën e PC)]
+    Për të njëjtin $x$:
+    \begin{enumerate}
+      \item llogaritni $m_2$ dhe $m_3$ (emëruesi $n$);
+      \item llogaritni $g_1$ (ndihmë: $65.6^{1.5}\approx531.3$);
+      \item a përputhet shenja me renditjen e mesatares dhe medianës?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s2E4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q2E5]{Ushtrimi 5 (10 pikë): kuantilet}
+  \begin{Ushtrim}[(Ushtrimi 5, pa ndihmën e PC)]
+    Për $1,2,\dots,10$:
+    \begin{enumerate}
+      \item llogaritni $Q_1$ me tipin 7 ($h=1+(n-1)p$);
+      \item llogaritni $Q_1$ me tipin 6 ($h=(n+1)p$);
+      \item llogaritni nyjen e poshtme të Tukey-t, si në \texttt{fivenum()}.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s2E5}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q2E6]{Ushtrimi 6 (10 pikë): kodi R}
+  \begin{Ushtrim}[(Ushtrimi 6)]
+    Shkruani funksionin \texttt{robust\_summary(v)} që kthen vektorin me emra:
+    \texttt{n}, \texttt{median}, \texttt{IQR}, \texttt{MAD} (i shkallëzuar), dhe \texttt{pct\_out}: përqindja e vlerave jashtë gardheve të Tukey-t.
+    Zbatojeni te \texttt{MASS::Boston\$medv} dhe \texttt{MASS::Boston\$rm}.
+  \end{Ushtrim}
+  \shkoTe{s2E6}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q2E7]{Ushtrimi 7 (15 pikë): interpretimi i EDA-s}
+  \begin{Ushtrim}[(Ushtrimi 7)]
+    Për të ardhurat vjetore \texttt{Income} (mijë \$) të 400 klientëve:
+    $\bar x=45.22$, \ $\tilde x=33.12$, \ $s=35.24$, \ $g_1=1.74$; Tukey shënon 29 vlera; Q--Q plot-i është konveks.
+    Në shkallë log: $g_1=0.31$, \ $\exp(\overline{\log x})=35.28$.
+    \begin{enumerate}
+      \item Përshkruani formën dhe shpjegoni çdo tregues që e mbështet.
+      \item Cilat masa do të raportonit? Pse?
+      \item A janë 29 vlerat gabime? Çfarë do të bënit me to?
+      \item Çfarë është 35.28 dhe pse është afër medianës?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s2E7}{Zgjidhja}
+\end{frame}
+
+\begin{frame}{Tabela e pikëve}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Pjesa & Pyetjet & Pikët \\ \midrule
+    Teori (25\%) & T1, T2, T3 & 8 + 8 + 9 = 25 \\
+    Ushtrime (75\%) & U1--U6 & $6\times10=60$ \\
+     & U7 & 15 \\ \midrule
+    Gjithsej & 10 & 100 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Nën 50 pikë: përsëritni Orët 2 dhe 4 para Javës 3.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ushtrime për shtëpi}
+% ------------------------------------------------------------
+
+\begin{frame}[label=h2H1]{Ushtrime për shtëpi 1--2}
+  \begin{Ushtrim}[(Shtëpi 1: zerot)]
+    Te \texttt{Credit.csv}, llogaritni përqindjen e klientëve me \texttt{Balance = 0} dhe medianën e \texttt{Balance} te ata me borxh. Vizatoni ECDF-në.
+  \end{Ushtrim}
+  \shkoTe{s2H1}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 2: shkalla)]
+    Llogaritni anshmërinë e \texttt{mpg} të \texttt{Auto} në shkallë origjinale dhe log. Cila është më afër simetrisë?
+  \end{Ushtrim}
+  \shkoTe{s2H2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=h2H3]{Ushtrime për shtëpi 3--4}
+  \begin{Ushtrim}[(Shtëpi 3: simulim)]
+    Me \texttt{set.seed(2026)}, merrni 200 vlera nga $\text{Exp}(\lambda=0.5)$. Ndërtoni tabelën vlerësim kundrejt së vërtetës për mesataren (2), medianën ($2\ln2$) dhe anshmërinë (2).
+  \end{Ushtrim}
+  \shkoTe{s2H3}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 4: tri rregulla)]
+    Zbatoni rregullat Tukey, $z$ dhe $z$ i qëndrueshëm te \texttt{MASS::Boston\$rm}. Pse rregulli $z$ shënon më pak?
+  \end{Ushtrim}
+  \shkoTe{s2H4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=h2H5]{Ushtrime për shtëpi 5--6}
+  \begin{Ushtrim}[(Shtëpi 5: funksion)]
+    Shkruani \texttt{my\_trimmed\_mean(v, alpha)} me \texttt{sort()} dhe \texttt{floor()}. Testojeni kundrejt \texttt{mean(v, trim = alpha)} me 500 vektorë të rastit.
+  \end{Ushtrim}
+  \shkoTe{s2H5}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 6: koha)]
+    Te \texttt{Wage}, llogaritni medianën e pagës për çdo vit 2003--2009 dhe vizatojeni. Përshkruani prirjen me dy fjali.
+  \end{Ushtrim}
+  \shkoTe{s2H6}{Zgjidhja}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gabimet e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet e zakonshme: zgjedhja e masës}
+  \begin{Gabim}[--- masat]
+    \begin{itemize}
+      \item Mesatarja për të dhëna shumë të anuara (pagat, çmimet, \texttt{crim}).
+      \item Mesatarja e kodeve rendore ose nominale (\texttt{education}, \texttt{rad}).
+      \item ``Masat e qëndrueshme janë gjithmonë më të mira'': jo për të dhëna të pastra normale.
+      \item CV për variabla pa zero të vërtetë (temperatura në °C).
+    \end{itemize}
+  \end{Gabim}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: llogaritja}
+  \begin{Gabim}[--- llogaritja]
+    \begin{itemize}
+      \item \texttt{mode()} në vend të modës statistikore.
+      \item Formula me një kalim për variancën me numra të mëdhenj.
+      \item \texttt{1:length(v)} në vend të \texttt{seq\_along(v)}.
+      \item Krahasimi i numrave me presje me \texttt{==}.
+      \item \texttt{rbind()} i tabelave me kategori të ndryshme: R i përsërit vlerat pa paralajmërim të qartë.
+    \end{itemize}
+  \end{Gabim}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: forma dhe vlerat e skajshme}
+  \begin{Gabim}[--- forma]
+    \begin{itemize}
+      \item Kurtoza si ``mprehtësi e majës''; ngatërrimi i kurtozës me kurtozën e tepërt.
+      \item Përfundime nga $g_1$ me $n$ të vogël.
+      \item Fshirja automatike e vlerave të skajshme; vlera të skajshme ``të rreme'' në shkallë të gabuar.
+      \item Kthimi i $\overline{\log x}$ si të ishte mesatare aritmetike.
+      \item Mosvënia re e kufizimit nga lart (\texttt{medv = 50}).
+    \end{itemize}
+  \end{Gabim}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit e një EDA-je}
+  \begin{enumerate}
+    \item<1-> Burimi, $n$, njësitë, shkalla e çdo variabli.
+    \item<2-> Mungesat, kodet speciale, kufizimet, boshllëqet.
+    \item<3-> Qendra dhe shpërndarja: klasike dhe e qëndrueshme.
+    \item<4-> Forma: histogram + dendësi, Q--Q plot, $g_1$.
+    \item<5-> Vlerat e skajshme me më shumë se një rregull, në shkallën e duhur.
+    \item<6-> Grupet: tabela me $n$; lidhjet: grafikë shpërndarjeje.
+    \item<7-> Kufizimet.
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fletë-kujtesa}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë-kujtesa 1: qendra dhe shpërndarja}
+  \footnotesize
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Masa & Formula & R \\ \midrule
+    Mesatarja & $\frac1n\sum x_i$ & \Rkey{mean(x)} \\
+    Mesatarja e prerë & hiq $\lfloor n\alpha\rfloor$ nga çdo skaj & \Rkey{mean(x, trim = 0.1)} \\
+    Mediana & $x_{((n+1)/2)}$ ose mesatarja e dy të mesmeve & \Rkey{median(x)} \\
+    Moda & vlera më e shpeshtë & \Rkey{names(which.max(table(x)))} \\
+    Varianca, $s$ & $\frac{1}{n-1}\sum(x_i-\bar x)^2$ & \Rkey{var(x)}, \Rkey{sd(x)} \\
+    IQR & $Q_3-Q_1$ & \Rkey{IQR(x)} \\
+    MAD & $1.4826\cdot\operatorname{med}|x_i-\tilde x|$ & \Rkey{mad(x)} \\
+    CV & $100\,s/\bar x$ & \texttt{100 * sd(x) / mean(x)} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 2: kuantilet dhe forma}
+  \footnotesize
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & R \\ \midrule
+    Kuantilet (tipi 7) & \Rkey{quantile(x, probs, type = 7)} \\
+    Pesë numrat & \Rkey{fivenum(x)}, \Rkey{summary(x)} \\
+    ECDF & \Rkey{ecdf(x)}, \Rkey{stat\_ecdf()} \\
+    Anshmëria, kurtoza e tepërt & \Rkey{e1071::skewness(x, type = 1)}, \Rkey{e1071::kurtosis(x, type = 1)} \\
+    Përshkrim i plotë & \Rkey{psych::describe()} \\
+    Box-Cox & \Rkey{MASS::boxcox(lm(y \textasciitilde{} 1))} \\
+    Shndërrime & \Rkey{log()}, \Rkey{log1p()}, \Rkey{sqrt()} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 3: grafikët e EDA-s}
+  \footnotesize
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Grafiku & ggplot2 / R bazë \\ \midrule
+    Histogram + dendësi & \Rkey{geom\_histogram(aes(y = after\_stat(density)))} + \Rkey{geom\_density()} \\
+    Gjerësia e brezit & \Rkey{bw.nrd0()}, \texttt{geom\_density(adjust = )} \\
+    Violin + box & \Rkey{geom\_violin()} + \Rkey{geom\_boxplot(width = 0.12)} \\
+    ECDF sipas grupit & \Rkey{stat\_ecdf(aes(colour = g))} \\
+    Q--Q plot & \Rkey{qqnorm()}, \Rkey{qqline()}, \Rkey{stat\_qq()} \\
+    Matrica & \Rkey{pairs()}, \Rkey{psych::pairs.panels()} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pamje e Javës 3}
+% ------------------------------------------------------------
+
+\begin{frame}{Java 3: korrelacioni dhe bashkëshoqërimet \LO{K1}}
+  \begin{itemize}
+    \item<1-> Kovarianca dhe korrelacioni i Pearson-it: përkufizimi dhe vetitë.
+    \item<2-> Spearman dhe Kendall: korrelacioni i renditjeve, i qëndrueshëm ndaj vlerave të skajshme.
+    \item<3-> Matrica e korrelacionit dhe testet e rëndësisë.
+    \item<4-> Kurthet: lidhje jolineare, vlera të skajshme, paradoksi i Simpson-it.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Java 3: si lidhet me sot}
+  \begin{itemize}
+    \item<1-> Pamë që logaritmi e rrit $|r|$ për \texttt{medv}--\texttt{lstat}: Pearson mat vetëm lidhjen lineare.
+    \item<2-> Mediana kundrejt mesatares $\leftrightarrow$ Spearman kundrejt Pearson-it.
+    \item<3-> \texttt{pairs.panels()} na tregoi matricën e korrelacionit: e ndërtojmë nga zero.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Para Javës 3}
+  \begin{enumerate}
+    \item Zgjidhni 6 ushtrimet për shtëpi.
+    \item Instaloni paketat: \texttt{corrplot}, \texttt{GGally}.
+    \item Rilexoni nga libri i kursit (Raço et al.\ 2021) kapitullin mbi kovariancën dhe korrelacionin.
+    \item Ide për detyrën: zgjidhni një tabelë me të paktën 5 variabla sasiore dhe bëni EDA-n sipas listës së kontrollit.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Burime}
+  \footnotesize
+  \begin{itemize}
+    \item E.~Raço, E.~Llagami, K.~Haxhi, O.~Zaçaj, \emph{Teoria e Probabilitetit dhe Statistika Matematike me ilustrime në gjuhën R}, Kotti, 2021.
+    \item G.~James, D.~Witten, T.~Hastie, R.~Tibshirani, \emph{An Introduction to Statistical Learning}, Springer; \url{https://www.statlearning.com}.
+    \item N.~Lo, \emph{DS612 Data Mining with Business Applications (R)}, \url{https://github.com/NormanLo4319/DS612_Data_Mining_with_Business_Applications_R} (licencë MIT). Ora 3 bazohet te \texttt{DS612\_R-Code\_Lecture\_2.R}, i rishkruar.
+    \item R.~J.~Hyndman, Y.~Fan (1996), Sample quantiles in statistical packages, \emph{The American Statistician} 50(4).
+    \item D.~Harrison, D.~L.~Rubinfeld (1978), Hedonic prices and the demand for clean air, \emph{J.\ Environmental Economics and Management} 5.
+    \item Të dhënat: \texttt{Wage}, \texttt{Credit}, \texttt{Auto} (ISLR, nëpërmjet repo-s DS612); \texttt{MASS::Boston}; \texttt{general\_heights.csv} (repo DS612, burim i padokumentuar).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp27]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 7}
+  \begin{enumerate}
+    \item Cilat tri masa do të raportonit për një variabël të anuar djathtas?
+    \item Si e dalloni një variabël të kufizuar nga lart?
+    \item Pse duhen të paktën dy rregulla për vlerat e skajshme?
+  \end{enumerate}
+  \shkoTe{zgjCp27}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje e Javës 2}
+  \begin{itemize}
+    \item Ora 1: ``tipike'' ka disa kuptime; shkallët e matjes; ECDF dhe kuantilet.
+    \item Ora 2: qendra, shpërndarja, pika e prishjes, 9 tipat e kuantileve.
+    \item Ora 3: të gjitha nga zero në R, me testim të rastësishëm.
+    \item Ora 4: anshmëria, kurtoza, shndërrimet, vlerat e skajshme, Box-Cox.
+    \item Ora 5--6: EDA me paketa; rastet \texttt{Boston} dhe \texttt{Wage}.
+  \end{itemize}
+  \begin{Keshille}Shihemi në Javën 3: korrelacioni.\end{Keshille}
+\end{frame}

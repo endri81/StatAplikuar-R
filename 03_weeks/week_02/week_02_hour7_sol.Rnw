@@ -1,0 +1,210 @@
+% ============================================================
+%  Java 2 · Ora 7 — Zgjidhjet e kuizit dhe të ushtrimeve
+% ============================================================
+
+\begin{frame}[label=s2T1]{Zgjidhja: Teori 1}
+  \begin{enumerate}
+    \item Të ardhurat janë të anuara djathtas; pak të ardhura shumë të larta e ngrenë mesataren, ndërsa mediana përfaqëson ``familjen në mes''. (4 pikë)
+    \item Pika e prishjes: pjesa më e vogël e të dhënave që, e ndryshuar arbitrarisht, e bën vlerësuesin arbitrarisht të madh. Mesatarja $1/n\to0\%$; mediana 50\%. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q2T1}
+\end{frame}
+
+\begin{frame}[label=s2T2]{Zgjidhja: Teori 2}
+  \begin{enumerate}
+    \item Qyteti i lindjes: nominale; moda. (2 pikë)
+    \item Kategoria e hotelit: rendore; mediana ose moda. (2 pikë)
+    \item Temperatura në °C: intervalore; mesatarja (CV jo). (2 pikë)
+    \item Të ardhurat: raporti; mesatarja ose mediana (zakonisht mediana, sepse janë të anuara). (2 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q2T2}
+\end{frame}
+
+\begin{frame}[label=s2T3]{Zgjidhja: Teori 3}
+  \begin{enumerate}
+    \item $g_1=m_3/m_2^{3/2}$, \ $g_2=m_4/m_2^2-3$, me $m_k=\frac1n\sum(x_i-\bar x)^k$. (3 pikë)
+    \item $g_2=0$: bishtat si të normales. $g_2>0$: bishta më të rëndë, më shumë vlera ekstreme. (3 pikë)
+    \item Vlera e skajshme fryn $\bar x$ dhe sidomos $s$; $z$ i saj zvogëlohet dhe mund të mbetet nën 3. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q2T3}
+\end{frame}
+
+\begin{frame}[label=s2E1]{Zgjidhja: Ushtrimi 1}
+  $x=(4,6,6,8,26)$:
+  \begin{enumerate}
+    \item Mesatarja $50/5=10$; mediana $x_{(3)}=6$; moda 6. (4 pikë)
+    \item $\lfloor5\cdot0.2\rfloor=1$: hiq 4 dhe 26; $(6+6+8)/3\approx6.667$. (3 pikë)
+    \item Gjerësia $26-4=22$. (1 pikë)
+  \end{enumerate}
+  \begin{itemize}
+    \item Mediana (ose mesatarja e prerë): 4 nga 5 vlera janë nën mesataren 10. (2 pikë)
+  \end{itemize}
+  \vfill\kthehu{q2E1}
+\end{frame}
+
+\begin{frame}[label=s2E2]{Zgjidhja: Ushtrimi 2}
+  \begin{enumerate}
+    \item Devijimet: $-6,-4,-4,-2,16$; katrorët $36+16+16+4+256=328$; \ $s^2=328/4=82$; \ $s=\sqrt{82}\approx9.055$. (4 pikë)
+    \item $|x_i-6|$: $2,0,0,2,20$ $\to$ $0,0,2,2,20$; MAD $=2$; i shkallëzuar $2\cdot1.4826=2.965$. (4 pikë)
+    \item IQR $=8-6=2$. (2 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q2E2}
+\end{frame}
+
+\begin{frame}[label=s2E3]{Zgjidhja: Ushtrimi 3}
+  \begin{enumerate}
+    \item $z=(26-10)/9.055\approx1.77<3$: \textbf{jo}. (3 pikë)
+    \item $(26-6)/2.965\approx6.74>3$: \textbf{po}. (3 pikë)
+    \item Gardhi i sipërm $8+1.5\cdot2=11<26$: \textbf{po}. (2 pikë)
+  \end{enumerate}
+  \begin{itemize}
+    \item Rregulli $z$ përdor $\bar x$ dhe $s$, që i fryn vetë 26-a (maskim). (2 pikë)
+  \end{itemize}
+  \vfill\kthehu{q2E3}
+\end{frame}
+
+\begin{frame}[label=s2E4]{Zgjidhja: Ushtrimi 4}
+  \begin{enumerate}
+    \item $m_2=328/5=65.6$; \ $m_3=(-216-64-64-8+4096)/5=3744/5=748.8$. (5 pikë)
+    \item $g_1=748.8/531.3\approx1.409$. (3 pikë)
+    \item Po: $g_1>0$ dhe mesatarja (10) $>$ mediana (6). (2 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q2E4}
+\end{frame}
+
+\begin{frame}[fragile]{Zgjidhja: Ushtrimet 1--4, kontrolli me R}
+<<s2-check>>=
+x <- c(4, 6, 6, 8, 26)
+round(c(mean = mean(x), median = median(x), trim20 = mean(x, trim = 0.2),
+        var = var(x), sd = sd(x), mad = mad(x), IQR = IQR(x),
+        z26 = (26 - mean(x)) / sd(x), rz26 = (26 - median(x)) / mad(x),
+        g1 = e1071::skewness(x, type = 1)), 3)
+@
+  \vfill\kthehu{q2E1}
+\end{frame}
+
+\begin{frame}[fragile,label=s2E5]{Zgjidhja: Ushtrimi 5}
+  \begin{enumerate}
+    \item Tipi 7: $h=1+9\cdot0.25=3.25$ $\Rightarrow$ $3+0.25=3.25$. (4 pikë)
+    \item Tipi 6: $h=11\cdot0.25=2.75$ $\Rightarrow$ $2+0.75=2.75$. (4 pikë)
+    \item Gjysma e poshtme $1,\dots,5$; mediana $=3$. (2 pikë)
+  \end{enumerate}
+<<s2-e5>>=
+c(quantile(1:10, 0.25, type = 7), quantile(1:10, 0.25, type = 6), fivenum(1:10)[2])
+@
+  \vfill\kthehu{q2E5}
+\end{frame}
+
+\begin{frame}[fragile,label=s2E6]{Zgjidhja: Ushtrimi 6}
+<<s2-e6>>=
+robust_summary <- function(v) {
+  q <- quantile(v, c(0.25, 0.75)); iqr <- q[2] - q[1]
+  out <- v < q[1] - 1.5 * iqr | v > q[2] + 1.5 * iqr
+  c(n = length(v), median = median(v), IQR = unname(iqr),
+    MAD = mad(v), pct_out = 100 * mean(out))
+}
+round(rbind(medv = robust_summary(MASS::Boston$medv),
+            rm   = robust_summary(MASS::Boston$rm)), 2)
+@
+  \begin{itemize}
+    \item 2 pikë për çdo element të saktë të vektorit.
+  \end{itemize}
+  \vfill\kthehu{q2E6}
+\end{frame}
+
+\begin{frame}[label=s2E7]{Zgjidhja: Ushtrimi 7}
+  \footnotesize
+  \begin{enumerate}
+    \item E anuar djathtas: $\bar x>\tilde x$, $g_1=1.74>0$, 29 vlera të larta të shënuara, Q--Q konveks. (4 pikë)
+    \item Mediana dhe IQR (ose MAD); ose mesatarja dhe $s$ në shkallë log. (4 pikë)
+    \item Me shumë gjasa jo: të ardhurat e larta janë reale. Kontrollo burimin, mbaji, përdor masa të qëndrueshme ose shkallë log; raporto me dhe pa to. (4 pikë)
+    \item Mesatarja gjeometrike. Në shkallë log shpërndarja është gati simetrike, ndaj mesatarja e log $\approx$ mediana e log; kthimi jep vlerë afër medianës. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q2E7}
+\end{frame}
+
+\begin{frame}[fragile,label=s2H1]{Zgjidhja: Shtëpi 1}
+<<s2-h1, fig.show='hide'>>=
+cr <- read.csv(file.path(W02DATA, "Credit.csv"))
+round(c(pct_zero = 100 * mean(cr$Balance == 0),
+        median_positive = median(cr$Balance[cr$Balance > 0])), 1)
+plot(ecdf(cr$Balance))
+@
+  \begin{itemize}
+    \item 22.5\% pa borxh; mediana te të tjerët është 637.5 \$.
+  \end{itemize}
+  \vfill\kthehu{h2H1}
+\end{frame}
+
+\begin{frame}[fragile,label=s2H2]{Zgjidhja: Shtëpi 2}
+<<s2-h2>>=
+au <- na.omit(read.csv(file.path(W02DATA, "Auto.csv"), na.strings = "?"))
+round(c(mpg = e1071::skewness(au$mpg, type = 1),
+        log_mpg = e1071::skewness(log(au$mpg), type = 1)), 3)
+@
+  \begin{itemize}
+    \item Në shkallë log, anshmëria është më afër 0 (pak negative).
+  \end{itemize}
+  \vfill\kthehu{h2H1}
+\end{frame}
+
+\begin{frame}[fragile,label=s2H3]{Zgjidhja: Shtëpi 3}
+<<s2-h3>>=
+set.seed(2026)
+e <- rexp(200, rate = 0.5)
+round(rbind(truth = c(mean = 2, median = 2 * log(2), skew = 2),
+            estimate = c(mean(e), median(e), e1071::skewness(e, type = 1))), 3)
+@
+  \begin{itemize}
+    \item Me $n=200$, mesatarja dhe mediana vlerësohen mirë; anshmëria më pak.
+  \end{itemize}
+  \vfill\kthehu{h2H3}
+\end{frame}
+
+\begin{frame}[fragile,label=s2H4]{Zgjidhja: Shtëpi 4}
+<<s2-h4>>=
+r <- MASS::Boston$rm
+q <- quantile(r, c(0.25, 0.75)); iqr <- diff(q)
+c(tukey = sum(r < q[1] - 1.5 * iqr | r > q[2] + 1.5 * iqr),
+  z = sum(abs(scale(r)) > 3),
+  robust = sum(abs((r - median(r)) / mad(r)) > 3))
+@
+  \begin{itemize}
+    \item Vlerat ekstreme të \texttt{rm} në të dy skajet fryjnë $s$: maskim.
+  \end{itemize}
+  \vfill\kthehu{h2H3}
+\end{frame}
+
+\begin{frame}[fragile,label=s2H5]{Zgjidhja: Shtëpi 5}
+<<s2-h5>>=
+my_trimmed_mean <- function(v, alpha) {
+  s <- sort(v); n <- length(s); k <- floor(n * alpha)
+  mean(s[(k + 1):(n - k)])
+}
+set.seed(2026)
+all(replicate(500, { v <- rexp(sample(5:60, 1)); a <- runif(1, 0, 0.4)
+  isTRUE(all.equal(my_trimmed_mean(v, a), mean(v, trim = a))) }))
+@
+  \vfill\kthehu{h2H5}
+\end{frame}
+
+\begin{frame}[fragile,label=s2H6]{Zgjidhja: Shtëpi 6}
+<<s2-h6>>=
+wy <- read.csv(file.path(W02DATA, "Wage.csv"))
+round(tapply(wy$wage, wy$year, median), 1)
+@
+  \begin{itemize}
+    \item Mediana rritet nga rreth 100 në 110 mijë \$ gjatë 2003--2009, jo në mënyrë monotone.
+    \item Nëse pagat janë nominale (pa korrigjim për inflacionin), rritja reale është më e vogël: kontrollo dokumentacionin.
+  \end{itemize}
+  \vfill\kthehu{h2H5}
+\end{frame}
+
+\begin{frame}[label=zgjCp27]{Përgjigjet: Checkpoint i Orës 7}
+  \begin{enumerate}
+    \item Mediana, IQR ose MAD, dhe një masë e formës ($g_1$); ose mesatarja dhe $s$ në shkallë log.
+    \item Shumë vlera saktësisht te maksimumi dhe asnjë vlerë afër tij.
+    \item Rregullat ndryshojnë në ndjeshmëri (p.sh.\ maskimi i rregullit $z$); dakordësia e tyre e forcon përfundimin.
+  \end{enumerate}
+  \vfill\kthehu{cp27}
+\end{frame}
