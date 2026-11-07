@@ -1,0 +1,70 @@
+% ============================================================
+%  Java 3 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjOne]{Zgjidhja: Parashiko (testi i njëanshëm)}
+<<sol-one>>=
+adv <- read.csv(file.path(W03DATA, "Advertising.csv"))[, -1]
+sapply(c("two.sided", "greater", "less"), function(a)
+  cor.test(adv$newspaper, adv$sales, alternative = a)$p.value)
+@
+  \begin{itemize}
+    \item \texttt{"greater"}: gjysma e vlerës së dyanshme, sepse $r>0$.
+    \item \texttt{"less"}: $1-p/2$, pothuajse 1: të dhënat shkojnë në drejtimin e kundërt me $H_1$.
+  \end{itemize}
+  \vfill\kthehu{pyetjeOne}
+\end{frame}
+
+\begin{frame}[label=zgjGab11]{Zgjidhja: Gjej gabimin (cikli i repo-s)}
+  \begin{enumerate}
+    \item \texttt{attach(Credit)}: kopjon kolonat në hapësirën e kërkimit; ndryshimet e mëvonshme në \texttt{Credit} nuk shihen. Përdor \texttt{credit\$Balance} ose \texttt{with()}.
+    \item Kolonat cilësore japin gabim $\to$ \texttt{"NA"} (tekst): i gjithë vektori \texttt{corr} kthehet në \texttt{character}; s'mund ta renditësh numerikisht.
+    \item \texttt{i = 12} është vetë \texttt{Balance}: $r=1$, rezultat pa vlerë.
+    \item Gabimet fshihen nga \texttt{tryCatch}; emrat e variablave humbasin. Kolona e etnisë përfshihet pa u menduar.
+  \end{enumerate}
+  \vfill\kthehu{gjejGab11}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjAdj]{Zgjidhja: Ndrysho parametrin (simulimi me korrigjim)}
+<<sol-adj>>=
+library(corrplot)
+set.seed(2026)
+any_sig <- replicate(1000, {
+  p <- cor.mtest(matrix(rnorm(100 * 7), ncol = 7))$p[upper.tri(diag(7))]
+  c(raw = any(p < 0.05), holm = any(p.adjust(p, "holm") < 0.05),
+    BH = any(p.adjust(p, "BH") < 0.05))
+})
+rowMeans(any_sig)
+@
+  \begin{itemize}
+    \item Holm e kthen gabimin familjar afër 5\%.
+    \item Kur të gjitha $H_0$ janë të vërteta, FDR = FWER: BH jep gati të njëjtën gjë.
+  \end{itemize}
+  \vfill\kthehu{ushAdj}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjBoston3]{Zgjidhja: Radha jote! (\texttt{Boston}, Spearman)}
+<<sol-boston, fig.show='hide'>>=
+library(MASS)
+v  <- c("medv", "crim", "rm", "lstat", "nox", "dis")   # race column excluded
+Rs <- cor(Boston[, v], method = "spearman")
+corrplot(Rs, type = "upper", tl.col = "black")
+pm <- cor.mtest(Boston[, v], method = "spearman", exact = FALSE)$p
+p  <- pm[upper.tri(pm)]
+c(raw = sum(p < 0.05), holm = sum(p.adjust(p, "holm") < 0.05))
+round(Rs["nox", "dis"], 2)
+@
+  \begin{itemize}
+    \item Të 15 çiftet mbijetojnë: me $n=506$ edhe $|r_s|\approx0.26$ është i rëndësishëm. Çifti më i fortë jashtë \texttt{medv}: \texttt{nox}--\texttt{dis}.
+  \end{itemize}
+  \vfill\kthehu{ushBoston3}
+\end{frame}
+
+\begin{frame}[label=zgjCp35]{Përgjigjet: Checkpoint Ora 5}
+  \begin{enumerate}
+    \item Vlerën $r$, intervalin e besimit, $n$ dhe metodën (Pearson/Spearman/Kendall).
+    \item Dy parashikues pothuajse identikë: koeficientët e regresionit bëhen të paqëndrueshëm dhe gabimet standarde fryhen (multikolinearitet).
+    \item Holm kontrollon të njëjtin FWER, por hedh poshtë të paktën po aq hipoteza sa Bonferroni.
+  \end{enumerate}
+  \vfill\kthehu{cp35}
+\end{frame}

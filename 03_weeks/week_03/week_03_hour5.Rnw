@@ -1,0 +1,359 @@
+% ============================================================
+%  Java 3 · Ora 5 — Laborator II: testet, matricat, krahasimet e shumëfishta
+%  Rezultatet: S4, S3, K1
+%  Burimi i kodit: DS612_R-Code_Linear_Regression.R (rreshtat 1-30), rishkruar
+% ============================================================
+
+\section{Laborator II}
+
+\begin{frame}{Ora 5: Laborator II --- testet dhe matricat}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\texttt{cor.test()} në praktikë}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Anatomia e \texttt{cor.test()} \LO{S4} \LO{S3}}
+<<cortest-tv>>=
+adv <- read.csv(file.path(W03DATA, "Advertising.csv"))[, -1]
+cor.test(adv$TV, adv$sales)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{t} dhe \texttt{df}: statistika $t=r\sqrt{n-2}/\sqrt{1-r^2}$ me $n-2=198$.
+    \item<2-> \texttt{p-value}: aq e vogël sa R shkruan \texttt{< 2.2e-16}: s'ka kuptim ta raportosh me më shumë shifra.
+    \item<3-> \texttt{95 percent confidence interval}: nga Fisher $z$.
+    \item<4-> Raportimi: ``$r=\Sexpr{fmt(cor(adv$TV, adv$sales), 2)}$, 95\% IB [\Sexpr{fmt(cor.test(adv$TV, adv$sales)$conf.int[1], 2)}, \Sexpr{fmt(cor.test(adv$TV, adv$sales)$conf.int[2], 2)}], $n=200$, $p<0.001$''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Tri metoda njëherësh}
+<<three-methods>>=
+methods <- c("pearson", "spearman", "kendall")
+res <- sapply(methods, function(m) {
+  ct <- cor.test(adv$newspaper, adv$sales, method = m, exact = FALSE)
+  c(estimate = unname(ct$estimate), p = ct$p.value)
+})
+round(res, 4)
+@
+  \begin{itemize}
+    \item \texttt{exact = FALSE}: me rangje të barabarta, vlera $p$ e saktë nuk llogaritet dot; R përdor përafrim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testi i njëanshëm}
+  \begin{itemize}
+    \item<1-> \texttt{alternative = "greater"}: $H_1:\rho>0$.
+    \item<2-> I justifikuar vetëm kur drejtimi është vendosur \textbf{para} se të shohim të dhënat, nga teoria.
+    \item<3-> Shembull: ``rritja e buxhetit të reklamës nuk mund t'i ulë shitjet''.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Të zgjedhësh testin e njëanshëm pasi ke parë që $r>0$, që vlera $p$ të dalë më e vogël. Kjo dyfishon realisht $\alpha$.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[label=pyetjeOne]{Parashiko!}
+  \begin{Parashiko}
+    Për gazetat ($r>0$), testi i dyanshëm Pearson jep $p=\Sexpr{fmt(cor.test(adv$newspaper, adv$sales)$p.value, 4)}$. Sa jep testi me \texttt{alternative = "greater"}? Po me \texttt{"less"}?
+  \end{Parashiko}
+  \shkoTe{zgjOne}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Cikli i repo-s: \texttt{Credit}}
+% ------------------------------------------------------------
+
+\begin{frame}{Të dhënat \texttt{Credit}}
+  \begin{itemize}
+    \item<1-> 400 klientë kartash krediti. Variabli kryesor: \texttt{Balance}, borxhi mesatar në kartë (\$).
+    \item<2-> Sasiore: \texttt{Income}, \texttt{Limit}, \texttt{Rating}, \texttt{Cards}, \texttt{Age}, \texttt{Education}.
+    \item<3-> Cilësore: \texttt{Gender}, \texttt{Student}, \texttt{Married}. Skedari ka edhe një kolonë etnie: nuk e përdorim.
+  \end{itemize}
+  \onslide<4->{\footnotesize\textcolor{gray}{Të dhëna: reale/simuluese të botuara te ISLR; skedari \texttt{Credit.csv} nga repo-ja DS612.}}
+\end{frame}
+
+\begin{frame}[fragile]{Kodi origjinal i repo-s}
+<<repo-original, eval=FALSE>>=
+Credit <- read.csv("Data/Textbook_Data/Credit.csv", header = TRUE, na.string = "?")
+attach(Credit)
+corr <- c()
+for (i in 2:12){
+  result <- tryCatch(cor(Balance, Credit[i]), error = function(e)
+    paste("NA"))
+  print(result)
+  corr <- append(corr, result)
+}
+corr
+@
+  \begin{itemize}
+    \item Ideja është e mirë: korrelacioni i \texttt{Balance} me çdo kolonë tjetër.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGab11]{Gjej gabimin!}
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Kodi i mëparshëm ekzekutohet pa ndalim, por ka të paktën \textbf{katër} probleme. Gjeji.\\[3pt]
+    Ndihmë: çfarë tipi merr vektori \texttt{corr} pasi i shtohet \texttt{"NA"}? Cila është kolona 12? Çfarë bën \texttt{attach()}?
+  \end{Ushtrim}
+  \shkoTe{zgjGab11}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Versioni i rishkruar}
+<<repo-rewritten>>=
+credit <- read.csv(file.path(W03DATA, "Credit.csv"))
+num <- c("Income", "Limit", "Rating", "Cards", "Age", "Education")
+r_bal <- sapply(credit[, num], function(v) cor(v, credit$Balance))
+round(sort(r_bal, decreasing = TRUE), 3)
+@
+  \begin{itemize}
+    \item Vetëm kolonat numerike, emrat ruhen, rezultati mbetet numerik dhe renditet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{Rating} (\Sexpr{fmt(r_bal["Rating"], 3)}) dhe \texttt{Limit} (\Sexpr{fmt(r_bal["Limit"], 3)}) lidhen fort me borxhin.
+    \item<2-> \texttt{Income}: lidhje mesatare (\Sexpr{fmt(r_bal["Income"], 3)}).
+    \item<3-> \texttt{Age} dhe \texttt{Education}: praktikisht 0.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Me teste dhe intervale}
+<<credit-tests>>=
+tab <- do.call(rbind, lapply(num, function(v) {
+  ct <- cor.test(credit[[v]], credit$Balance)
+  data.frame(var = v, r = ct$estimate, lo = ct$conf.int[1],
+             hi = ct$conf.int[2], p = ct$p.value)
+}))
+tab[, -1] <- round(tab[, -1], 4); rownames(tab) <- NULL
+tab[order(-tab$r), ]
+@
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{Limit} dhe \texttt{Rating}}
+<<limit-rating, fig.height=2.3>>=
+plot(credit$Limit, credit$Rating, pch = 19, col = "#2C5AA066",
+     xlab = "Limit", ylab = "Rating")
+round(cor(credit$Limit, credit$Rating), 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $r=\Sexpr{fmt(cor(credit$Limit, credit$Rating), 4)}$: dy variablat mbartin pothuajse të njëjtin informacion.
+    \item<2-> Banka e cakton limitin kryesisht sipas vlerësimit të kredisë.
+    \item<3-> Në regresion, futja e të dyjave krijon \termi{multikolinearitet}{multicollinearity}: koeficientët bëhen të paqëndrueshëm (Java 7).
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Komenti në kodin e repo-s e vëren pikërisht këtë: shtimi i \texttt{Limit} pas \texttt{Rating} e rrit vlerën $p$ të \texttt{Rating} pa përmirësuar $R^2$.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Variabël me dy kategori: \texttt{Student}}
+<<point-biserial>>=
+student01 <- as.integer(credit$Student == "Yes")   # 1 = student
+cor.test(student01, credit$Balance)$estimate
+tapply(credit$Balance, credit$Student, mean)
+@
+  \begin{itemize}
+    \item Pearson me një variabël 0/1 quhet \termi{korrelacion pikë-biserial}{point-biserial}. Ekuivalent me krahasimin e dy mesatareve.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Studentët kanë borxh mesatar më të lartë.
+    \item<2-> Për variabla me 2 kategori, $r$ ka kuptim; shenja varet nga kodimi (0/1).
+    \item<3-> Për 3 ose më shumë kategori nominale (p.sh.\ \texttt{origin}), $r$ nuk ka kuptim: përdorim ANOVA-n (Java 4).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Vizualizimi i matricës}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Matrica e korrelacionit për \texttt{Credit}}
+<<credit-mat>>=
+vars <- c(num, "Balance")
+R <- cor(credit[, vars])
+round(R, 2)
+@
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{corrplot}}
+<<corrplot1, fig.height=3.3, fig.width=5, out.width="0.5\\textwidth">>=
+library(corrplot)
+corrplot(R, method = "ellipse", type = "upper", order = "hclust",
+         tl.col = "black", addCoef.col = "black", number.cex = 0.6)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Elipsa e ngushtë = korrelacion i fortë; drejtimi tregon shenjën.
+    \item<2-> \texttt{order = "hclust"} grupon variablat e ngjashme: \texttt{Limit}, \texttt{Rating}, \texttt{Balance}, \texttt{Income} dalin bashkë.
+    \item<3-> Një grafik zëvendëson një tabelë me 21 numra.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{GGally::ggpairs()}}
+<<ggpairs, fig.height=3.4, fig.width=6.5, out.width="0.56\\textwidth">>=
+library(GGally)
+ggpairs(credit[, c("Income", "Limit", "Age", "Balance")],
+        lower = list(continuous = wrap("points", alpha = 0.3, size = 0.5))) +
+  theme_minimal(base_size = 9)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Diagonalja: dendësia e çdo variabli. Poshtë: grafikët e shpërndarjes. Lart: $r$ me yje rëndësie.
+    \item<2-> \texttt{Balance}: shumë zero (si në Javën 2); lidhja me \texttt{Limit} ka një ``bërryl''.
+    \item<3-> Nën një limit të caktuar borxhi është 0: lidhja nuk është lineare në të gjithë gamën. $r$ e përmbledh vetëm pjesërisht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Fshehja e korrelacioneve jo të rëndësishme}
+<<corrplot-p, fig.height=3.1, fig.width=5, out.width="0.30\\textwidth">>=
+pm <- cor.mtest(credit[, vars], conf.level = 0.95)$p   # p-value matrix
+corrplot(R, type = "upper", p.mat = pm, sig.level = 0.05,
+         insig = "blank", tl.col = "black")
+@
+  \begin{Gabim}Pa korrigjim për 21 teste njëherësh (shiko më poshtë).\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Krahasimet e shumëfishta}
+% ------------------------------------------------------------
+
+\begin{frame}{Problemi: shumë teste, shumë ``zbulime''}
+  \begin{itemize}
+    \item<1-> Matrica me 7 variabla ka $\binom72=21$ çifte.
+    \item<2-> Nëse të gjitha $\rho=0$ dhe testet janë të pavarura, $P(\text{të paktën një } p<0.05)=1-0.95^{21}\approx\Sexpr{fmt(1 - 0.95^21, 2)}$.
+    \item<3-> Dy herë nga tre do të ``zbulonim'' një lidhje që nuk ekziston.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Simulimi: 7 variabla pa asnjë lidhje}
+<<multi-sim>>=
+set.seed(2026)
+false_pos <- replicate(1000, {
+  m <- matrix(rnorm(100 * 7), ncol = 7)          # independent: all rho = 0
+  p <- cor.mtest(m)$p
+  sum(p[upper.tri(p)] < 0.05)                     # "significant" pairs
+})
+c(mean_false_pos = mean(false_pos), share_at_least_one = mean(false_pos > 0))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mesatarisht \Sexpr{fmt(mean(false_pos), 2)} çifte ``të rëndësishme'' për çdo matricë, edhe pse asnjë lidhje s'ekziston.
+    \item<2-> Në \Sexpr{fmt(100 * mean(false_pos > 0), 0)}\% të matricave ka të paktën një ``zbulim''.
+  \end{itemize}
+  \onslide<3->{\begin{Gabim}Të raportosh vetëm çiftet me $p<0.05$ nga një matricë e madhe, pa korrigjim, quhet ``peshkim'' (\emph{fishing}).\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Tre korrigjime}
+  \footnotesize
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Metoda & Rregulli & Kontrollon \\ \midrule
+    Bonferroni & $p_i^{\text{adj}}=\min(1,\ m\,p_i)$ & gabimin familjar (FWER) \\
+    Holm & rendit; $\times\, m, m-1, \dots, 1$; mbaj rendin & FWER, më i fuqishëm \\
+    BH & $p_{(i)}\cdot m/i$; mbaj rendin nga fundi & zbulimet e rreme (FDR) \\ \bottomrule
+  \end{tabular}
+  \normalsize
+  \vspace{6pt}
+  \begin{itemize}
+    \item Holm është gjithmonë të paktën po aq i fuqishëm sa Bonferroni: s'ka arsye për Bonferroni.
+    \item BH = Benjamini--Hochberg; preferohet kur ka shumë teste dhe pranojmë disa zbulime të rreme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  $p=(0.001,\ 0.012,\ 0.028,\ 0.038,\ 0.200)$, \ $m=5$, \ $\alpha=0.05$.
+  \pause
+  \begin{enumerate}
+    \item Bonferroni ($\times5$): $0.005,\ 0.060,\ 0.140,\ 0.190,\ 1$ $\Rightarrow$ 1 i rëndësishëm.
+    \pause
+    \item Holm ($\times5,4,3,2,1$): $0.005,\ 0.048,\ 0.084,\ 0.076\to0.084,\ 0.200$ $\Rightarrow$ 2.
+    \pause
+    \item BH ($\times5/1,5/2,5/3,5/4,5/5$): $0.005,\ 0.030,\ 0.0467,\ 0.0475,\ 0.200$ $\Rightarrow$ 4.
+  \end{enumerate}
+  \pause
+  \begin{itemize}
+    \item ``Mbaj rendin'': p-vlera e korrigjuar nuk mund të jetë më e vogël se e mëparshmja (Holm), ose më e madhe se e pasardhshmja (BH).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<padjust>>=
+p <- c(0.001, 0.012, 0.028, 0.038, 0.200)
+round(rbind(bonferroni = p.adjust(p, "bonferroni"),
+      holm = p.adjust(p, "holm"), BH = p.adjust(p, "BH")), 4)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Korrigjimi në matricën e \texttt{Credit}}
+<<credit-adjust>>=
+p_raw <- pm[upper.tri(pm)]
+c(raw  = sum(p_raw < 0.05),
+  holm = sum(p.adjust(p_raw, "holm") < 0.05),
+  BH   = sum(p.adjust(p_raw, "BH") < 0.05),
+  tests = length(p_raw))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Lidhjet e forta (\texttt{Limit}, \texttt{Rating}, \texttt{Balance}, \texttt{Income}) mbijetojnë çdo korrigjim.
+    \item<2-> Humbasin dy çifte me $p\approx0.04$: pikërisht lidhjet e dobëta afër kufirit.
+    \item<3-> Raporto: sa teste bëre, cilën korrigjim përdore, dhe vlerat $p$ të korrigjuara.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushAdj]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(4 minuta)]
+    Në simulimin me 7 variabla të pavarura:
+    \begin{enumerate}
+      \item Zëvendëso numërimin me \texttt{sum(p.adjust(p[upper.tri(p)], "holm") < 0.05)}. Sa bëhet \texttt{share\_at\_least\_one}?
+      \item Provo me \texttt{"BH"}. Pse rezultati është i ngjashëm kur të gjitha $\rho=0$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjAdj}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushBoston3]{Radha jote!}
+  \begin{Ushtrim}[(8 minuta)]
+    Me \texttt{MASS::Boston} dhe variablat \texttt{medv}, \texttt{crim}, \texttt{rm}, \texttt{lstat}, \texttt{nox}, \texttt{dis}:
+    \begin{enumerate}
+      \item Ndërto matricën e Spearman-it dhe vizatoje me \texttt{corrplot}.
+      \item Sa nga 15 çiftet janë të rëndësishme pa korrigjim? Po me Holm?
+      \item Cili çift ka $|r_s|$ më të madh, përveç atyre me \texttt{medv}?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjBoston3}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp35]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Çfarë raporton për një korrelacion, përveç vlerës $p$?
+    \item Pse $r=0.997$ midis \texttt{Limit} dhe \texttt{Rating} është problem për Javën 7?
+    \item Pse Holm preferohet ndaj Bonferroni-t?
+  \end{enumerate}
+  \shkoTe{zgjCp35}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item \Rkey{cor.test()}: $r$, $t$, df, $p$, IB; tri metoda; testi i njëanshëm vetëm me arsye paraprake.
+    \item Cikli i repo-s, i rishkruar me \Rkey{sapply()}; korrelacioni pikë-biserial për 0/1.
+    \item Vizualizimi: \Rkey{corrplot()}, \Rkey{ggpairs()}, \Rkey{cor.mtest()}.
+    \item Shumë teste $\Rightarrow$ zbulime të rreme; \Rkey{p.adjust()} me Holm ose BH.
+  \end{itemize}
+  \begin{Keshille}Ora 6: rast studimi me \texttt{Boston}, paradoksi i Simpson-it dhe korrelacioni i pjesshëm.\end{Keshille}
+\end{frame}
