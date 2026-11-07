@@ -27,7 +27,7 @@ Titullari: Prof. Asoc. Dr. Endri Raço (eraco@fimif.edu.al)
 | 04 | ANOVA njëfaktoriale dhe shumëfaktoriale, Tukey | K1, S3 | ✅ Gati (249 slide + 48 zgjidhje) |
 | 05 | Regresi i thjeshtë linear | K2, S2 | ✅ Gati (216 slide + 48 zgjidhje) |
 | 06 | Regresi i shumëfishtë, përzgjedhja, CV | K2, S2, S3 | ✅ Gati (184 slide + 45 zgjidhje) |
-| 07 | Kontrolli i hipotezave dhe diagnostikimi | S3, C1 | 🔄 Orët 1–3 gati (23+32+35 slide) |
+| 07 | Kontrolli i hipotezave dhe diagnostikimi | S3, C1 | 🔄 Orët 1–3 gati (23+32+33 slide) |
 | 08 | Regresi jolinear dhe robust | K2, S2 | ⏳ |
 | 09 | Regresi logjistik dhe klasifikimi (+ Zgjerim: pemët, RF) | K2, S3, C1 | ⏳ |
 | 10 | Sistemet koordinative, projeksionet, datumet (`sf`) | K3 | ⏳ |
