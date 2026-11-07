@@ -1,0 +1,46 @@
+% ============================================================
+%  Java 3 · Ora 1 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjNews]{Zgjidhja: Parashiko (gazetat)}
+  \textbf{B)} Lidhja lineare është e dobët \emph{në këto të dhëna}.
+  \begin{itemize}
+    \item A) Gabim: $r$ nuk mat efekte shkakësore; dhe një lidhje e dobët nuk është zero.
+    \item C) Gabim: $r$ nuk është përqindje. Edhe $r^2\approx0.05$ ka tjetër kuptim (Ora 2).
+  \end{itemize}
+  \vfill\kthehu{pyetjeNews}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjGuess]{Zgjidhja: Hamendëso $r$}
+<<sol-guess>>=
+set.seed(2026)
+rhos <- c(-0.9, -0.5, 0, 0.3, 0.7, 0.95)
+r_hat <- sapply(rhos, function(rho) {
+  z <- MASS::mvrnorm(100, mu = c(0, 0), Sigma = matrix(c(1, rho, rho, 1), 2))
+  cor(z[, 1], z[, 2])
+})
+round(rbind(panel = 1:6, truth = rhos, sample_r = r_hat), 2)
+@
+  \begin{itemize}
+    \item Panelet A--F janë në këtë rend. $r$ i mostrës nuk është saktësisht $\rho$: gabim mostre me $n=100$.
+  \end{itemize}
+  \vfill\kthehu{pyetjeGuess}
+\end{frame}
+
+\begin{frame}[label=zgjVarSum]{Zgjidhja: Radha jote! (dy aksione)}
+  \begin{enumerate}
+    \item $\operatorname{Cov}=\rho\,\sigma_X\sigma_Y=0.5\cdot3\cdot4=6$.
+    \item $\operatorname{Var}(X+Y)=9+16+2\cdot6=37$; \ $\operatorname{Var}(X-Y)=9+16-12=13$.
+    \item Me $\rho=-0.5$: $\operatorname{Var}(X+Y)=9+16-12=13$. Kur njëri aksion bie, tjetri priret të ngrihet: rreziku i portofolit zvogëlohet.
+  \end{enumerate}
+  \vfill\kthehu{ushVarSum}
+\end{frame}
+
+\begin{frame}[label=zgjCp31]{Përgjigjet: Checkpoint i Orës 1}
+  \begin{enumerate}
+    \item Statistika përmbledhëse identike mund të fshehin forma krejt të ndryshme; grafiku vjen para numrit.
+    \item $\rho$ mat vetëm lidhjen lineare. $X\sim U(-1,1)$, $Y=X^2$: $Y$ varet plotësisht nga $X$, por $\rho=0$.
+    \item Korrelacioni nuk ka njësi dhe është në $[-1,1]$; kovarianca varet nga njësitë.
+  \end{enumerate}
+  \vfill\kthehu{cp31}
+\end{frame}

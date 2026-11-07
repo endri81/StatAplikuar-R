@@ -1,0 +1,404 @@
+% ============================================================
+%  Java 3 · Ora 1 — Motivimi: si matet një lidhje?
+%  Rezultatet: K1, S1
+%  Material plotësues (jashtë repo-s DS612)
+% ============================================================
+
+\section{Motivimi}
+
+\begin{frame}{Ora 1: Motivimi --- si matet një lidhje?}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi motivues}
+% ------------------------------------------------------------
+
+\begin{frame}{Pyetja e ditës \LO{K1}}
+  \begin{itemize}
+    \item<1-> Një firmë shpenzon për reklama në TV, radio dhe gazeta.
+    \item<2-> \textbf{A shiten më shumë produkte kur rritet reklama?} Në cilin kanal?
+    \item<3-> Në Javën 1 pamë tre numra: 0.78, 0.58, 0.23. Sot pyesim: \textbf{çfarë do të thotë saktësisht ky numër?}
+  \end{itemize}
+  \onslide<4->{\footnotesize\textcolor{gray}{Të dhëna: reale, \texttt{Advertising.csv}, 200 tregje (burimi: James et al., \emph{ISLR}, nëpërmjet repo-s DS612).}}
+\end{frame}
+
+\begin{frame}[fragile]{Kodi R: tre korrelacione}
+<<adv-cor>>=
+adv <- read.csv(file.path(W03DATA, "Advertising.csv"))[, -1]  # drop row index
+round(cor(adv$TV, adv$sales), 3)
+round(cor(adv$radio, adv$sales), 3)
+round(cor(adv$newspaper, adv$sales), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të tre numrat janë pozitivë: më shumë reklamë, më shumë shitje.
+    \item<2-> TV ka lidhjen më të fortë; gazetat më të dobëtën.
+    \item<3-> Por çfarë do të thotë ``0.78''? 78\%? Si krahasohet me 0.58?
+    \item<4-> Dhe a mjafton një numër për të përshkruar një lidhje? Ky është tema e ditës.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Shitjet kundrejt tre kanaleve}
+<<adv-plot, echo=FALSE, fig.height=2.6, fig.width=8, out.width="0.92\\textwidth">>=
+par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
+for (v in c("TV", "radio", "newspaper"))
+  plot(adv[[v]], adv$sales, pch = 19, col = "#2C5AA066", xlab = v, ylab = "sales",
+       main = paste0("r = ", round(cor(adv[[v]], adv$sales), 2)))
+@
+\end{frame}
+
+\begin{frame}[label=pyetjeNews]{Parashiko!}
+  \begin{Parashiko}
+    Për gazetat, $r=\Sexpr{fmt(cor(adv$newspaper, adv$sales), 2)}$. Cili përfundim është i saktë?\\[3pt]
+    \textbf{A)} Reklama në gazeta nuk ka asnjë efekt mbi shitjet.\\
+    \textbf{B)} Lidhja lineare midis buxhetit në gazeta dhe shitjeve është e dobët në këto të dhëna.\\
+    \textbf{C)} 23\% e shitjeve vijnë nga gazetat.
+  \end{Parashiko}
+  \shkoTe{zgjNews}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Grafiku para numrit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuarteti i Anscombe-s}
+  \begin{itemize}
+    \item<1-> F.~J.~Anscombe (1973) ndërtoi 4 grupe të vogla të dhënash, me nga 11 pika.
+    \item<2-> Qëllimi: të tregonte pse statistikat përmbledhëse nuk mjaftojnë.
+    \item<3-> Në R: \texttt{datasets::anscombe}.
+  \end{itemize}
+  \onslide<4->{\footnotesize\textcolor{gray}{Të dhëna: të ndërtuara me qëllim nga Anscombe; nuk janë vrojtime reale.}}
+\end{frame}
+
+\begin{frame}[fragile]{Katër grupe, të njëjtat statistika}
+<<anscombe-stats>>=
+a <- datasets::anscombe
+stats <- sapply(1:4, function(i) {
+  x <- a[[paste0("x", i)]]; y <- a[[paste0("y", i)]]
+  c(mean_x = mean(x), mean_y = mean(y), sd_x = sd(x), sd_y = sd(y), r = cor(x, y))
+})
+colnames(stats) <- paste("set", 1:4)
+round(stats, 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mesataret, devijimet standarde dhe $r$ janë \textbf{të njëjta} me 2 shifra pas presjes.
+    \item<2-> Nëse do të shihnim vetëm tabelën, do të thoshim: ``katër herë e njëjta lidhje''.
+    \item<3-> Parashiko: a do të duken të njëjtë edhe grafikët?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Grafikët e Anscombe-s}
+<<anscombe-plot, echo=FALSE, fig.height=3.3, fig.width=7>>=
+library(ggplot2)
+al <- do.call(rbind, lapply(1:4, function(i)
+  data.frame(set = paste("set", i), x = a[[paste0("x", i)]], y = a[[paste0("y", i)]])))
+ggplot(al, aes(x, y)) +
+  geom_point(colour = "#2C5AA0", size = 2) +
+  geom_smooth(method = "lm", se = FALSE, colour = "#D97706", linewidth = 0.8) +
+  facet_wrap(~ set, nrow = 2) + theme_minimal(base_size = 11)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{enumerate}
+    \item<1-> Grupi 1: lidhje lineare me zhurmë. $r$ e përshkruan mirë.
+    \item<2-> Grupi 2: lidhje e lakuar, pa zhurmë. $r$ nënvlerëson sa e fortë është lidhja.
+    \item<3-> Grupi 3: lidhje lineare perfekte, plus një vlerë e skajshme që e ul $r$.
+    \item<4-> Grupi 4: asnjë lidhje, përveç një pike të vetme që krijon $r=0.82$.
+  \end{enumerate}
+  \onslide<5->{\begin{Keshille}Rregulli i ditës: \textbf{shiko grafikun para se të llogaritësh $r$}.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Mendo -- Diskuto -- Ndaj}
+  \begin{Ushtrim}[(think--pair--share, 4 minuta)]
+    \begin{enumerate}
+      \item Në cilin nga 4 grupet $r=0.82$ është përshkrim i ndershëm i lidhjes?
+      \item Për secilin grup tjetër, çfarë do të raportonit në vend të $r$, ose krahas tij?
+      \item Pse grupi 4 është më i rrezikshmi në praktikë?
+    \end{enumerate}
+  \end{Ushtrim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Llojet e lidhjes}
+% ------------------------------------------------------------
+
+\begin{frame}{Tri pyetje për çdo lidhje}
+  \begin{columns}[T]
+    \column{0.32\textwidth}
+      \begin{block}{Drejtimi}
+        Pozitive: rritet $x$, rritet $y$.\\
+        Negative: rritet $x$, bie $y$.
+      \end{block}
+    \column{0.32\textwidth}
+      \begin{block}{Forma}
+        Lineare, monotone, ose jo-monotone (p.sh.\ ``U'').
+      \end{block}
+    \column{0.32\textwidth}
+      \begin{block}{Forca}
+        Sa afër ndodhen pikat rreth formës.
+      \end{block}
+  \end{columns}
+  \vspace{6pt}
+  \begin{itemize}
+    \item $r$ i Pearson-it përgjigjet vetëm për drejtimin dhe forcën e lidhjes \textbf{lineare}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Forma e lidhjes}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[name=a,width=4.4cm,height=3.8cm,axis lines=left,ticks=none,title={\scriptsize lineare},samples=20,xmin=0,xmax=10,ymin=0,ymax=12]
+      \addplot[only marks,mark=*,mark size=1.2pt,uptmid,domain=0.5:9.5]{1+x+0.8*sin(deg(5*x))};
+    \end{axis}
+    \begin{axis}[name=b,at={(a.east)},anchor=west,xshift=0.6cm,width=4.4cm,height=3.8cm,axis lines=left,ticks=none,title={\scriptsize monotone, jo lineare},samples=20,xmin=0,xmax=10,ymin=0,ymax=12]
+      \addplot[only marks,mark=*,mark size=1.2pt,accent,domain=0.5:9.5]{11*(1-exp(-0.45*x))+0.4*sin(deg(5*x))};
+    \end{axis}
+    \begin{axis}[name=c,at={(b.east)},anchor=west,xshift=0.6cm,width=4.4cm,height=3.8cm,axis lines=left,ticks=none,title={\scriptsize jo-monotone},samples=20,xmin=0,xmax=10,ymin=0,ymax=12]
+      \addplot[only marks,mark=*,mark size=1.2pt,warnred,domain=0.5:9.5]{0.42*(x-5)^2+1+0.4*sin(deg(5*x))};
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Te grafiku i tretë lidhja është e fortë, por $r\approx0$. Spearman-i (Ora 4) e kap të dytën, jo të tretën.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Forca: si e lexojmë $r$?}
+  \centering
+  \begin{tikzpicture}[x=5.4cm]
+    \draw[thick,uptblue] (-1,0)--(1,0);
+    \foreach \v in {-1,-0.5,-0.3,-0.1,0,0.1,0.3,0.5,1} \draw[uptblue] (\v,0.1)--(\v,-0.1) node[below,font=\tiny]{\v};
+    \fill[uptlight] (-0.1,0.18) rectangle (0.1,0.5);
+    \fill[green!15] (0.1,0.18) rectangle (0.3,0.5); \fill[green!15] (-0.3,0.18) rectangle (-0.1,0.5);
+    \fill[orange!20] (0.3,0.18) rectangle (0.5,0.5); \fill[orange!20] (-0.5,0.18) rectangle (-0.3,0.5);
+    \fill[red!15] (0.5,0.18) rectangle (1,0.5); \fill[red!15] (-1,0.18) rectangle (-0.5,0.5);
+    \node[font=\tiny] at (0,0.34) {~0};
+    \node[font=\tiny] at (0.2,0.34) {e vogël}; \node[font=\tiny] at (0.4,0.34) {mesatare}; \node[font=\tiny] at (0.75,0.34) {e madhe};
+    \node[font=\tiny] at (-0.2,0.34) {e vogël}; \node[font=\tiny] at (-0.4,0.34) {mesatare}; \node[font=\tiny] at (-0.75,0.34) {e madhe};
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Pragjet 0.1, 0.3, 0.5 janë konventat e J.~Cohen (1988) për shkencat e sjelljes.
+  \end{itemize}
+  \begin{Gabim}Këto pragje nuk janë universale. Në fizikë, $r=0.9$ mund të jetë i dobët; në shkencat sociale, $r=0.3$ mund të jetë i rëndësishëm.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=pyetjeGuess]{Hamendëso $r$!}
+  \begin{Parashiko}
+    Në slide-in tjetër ka 6 grafikë me të dhëna sintetike. Për secilin, shkruaj në letër $r$-në që mendon, me një shifër pas presjes. Pastaj krahasoji me vlerat e vërteta.
+  \end{Parashiko}
+  \shkoTe{zgjGuess}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Gjashtë grafikë sintetikë}
+<<guess-plot, echo=FALSE, fig.height=3.3, fig.width=7.5>>=
+set.seed(2026)
+rhos <- c(-0.9, -0.5, 0, 0.3, 0.7, 0.95)
+gd <- do.call(rbind, lapply(seq_along(rhos), function(k) {
+  z <- MASS::mvrnorm(100, mu = c(0, 0), Sigma = matrix(c(1, rhos[k], rhos[k], 1), 2))
+  data.frame(panel = LETTERS[k], x = z[, 1], y = z[, 2])
+}))
+ggplot(gd, aes(x, y)) + geom_point(alpha = 0.6, colour = "#2C5AA0", size = 1) +
+  facet_wrap(~ panel, nrow = 2) + theme_minimal(base_size = 11) +
+  theme(axis.text = element_blank())
+@
+\end{frame}
+
+\begin{frame}[fragile]{Si u krijuan?}
+<<guess-code, eval=FALSE>>=
+set.seed(2026)
+rhos <- c(-0.9, -0.5, 0, 0.3, 0.7, 0.95)        # the truth
+z <- MASS::mvrnorm(100, mu = c(0, 0),
+                   Sigma = matrix(c(1, rho, rho, 1), 2))  # one panel
+@
+  \begin{itemize}
+    \item \texttt{mvrnorm()} gjeneron të dhëna nga normalja dydimensionale me korrelacion të njohur $\rho$.
+    \item Këtë teknikë e përdorim gjatë gjithë javës për ``vlerësimin kundrejt së vërtetës''.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Objektivat}
+% ------------------------------------------------------------
+
+\begin{frame}{Objektivat e ditës}
+  Në fund të ditës do të jesh në gjendje:
+  \begin{enumerate}
+    \item \LO{S1} të nxjerrësh kovariancën dhe korrelacionin dhe vetitë e tyre;
+    \item \LO{K1} të zgjedhësh midis Pearson-it, Spearman-it dhe Kendall-it;
+    \item \LO{S3} të testosh $H_0:\rho=0$ dhe të ndërtosh intervalin e besimit;
+    \item \LO{S4} të ndërtosh dhe vizualizosh matricën e korrelacionit në R;
+    \item \LO{K1} të njohësh kurthet: jolineariteti, vlerat e skajshme, Simpson-i.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Lidhja me javët e tjera}
+  \begin{itemize}
+    \item<1-> Java 2: mediana kundrejt mesatares $\leftrightarrow$ sot: Spearman kundrejt Pearson-it.
+    \item<2-> Java 2: logaritmi rriti $|r|$ te \texttt{medv}--\texttt{lstat}: sot kuptojmë pse.
+    \item<3-> Java 5: regresi i thjeshtë. Pjerrësia $\hat\beta_1=r\cdot s_y/s_x$.
+    \item<4-> Java 7: multikolineariteti = korrelacion i lartë midis shpjeguesve.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plani i ditës}
+  \centering
+  \begin{tikzpicture}[x=1.55cm,
+      hr/.style={rectangle,draw=white,thick,minimum width=1.55cm,minimum height=1.25cm,align=center,font=\scriptsize\bfseries,text=white}]
+    \node[hr,fill=uptblue] at (0,0) {Ora 1\\Motivimi};
+    \node[hr,fill=uptmid]  at (1,0) {Ora 2\\Kovarianca,\\Pearson};
+    \node[hr,fill=okgreen] at (2,0) {Ora 3\\Nga zero};
+    \node[hr,fill=uptmid]  at (3,0) {Ora 4\\Rangjet,\\testet};
+    \node[hr,fill=okgreen] at (4,0) {Ora 5\\Matrica,\\testet në R};
+    \node[hr,fill=accent]  at (5,0) {Ora 6\\Boston,\\Simpson};
+    \node[hr,fill=uptblue] at (6,0) {Ora 7\\Konsolidim};
+  \end{tikzpicture}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rifreskim: kovarianca e popullatës}
+% ------------------------------------------------------------
+
+\begin{frame}{Kovarianca}
+  \begin{Definicion}[(Kovarianca)]
+    \[ \operatorname{Cov}(X,Y)=E\big[(X-\mu_X)(Y-\mu_Y)\big]=E[XY]-\mu_X\mu_Y \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Pozitive: kur $X$ është mbi mesataren, edhe $Y$ priret të jetë mbi mesataren.
+    \pause
+    \item Njësitë: njësia e $X$ $\times$ njësia e $Y$ (p.sh.\ mijë \$ $\times$ mijë njësi). Prandaj vështirë të interpretohet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vetitë e kovariancës}
+  \begin{Teoreme}[(Vetitë)]
+    \begin{enumerate}
+      \item $\operatorname{Cov}(X,X)=\operatorname{Var}(X)$.
+      \item $\operatorname{Cov}(aX+b,\ cY+d)=ac\operatorname{Cov}(X,Y)$.
+      \item $\operatorname{Var}(X\pm Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)\pm2\operatorname{Cov}(X,Y)$.
+    \end{enumerate}
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item Vetia 2: zhvendosjet nuk ndikojnë, shkallëzimet po. Ndryshimi i njësive ndryshon kovariancën.
+    \pause
+    \item Vetia 3: baza e diversifikimit të portofolit dhe e variancës së shumave.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Korrelacioni i popullatës}
+  \begin{Definicion}[(Korrelacioni)]
+    \[ \rho_{XY}=\frac{\operatorname{Cov}(X,Y)}{\sigma_X\,\sigma_Y} \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Pa njësi: pjesëtimi me $\sigma_X\sigma_Y$ heq njësitë.
+    \pause
+    \item $-1\le\rho\le1$ (e vërtetojmë në Orën 2).
+    \pause
+    \item $\rho=\pm1$: lidhje lineare perfekte, $Y=a+bX$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  $X,Y\in\{0,1\}$ me $P(0,0)=0.4$, \ $P(0,1)=0.1$, \ $P(1,0)=0.1$, \ $P(1,1)=0.4$.
+  \pause
+  \begin{enumerate}
+    \item $E[X]=P(X=1)=0.5$; \ $E[Y]=0.5$.
+    \pause
+    \item $E[XY]=P(1,1)=0.4$.
+    \pause
+    \item $\operatorname{Cov}=0.4-0.5\cdot0.5=0.15$.
+    \pause
+    \item $\operatorname{Var}(X)=0.5\cdot0.5=0.25$, \ $\sigma_X=\sigma_Y=0.5$; \ $\rho=0.15/0.25=0.6$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Pavarësia dhe korrelacioni zero}
+  \begin{Teoreme}
+    Nëse $X$ dhe $Y$ janë të pavarura, atëherë $\rho_{XY}=0$. E anasjella \textbf{nuk} vlen.
+  \end{Teoreme}
+  \pause
+  \begin{Shembull}
+    $X\sim U(-1,1)$, \ $Y=X^2$. \ $Y$ varet plotësisht nga $X$, por
+    \[ \operatorname{Cov}(X,Y)=E[X^3]-E[X]\,E[X^2]=0-0=0. \]
+  \end{Shembull}
+  \pause
+  \begin{itemize}
+    \item Pse $E[X^3]=0$? Shpërndarja është simetrike rreth 0.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me simulim}
+<<x2-cor>>=
+set.seed(2026)
+x <- runif(10000, -1, 1)
+y <- x^2                       # y is a function of x
+round(cor(x, y), 3)            # close to 0
+round(cor(abs(x), y), 3)       # monotone on |x|: close to 1
+@
+  \begin{Gabim}``$r\approx0$, pra variablat janë të pavarura.'' Jo: $r$ mat vetëm lidhjen lineare.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Normalja dydimensionale}
+  \begin{columns}[c]
+    \column{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.85]
+        \draw[->,gray] (-2,0)--(2,0) node[right,font=\tiny]{$x$};
+        \draw[->,gray] (0,-2)--(0,2) node[above,font=\tiny]{$y$};
+        \draw[uptmid,thick] (0,0) circle (1.2);
+        \draw[accent,thick,rotate=45] (0,0) ellipse (1.7 and 0.55);
+        \node[font=\tiny,text=uptmid] at (-1.4,1.3) {$\rho=0$};
+        \node[font=\tiny,text=accent] at (1.6,1.6) {$\rho=0.8$};
+      \end{tikzpicture}
+    \column{0.53\textwidth}
+      \begin{itemize}
+        \item Parametrat: $\mu_X,\mu_Y,\sigma_X,\sigma_Y,\rho$.
+        \item Konturet janë elipsa; $\rho$ i ngushton dhe i rrotullon.
+        \item Vetëm këtu: $\rho=0\iff$ pavarësi.
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[label=ushVarSum]{Radha jote!}
+  \begin{Ushtrim}[(pa ndihmën e PC, 4 minuta)]
+    Kthimet e dy aksioneve kanë $\sigma_X=3\%$, \ $\sigma_Y=4\%$ dhe $\rho=0.5$.
+    \begin{enumerate}
+      \item Sa është $\operatorname{Cov}(X,Y)$?
+      \item Sa janë $\operatorname{Var}(X+Y)$ dhe $\operatorname{Var}(X-Y)$?
+      \item Si ndryshon $\operatorname{Var}(X+Y)$ nëse $\rho=-0.5$? Pse kjo quhet ``diversifikim''?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjVarSum}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp31]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 1}
+  \begin{enumerate}
+    \item Çfarë mëson kuarteti i Anscombe-s?
+    \item Pse $\rho=0$ nuk do të thotë pavarësi? Jepni një shembull.
+    \item Pse korrelacioni interpretohet më lehtë se kovarianca?
+  \end{enumerate}
+  \shkoTe{zgjCp31}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 1}
+  \begin{itemize}
+    \item Një lidhje ka drejtim, formë dhe forcë; $r$ mat vetëm lidhjen lineare.
+    \item Anscombe: të njëjtat statistika, histori krejt të ndryshme. Shiko grafikun.
+    \item $\operatorname{Cov}$ dhe $\rho$ e popullatës; vetitë; pavarësia $\Rightarrow\rho=0$, jo anasjelltas.
+    \item Konventat e Cohen-it janë orientuese, jo ligj.
+  \end{itemize}
+  \begin{Keshille}Ora 2: kovarianca dhe korrelacioni i mostrës, me vetitë dhe kurthet.\end{Keshille}
+\end{frame}
