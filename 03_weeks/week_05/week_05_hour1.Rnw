@@ -33,7 +33,7 @@ summary(adv[, c("TV", "sales")])
 \end{frame}
 
 \begin{frame}[fragile]{Pamja}
-<<adv-scatter, fig.height=2.5, fig.width=5.5, out.width="0.6\\textwidth">>=
+<<adv-scatter, fig.height=2.5, fig.width=5.5, out.width="0.51\\textwidth">>=
 library(ggplot2)
 ggplot(adv, aes(TV, sales)) +
   geom_point(alpha = 0.6, size = 1.2, colour = "#2C5AA0") +
@@ -215,7 +215,7 @@ c(R2_anova_3groups = summary(lm(sales ~ TV_group, data = adv))$r.squared,
 \end{frame}
 
 \begin{frame}[fragile]{Pesë pika dhe një vijë}
-<<toy-resid, fig.height=2.6, fig.width=4.2, out.width="0.42\\textwidth">>=
+<<toy-resid, fig.height=2.6, fig.width=4.2, out.width="0.36\\textwidth">>=
 x <- 1:5; y <- c(2, 4, 5, 4, 5)       # toy data, used all day
 b0 <- 2.2; b1 <- 0.6                  # the OLS line (derived in Hour 2)
 plot(x, y, pch = 19, ylim = c(1, 6), col = "#2C5AA0")
@@ -264,7 +264,7 @@ c(OLS          = sse(2.2, 0.6),
 \end{frame}
 
 \begin{frame}[fragile]{SSE si funksion i pjerrësisë}
-<<sse-curve, fig.height=2.6, fig.width=4.2, out.width="0.45\\textwidth">>=
+<<sse-curve, fig.height=2.6, fig.width=4.2, out.width="0.38\\textwidth">>=
 b1_grid <- seq(-0.2, 1.4, by = 0.01)
 sse_b1  <- sapply(b1_grid, function(b) sse(mean(y) - b * mean(x), b))
 plot(b1_grid, sse_b1, type = "l", lwd = 2, xlab = "slope b1", ylab = "SSE")

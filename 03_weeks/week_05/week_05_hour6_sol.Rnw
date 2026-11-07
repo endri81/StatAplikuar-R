@@ -1,0 +1,52 @@
+% ============================================================
+%  Java 5 · Ora 6 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjHp]{Zgjidhja: Parashiko (pjerrësia)}
+<<sol-hp>>=
+auto <- na.omit(read.csv(file.path(W05DATA, "Auto.csv"), na.strings = "?"))
+c(sd_mpg = sd(auto$mpg), sd_hp = sd(auto$horsepower),
+  slope = cor(auto$horsepower, auto$mpg) * sd(auto$mpg) / sd(auto$horsepower))
+@
+  \begin{itemize}
+    \item \textbf{B}. $r\,s_y/s_x\approx-0.78\times7.8/38.5\approx-0.16$. Kontroll i shpejtë: 100 hp $\times(-0.16)=-16$ mpg, e arsyeshme për gamën 9--47.
+  \end{itemize}
+  \vfill\kthehu{pyetjeHp}
+\end{frame}
+
+\begin{frame}[label=zgjHp15]{Zgjidhja: Radha jote! ($H_0:\beta_1=-0.15$)}
+  \begin{enumerate}
+    \item $t=(-0.15784+0.15)/0.00645\approx-1.22$, $df=390$, $p\approx0.22$.
+    \item Nuk është në kundërshtim: $-0.15$ është brenda IB $[-0.1705,\ -0.1452]$.
+  \end{enumerate}
+  \vfill\kthehu{ushHp15}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjKlb]{Zgjidhja: Ndrysho parametrin (pesha në 1000 lb)}
+<<sol-klb>>=
+coef(lm(mpg ~ I(weight / 1000), data = auto))
+@
+  \begin{itemize}
+    \item Pjerrësia $=-7.65$: një makinë 1000 lb ($\approx454$ kg) më e rëndë ka mesatarisht 7.65 mpg më pak. $R^2$, $t$ dhe $p$ nuk ndryshojnë.
+  \end{itemize}
+  \vfill\kthehu{ushKlb}
+\end{frame}
+
+\begin{frame}[label=zgjGabAuto]{Zgjidhja: Gjej gabimin (raporti)}
+  \begin{enumerate}
+    \item ``Shkakton'': të dhëna vëzhgimore; fuqia lidhet me peshën, madhësinë, vitin. Shkruaj ``lidhet me''.
+    \item 300 hp është jashtë të dhënave (max 230): ekstrapolim; vlera negative tregon që vija nuk vlen atje.
+    \item Për një makinë të vetme duhet IP, jo IB.
+    \item $R^2=0.61$ nuk tregon saktësinë e modelit: mbetjet kanë formë U; RSE $\approx4.9$ mpg.
+  \end{enumerate}
+  \vfill\kthehu{gjejGabAuto}
+\end{frame}
+
+\begin{frame}[label=zgjCp56]{Përgjigjet: Checkpoint Ora 6}
+  \begin{enumerate}
+    \item Vlerat që mungojnë janë shkruar ``?''; pa këtë argument \texttt{horsepower} lexohet si tekst.
+    \item Formë U (lakim) dhe hinkë (variancë që rritet me $\hat y$).
+    \item 1\% më shumë në $x$ lidhet me $\beta_1$\% ndryshim në $y$ (elasticitet).
+  \end{enumerate}
+  \vfill\kthehu{cp56}
+\end{frame}

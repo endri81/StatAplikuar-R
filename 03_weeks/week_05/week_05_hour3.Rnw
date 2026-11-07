@@ -170,7 +170,7 @@ c(df = df.residual(fit), n = nobs(fit))
 \end{frame}
 
 \begin{frame}[fragile]{Vija mbi pikat}
-<<adv-plot, fig.height=2.4, fig.width=5.5, out.width="0.58\\textwidth">>=
+<<adv-plot, fig.height=2.4, fig.width=5.5, out.width="0.49\\textwidth">>=
 library(ggplot2)
 ggplot(adv, aes(TV, sales)) +
   geom_point(alpha = 0.5, size = 1) +
@@ -206,7 +206,7 @@ b <- coef(wrong)
 predict(fit, newdata = data.frame(TV = 290))  # correct prediction
 @
   \begin{Ushtrim}[(Gjej gabimin)]
-    Studenti përshtati \texttt{TV \textasciitilde{} sales} dhe e ``ktheu'' për të parashikuar shitjet. Pse të dy numrat ndryshojnë? Cili është i saktë?
+    Modeli \texttt{TV \textasciitilde{} sales} u ``kthye'' për shitjet. Pse ndryshojnë numrat? Cili është i saktë?
   \end{Ushtrim}
   \shkoTe{zgjGabRev}{Shiko zgjidhjen}
 \end{frame}

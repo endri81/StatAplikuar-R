@@ -1,0 +1,310 @@
+% ============================================================
+%  Java 5 · Ora 6 — Rast studimi: konsumi i karburantit (Auto)
+%  Rezultatet: K2, S2, S3, S4, C1
+%  Burimi: ISLR kap. 3, ushtrimi i aplikuar 8 (Auto)
+% ============================================================
+
+\section{Rast studimi}
+
+\begin{frame}{Ora 6: Rast studimi --- konsumi dhe fuqia e motorit}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pyetja dhe të dhënat}
+% ------------------------------------------------------------
+
+\begin{frame}{Pyetja \LO{C1}}
+  \begin{itemize}
+    \item<1-> Sa ndryshon konsumi i karburantit me fuqinë e motorit?
+    \item<2-> Pyetje reale për politikat: taksa e automjeteve sipas motorit, standardet e efiçiencës, inventarët e emetimeve.
+    \item<3-> Plani: EDA $\to$ modeli $\to$ inferenca $\to$ parashikimi $\to$ diagnostikimi $\to$ raporti.
+  \end{itemize}
+  \onslide<4->{\footnotesize\textcolor{gray}{Të dhëna: reale, \texttt{Auto.csv} (ISLR, nëpërmjet repo-s DS612). Ushtrimi i aplikuar 8 i kap.~3 të ISLR përdor të njëjtin model.}}
+\end{frame}
+
+\begin{frame}[fragile]{Leximi dhe vlerat që mungojnë}
+<<auto-read>>=
+auto_raw <- read.csv(file.path(W05DATA, "Auto.csv"), na.strings = "?")
+dim(auto_raw)
+colSums(is.na(auto_raw))[colSums(is.na(auto_raw)) > 0]
+auto <- na.omit(auto_raw)
+nrow(auto)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{horsepower} ka 5 vlera ``?'' në skedar: \texttt{na.strings = "?"} i kthen në \texttt{NA}.
+    \item<2-> Analizojmë 392 makina të plota (\emph{complete cases}).
+    \item<3-> Me 5 nga 397 (1.3\%), humbja është e vogël; në raport e përmendim.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Pa \texttt{na.strings = "?"}, \texttt{horsepower} lexohet si tekst, dhe \texttt{lm()} e trajton si faktor me $\approx$90 nivele.\end{Gabim}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Analiza eksploruese}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Përmbledhja}
+<<auto-eda>>=
+summary(auto[, c("mpg", "horsepower", "weight")])
+round(cor(auto[, c("mpg", "horsepower", "weight")]), 3)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Grafiku}
+<<auto-scatter, fig.height=2.4, fig.width=5.5, out.width="0.51\\textwidth">>=
+library(ggplot2)
+ggplot(auto, aes(horsepower, mpg)) + geom_point(alpha = 0.4, size = 0.9) +
+  geom_smooth(method = "loess", formula = y ~ x, se = FALSE, colour = "#D97706") +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, colour = "#2C5AA0", linetype = 2) +
+  theme_minimal(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Lidhje e fortë negative: motorë më të fuqishëm, më pak milje për galon.
+    \item<2-> Kurba portokalli (loess) është e \textbf{lakuar}: zbret shpejt deri në $\approx$130 hp, pastaj rrafshohet.
+    \item<3-> Vija blu (OLS) mbivlerëson në mes dhe nënvlerëson në skaje.
+    \item<4-> Pikat hapen majtas: më shumë luhatje te makinat me motor të vogël.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeHp]{Parashiko!}
+  \begin{Parashiko}
+    \texttt{horsepower} shkon nga 46 deri 230, \texttt{mpg} nga 9 deri 47, dhe $r=-0.78$. Cila është pjerrësia më e mundshme?\\[3pt]
+    \textbf{A)} $-0.016$ \qquad \textbf{B)} $-0.16$ \qquad \textbf{C)} $-1.6$ \qquad \textbf{D)} $-16$
+  \end{Parashiko}
+  \shkoTe{zgjHp}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Modeli dhe inferenca}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Modeli}
+<<auto-fit>>=
+fit_hp <- lm(mpg ~ horsepower, data = auto)
+round(summary(fit_hp)$coefficients, 5)
+c(R2 = summary(fit_hp)$r.squared, RSE = sigma(fit_hp), df = df.residual(fit_hp))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Çdo kalë-fuqi më shumë lidhet me $\Sexpr{fmt(-coef(fit_hp)[2], 3)}$ mpg më pak; çdo 10 hp: $\approx\Sexpr{fmt(-10 * coef(fit_hp)[2], 1)}$ mpg.
+    \item<2-> $t=\Sexpr{fmt(summary(fit_hp)$coefficients[2, 3], 1)}$, $p<0.001$: lidhja nuk është rastësi.
+    \item<3-> $R^2=\Sexpr{fmt(summary(fit_hp)$r.squared, 3)}=(-0.778)^2$; RSE $=\Sexpr{fmt(sigma(fit_hp), 2)}$ mpg (mesatarja 23.4: rreth 21\%).
+    \item<4-> $\hat\beta_0=\Sexpr{fmt(coef(fit_hp)[1], 1)}$: makinë me 0 hp, larg të dhënave. Pa kuptim praktik.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Intervalet e besimit}
+<<auto-ci>>=
+confint(fit_hp)
+10 * confint(fit_hp)["horsepower", ]       # per 10 hp
+@
+  \begin{itemize}
+    \item Me 95\% besim: 10 hp më shumë lidhen me $1.45$ deri $1.71$ mpg më pak.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushHp15]{Radha jote!}
+  \begin{Ushtrim}[(4 minuta)]
+    Një raport i vjetër thotë: ``çdo 10 hp kushtojnë 1.5 mpg'', pra $\beta_1=-0.15$.
+    \begin{enumerate}
+      \item Testo $H_0:\beta_1=-0.15$ me SE $=0.00645$.
+      \item A është në kundërshtim me të dhënat? Kontrollo edhe me IB.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjHp15}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Parashikimi}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Një makinë me 98 hp (ISLR, ushtrimi 3.8)}
+<<auto-pred>>=
+new_car <- data.frame(horsepower = 98)
+predict(fit_hp, new_car, interval = "confidence")
+predict(fit_hp, new_car, interval = "prediction")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mesatarja e të gjitha makinave me 98 hp: $24.5$ mpg, IB $[24.0,\ 25.0]$.
+    \item<2-> Një makinë e veçantë me 98 hp: IP $[14.8,\ 34.1]$, gati 20 mpg i gjerë.
+    \item<3-> 98 hp është afër $\bar x=104.5$: IB është pothuajse më i ngushti i mundshëm.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}T'i japësh blerësit të një makine me 98 hp intervalin $[24.0,25.0]$. Për një makinë të vetme vlen IP.\end{Gabim}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Diagnostikimi}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Grafikët e mbetjeve}
+<<auto-diag, fig.height=2.5, fig.width=7, out.width="0.8\\textwidth">>=
+par(mfrow = c(1, 2))
+plot(fit_hp, which = 1)          # residuals vs fitted
+plot(fit_hp, which = 2)          # normal QQ
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Majtas: formë U e qartë $\Rightarrow$ lidhja nuk është lineare.
+    \item<2-> Majtas: edhe hinkë, luhatja rritet me $\hat y$.
+    \item<3-> Djathtas: bishti i djathtë mbi vijë: disa makina kanë mpg shumë më të lartë se parashikimi.
+    \item<4-> Përfundimi: modeli përshkruan prirjen, por SE dhe IP nuk janë plotësisht të besueshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Një shikim drejt Javës 8 \Plotesues}
+<<auto-quad>>=
+fit_q <- lm(mpg ~ horsepower + I(horsepower^2), data = auto)
+c(R2_linear = summary(fit_hp)$r.squared, R2_quadratic = summary(fit_q)$r.squared)
+@
+  \begin{itemize}
+    \item Një term katror e rrit $R^2$ dukshëm. Regresi polinomial, splines: Java 8.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Krahasimi: \texttt{weight}}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{mpg \textasciitilde{} weight}}
+<<auto-weight>>=
+fit_w <- lm(mpg ~ weight, data = auto)
+rbind(horsepower = c(R2 = summary(fit_hp)$r.squared, RSE = sigma(fit_hp)),
+      weight     = c(R2 = summary(fit_w)$r.squared,  RSE = sigma(fit_w)))
+coef(fit_w)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{weight} shpjegon më shumë ($R^2=0.69$) dhe parashikon më saktë (RSE $=4.33$).
+    \item<2-> Por $r(\texttt{horsepower},\texttt{weight})=0.86$: makinat e rënda kanë motorë të fuqishëm.
+    \item<3-> Sa i shpjegon \emph{secila} mpg-në, kur tjetra mbahet konstante? Këtë nuk e jep regresi i thjeshtë: Java 6.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushKlb]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(3 minuta)]
+    \texttt{weight} është në paund (lb). Pjerrësia $-0.00765$ është e vështirë për t'u lexuar.
+    \begin{enumerate}
+      \item Rishkruaj modelin me \texttt{I(weight / 1000)}. Sa bëhet pjerrësia?
+      \item Interpreto: çfarë do të thotë një makinë 1000 lb më e rëndë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjKlb}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\Zgjerim Modeli log--log}
+% ------------------------------------------------------------
+
+\begin{frame}{\Zgjerim Elasticiteti}
+  \[ \log(\texttt{mpg})=\beta_0+\beta_1\log(\texttt{horsepower})+\varepsilon \]
+  \pause
+  \begin{itemize}
+    \item $\beta_1=\dfrac{d\log y}{d\log x}\approx\dfrac{\%\Delta y}{\%\Delta x}$: \termi{elasticiteti}{elasticity}.
+    \pause
+    \item ``1\% më shumë fuqi lidhet me $|\beta_1|$\% më pak mpg.''
+    \pause
+    \item Shpesh i përshtatshëm për variabla pozitive që ndryshojnë me shumëfish (çmime, të ardhura, konsum).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim Përshtatja}
+<<auto-loglog>>=
+fit_ll <- lm(log(mpg) ~ log(horsepower), data = auto)
+round(summary(fit_ll)$coefficients, 4)
+confint(fit_ll)["log(horsepower)", ]
+summary(fit_ll)$r.squared
+@
+\end{frame}
+
+\begin{frame}{\Zgjerim Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Elasticiteti $\approx\Sexpr{fmt(coef(fit_ll)[2], 2)}$: 10\% më shumë fuqi lidhet me $\approx\Sexpr{fmt(-10 * coef(fit_ll)[2], 1)}$\% më pak mpg.
+    \item<2-> IB 95\%: $[\Sexpr{fmt(confint(fit_ll)[2, 1], 2)},\ \Sexpr{fmt(confint(fit_ll)[2, 2], 2)}]$.
+    \item<3-> Parashikimi për 98 hp: $\exp(\hat\beta_0+\hat\beta_1\log98)=\exp(\Sexpr{fmt(predict(fit_ll, new_car), 3)})\approx\Sexpr{fmt(exp(predict(fit_ll, new_car)), 1)}$ mpg: vlerësim i \emph{mesores}, jo i mesatares.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim Mbetjet e modelit log--log}
+<<auto-ll-resid, fig.height=2.6, fig.width=4.2, out.width="0.38\\textwidth">>=
+plot(fitted(fit_ll), residuals(fit_ll), pch = 19, cex = 0.6, col = "#2C5AA066",
+     xlab = "fitted log(mpg)", ylab = "residuals"); abline(h = 0, lty = 2)
+lines(lowess(fitted(fit_ll), residuals(fit_ll)), col = "#D97706", lwd = 2)
+@
+\end{frame}
+
+\begin{frame}{\Zgjerim Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Forma U është shumë më e butë; hinka pothuajse zhduket.
+    \item<2-> Logaritmi i $y$ stabilizon variancën kur luhatja është proporcionale me nivelin.
+  \end{itemize}
+  \onslide<3->{\begin{Gabim}Krahasimi i $R^2$: $0.72$ (log--log) kundrejt $0.61$ (linear). Variablat e përgjigjes janë të ndryshme ($\log y$ kundrejt $y$), ndaj $R^2$ nuk krahasohet drejtpërdrejt. Krahaso parashikimet në shkallën e $y$.\end{Gabim}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Raporti}
+% ------------------------------------------------------------
+
+\begin{frame}{Raporti i shkurtër}
+  \small
+  \begin{itemize}
+    \item<1-> \textbf{Të dhënat:} ``392 makina (\texttt{Auto}, 1970--82); 5 me fuqi që mungon u përjashtuan.''
+    \item<2-> \textbf{Modeli:} ``$\widehat{\texttt{mpg}}=39.94-0.158\,\texttt{horsepower}$; çdo 10 hp $-1.58$ mpg (95\% IB $[-1.71,\,-1.45]$); $R^2=0.61$, RSE $=4.91$.''
+    \item<3-> \textbf{Parashikimi:} ``98 hp: mesatarja 24.5 mpg [24.0, 25.0]; një makinë e veçantë [14.8, 34.1].''
+    \item<4-> \textbf{Kufizimet:} ``Lidhja është e lakuar dhe heteroskedastike; modeli log--log ose polinomial përshtatet më mirë. Pesha lidhet fort me fuqinë.''
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGabAuto]{Gjej gabimin!}
+  \begin{Ushtrim}[(Gjej gabimin)]
+    \small
+    ``Modeli tregon se rritja e fuqisë me 100 hp \textbf{shkakton} ulje prej 15.8 mpg. Për një makinë me 300 hp parashikojmë $39.94-0.158\times300=-7.4$ mpg, me IB 95\%. $R^2=0.61$ tregon se modeli është i saktë.''\\[3pt]
+    \normalsize Gjej katër probleme.
+  \end{Ushtrim}
+  \shkoTe{zgjGabAuto}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Lidhja me projektin final}
+  \begin{itemize}
+    \item<1-> Çdo projekt ka të njëjtën rrjedhë: pyetja $\to$ të dhënat $\to$ EDA $\to$ modeli $\to$ diagnostikimi $\to$ raporti.
+    \item<2-> Raporto gjithmonë: njësitë, IB, $R^2$ dhe RSE, kufizimet.
+    \item<3-> Kur të dhënat INSTAT janë në nivel qarku ose bashkie, kujdes me interpretimin individual (gabimi ekologjik, Java 3).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp56]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Pse \texttt{na.strings = "?"} është i domosdoshëm te \texttt{Auto}?
+    \item Çfarë tregojnë mbetjet e \texttt{mpg \textasciitilde{} horsepower}?
+    \item Si interpretohet pjerrësia në një model log--log?
+  \end{enumerate}
+  \shkoTe{zgjCp56}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item \texttt{Auto}: $-0.158$ mpg për hp, $R^2=0.61$; IB dhe IP për 98 hp (ISLR 3.8).
+    \item Diagnostikimi: U + hinkë $\Rightarrow$ lidhje jolineare, variancë jokonstante.
+    \item \texttt{weight} shpjegon më shumë, por është e lidhur me \texttt{horsepower}: Java 6.
+    \item \Zgjerim Log--log: elasticiteti $\approx-0.84$; mos krahaso $R^2$ midis shkallëve të ndryshme të $y$.
+  \end{itemize}
+  \begin{Keshille}Ora 7: kuiz, ushtrime, fletë-kujtesa dhe pamje e regresit të shumëfishtë.\end{Keshille}
+\end{frame}

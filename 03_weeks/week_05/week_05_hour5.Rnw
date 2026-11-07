@@ -61,7 +61,7 @@ c(mean_b1 = mean(b1_sim), sd_b1 = sd(b1_sim),
 \end{frame}
 
 \begin{frame}[fragile]{Histogrami kundrejt teorisë}
-<<sim-hist, fig.height=2.6, fig.width=4.2, out.width="0.45\\textwidth">>=
+<<sim-hist, fig.height=2.6, fig.width=4.2, out.width="0.38\\textwidth">>=
 se_th <- sigma / sqrt(sum((x - mean(x))^2))
 hist(b1_sim, breaks = 50, freq = FALSE, col = "grey85", border = "white",
      main = "", xlab = "estimated slope")
@@ -142,7 +142,7 @@ sim_se <- function(n, sigma, x_range, reps = 2000) {
 % ------------------------------------------------------------
 
 \begin{frame}[fragile]{Të dhënat dhe grafiku}
-<<bos-plot, fig.height=2.3, fig.width=5, out.width="0.52\\textwidth">>=
+<<bos-plot, fig.height=2.3, fig.width=5, out.width="0.44\\textwidth">>=
 library(MASS); library(ggplot2)
 bos <- Boston[, c("medv", "lstat")]       # only the columns used here
 ggplot(bos, aes(lstat, medv)) + geom_point(alpha = 0.4, size = 0.8) +
@@ -203,7 +203,7 @@ predict(fit_b, new_l, interval = "prediction")
 \end{frame}
 
 \begin{frame}[fragile]{Brezat në një grafik}
-<<bos-bands, fig.height=2.3, fig.width=5.5, out.width="0.58\\textwidth">>=
+<<bos-bands, fig.height=2.3, fig.width=5.5, out.width="0.49\\textwidth">>=
 grid <- data.frame(lstat = seq(min(bos$lstat), max(bos$lstat), length.out = 100))
 pi_b <- cbind(grid, predict(fit_b, grid, interval = "prediction"))
 ggplot(bos, aes(lstat, medv)) + geom_point(alpha = 0.3, size = 0.7) +
@@ -226,7 +226,7 @@ ggplot(bos, aes(lstat, medv)) + geom_point(alpha = 0.3, size = 0.7) +
 % ------------------------------------------------------------
 
 \begin{frame}[fragile]{Mbetjet kundrejt vlerave të përshtatura}
-<<bos-resid, fig.height=2.6, fig.width=4.2, out.width="0.45\\textwidth">>=
+<<bos-resid, fig.height=2.6, fig.width=4.2, out.width="0.38\\textwidth">>=
 plot(fitted(fit_b), residuals(fit_b), pch = 19, col = "#2C5AA066", cex = 0.6,
      xlab = "fitted values", ylab = "residuals")
 abline(h = 0, lty = 2)
@@ -244,7 +244,7 @@ lines(lowess(fitted(fit_b), residuals(fit_b)), col = "#D97706", lwd = 2)
 \end{frame}
 
 \begin{frame}[fragile]{\texttt{Advertising}: një problem tjetër}
-<<adv-resid, fig.height=2.6, fig.width=4.2, out.width="0.45\\textwidth">>=
+<<adv-resid, fig.height=2.6, fig.width=4.2, out.width="0.38\\textwidth">>=
 adv <- read.csv(file.path(W05DATA, "Advertising.csv"))[, -1]
 fit_a <- lm(sales ~ TV, data = adv)
 plot(fitted(fit_a), residuals(fit_a), pch = 19, col = "#2C5AA066", cex = 0.6,
@@ -272,7 +272,7 @@ plot(fitted(fit_a), residuals(fit_a), pch = 19, col = "#2C5AA066", cex = 0.6,
 \end{frame}
 
 \begin{frame}[fragile]{\texttt{log(lstat)}}
-<<bos-log, fig.height=2.3, fig.width=4.4, out.width="0.36\\textwidth">>=
+<<bos-log, fig.height=2.3, fig.width=4.4, out.width="0.31\\textwidth">>=
 fit_log <- lm(medv ~ log(lstat), data = bos)
 c(R2_linear = summary(fit_b)$r.squared, R2_log = summary(fit_log)$r.squared)
 plot(fitted(fit_log), residuals(fit_log), pch = 19, col = "#2C5AA066", cex = 0.6,
