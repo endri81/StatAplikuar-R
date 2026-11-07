@@ -1,0 +1,72 @@
+% ============================================================
+%  Java 3 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjConst]{Zgjidhja: Parashiko (raste të veçanta)}
+<<sol-const>>=
+xs <- c(1, 2, 3, 4, 5)
+c(linear = my_cor(xs, 2 * xs + 3), reversed = my_cor(xs, -xs),
+  constant = my_cor(xs, rep(5, 5)))
+@
+  \begin{itemize}
+    \item Lidhje lineare perfekte: $1$ dhe $-1$.
+    \item Konstante: $0/0$ = \texttt{NaN}. \texttt{cor()} i R-së kthen \texttt{NA} me paralajmërim.
+  \end{itemize}
+  \vfill\kthehu{pyetjeConst}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjMat3]{Zgjidhja: Radha jote! (matrica $2\times2$)}
+  $\bar x=2$, $\bar y=2$; devijimet $d_x=(-1,0,1)$, $d_y=(-1,1,0)$.
+  \[ s_x^2=\tfrac{2}{2}=1,\quad s_y^2=\tfrac22=1,\quad s_{xy}=\tfrac{1+0+0}{2}=0.5 \]
+  \[ \mathbf S=\begin{pmatrix}1&0.5\\0.5&1\end{pmatrix}=\mathbf R \quad(\text{sepse } s_x=s_y=1) \]
+<<sol-mat3>>=
+cov(cbind(x = c(1, 2, 3), y = c(1, 3, 2)))
+@
+  \vfill\kthehu{ushMat3}
+\end{frame}
+
+\begin{frame}[label=zgjGab10]{Zgjidhja: Gjej gabimin (\texttt{cor} mbi tabelë)}
+  \begin{enumerate}
+    \item Kolona 9, \texttt{name}, është tekst: \texttt{cor()} kërkon vetëm kolona numerike.
+    \item \texttt{origin} (1, 2, 3) është kod nominal: korrelacioni me të supozon ``Japonia = 3 $\times$ Amerika''. Hiqe, ose përdor metoda për grupe (Java 4).
+  \end{enumerate}
+  \begin{itemize}
+    \item \texttt{cylinders} është sasiore diskrete me pak vlera: $r$ llogaritet, por Spearman-i (Ora 4) është më i përshtatshëm.
+  \end{itemize}
+  \vfill\kthehu{gjejGab10}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjSim]{Zgjidhja: Ndrysho parametrin (shpërndarja e $r$)}
+<<sol-sim>>=
+set.seed(2026)
+sim_r <- function(n, rho) replicate(2000, { p <- make_pair(n, rho); cor(p$x, p$y) })
+s <- list(rho0 = sim_r(30, 0), rho95 = sim_r(30, 0.95), n200 = sim_r(200, 0.7))
+round(sapply(s, function(v) c(mean = mean(v), sd = sd(v),
+                              skew = e1071::skewness(v, type = 1))), 3)
+@
+  \begin{itemize}
+    \item $\rho=0$: simetrike. $\rho=0.95$: shumë e anuar majtas. $n=200$: shumë më e ngushtë.
+  \end{itemize}
+  \vfill\kthehu{ushSim}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjRep]{Zgjidhja: Radha jote! (\texttt{cor\_report})}
+<<sol-rep>>=
+round(sapply(adv[, c("TV", "radio", "newspaper")], cor_report, y = adv$sales), 3)
+round(rbind(weight = cor_report(auto$weight, auto$mpg),
+            accel  = cor_report(auto$acceleration, auto$mpg)), 3)
+@
+  \begin{itemize}
+    \item Kur \texttt{r\_rank} ndryshon dukshëm nga \texttt{r}, lidhja nuk është lineare, ose ka vlera të skajshme.
+  \end{itemize}
+  \vfill\kthehu{ushRep}
+\end{frame}
+
+\begin{frame}[label=zgjCp33]{Përgjigjet: Checkpoint i Orës 3}
+  \begin{enumerate}
+    \item $\mathbf R=\mathbf D^{-1}\mathbf S\mathbf D^{-1}$, me $\mathbf D$ diagonale të devijimeve standarde; në R: \texttt{cov2cor(S)}.
+    \item Çiftet llogariten mbi rreshta të ndryshëm; matrica mund të mos jetë gjysmë-pozitive e përcaktuar.
+    \item $r$ është i kufizuar nga lart te 1; afër kufirit, vlerat nuk mund të shtrihen djathtas sa majtas.
+  \end{enumerate}
+  \vfill\kthehu{cp33}
+\end{frame}

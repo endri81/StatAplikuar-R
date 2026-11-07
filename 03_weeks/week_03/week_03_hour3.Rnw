@@ -1,0 +1,337 @@
+% ============================================================
+%  Java 3 · Ora 3 — Laborator I: korrelacioni nga zero, simulimi
+%  Rezultatet: S4, S1
+%  Material plotësues
+% ============================================================
+
+\section{Laborator I}
+
+\begin{frame}{Ora 3: Laborator I --- korrelacioni nga zero}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Nga zero}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Kovarianca me cikël \LO{S4} \Plotesues}
+<<my-cov>>=
+my_cov <- function(x, y) {
+  stopifnot(length(x) == length(y))
+  mx <- mean(x); my <- mean(y)
+  s <- 0
+  for (i in seq_along(x)) s <- s + (x[i] - mx) * (y[i] - my)
+  s / (length(x) - 1)
+}
+x <- c(1, 2, 3, 4, 5); y <- c(2, 4, 5, 4, 5)
+c(mine = my_cov(x, y), R = cov(x, y))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Korrelacioni nga kovarianca}
+<<my-cor>>=
+my_cor <- function(x, y) my_cov(x, y) / sqrt(my_cov(x, x) * my_cov(y, y))
+c(mine = my_cor(x, y), R = cor(x, y))
+adv <- read.csv(file.path(W03DATA, "Advertising.csv"))[, -1]
+c(mine = my_cor(adv$TV, adv$sales), R = cor(adv$TV, adv$sales))
+@
+  \begin{itemize}
+    \item \texttt{my\_cov(x, x)} është varianca: e njëjta funksion bën dy punë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Korrelacioni si prodhim skalar}
+<<cor-dot>>=
+zx <- (x - mean(x)) / sd(x)            # standardised x
+zy <- (y - mean(y)) / sd(y)
+sum(zx * zy) / (length(x) - 1)         # average product of z-scores
+dx <- x - mean(x); dy <- y - mean(y)
+sum(dx * dy) / sqrt(sum(dx^2) * sum(dy^2))   # cosine of the angle
+@
+  \begin{itemize}
+    \item Tri rrugë, i njëjti numër: \Sexpr{fmt(cor(x, y), 4)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeConst]{Parashiko para se ta ekzekutosh}
+<<const-code, eval=FALSE>>=
+my_cor(x, 2 * x + 3)
+my_cor(x, -x)
+my_cor(x, rep(5, 5))      # y is constant
+@
+  \begin{Parashiko}
+    Çfarë kthen secila thirrje? A jep njëra gabim?
+  \end{Parashiko}
+  \shkoTe{zgjConst}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Gabim i zakonshëm: variabël konstante}
+<<const-run>>=
+cor(x, rep(5, 5))
+@
+  \begin{Gabim}Nëse njëra variabël s'ndryshon, $s_y=0$ dhe $r$ është $0/0$: i papërcaktuar. Ndodh shpesh pas filtrimit, p.sh.\ \texttt{cor(age, wage)} vetëm për një grupmoshë me një vlerë.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Matrica e kovariancës dhe e korrelacionit}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Matrica e kovariancës}
+<<cov-mat>>=
+round(cov(adv), 1)
+@
+  \begin{itemize}
+    \item Diagonalja: variancat. Jashtë diagonales: kovariancat. Matrica është simetrike.
+    \item Numrat varen nga njësitë: vështirë të krahasohen.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Matrica e korrelacionit}
+<<cor-mat>>=
+round(cor(adv), 3)
+@
+  \begin{itemize}
+    \item Diagonalja: 1. Çdo element është në $[-1,1]$.
+    \item \texttt{radio}--\texttt{newspaper}: $r=\Sexpr{fmt(cor(adv$radio, adv$newspaper), 3)}$. Kujto këtë numër në Javën 6.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Nga kovarianca te korrelacioni}
+  \begin{Teoreme}
+    Nëse $\mathbf S$ është matrica e kovariancës dhe $\mathbf D=\operatorname{diag}(s_1,\dots,s_p)$, atëherë
+    \[ \mathbf R=\mathbf D^{-1}\,\mathbf S\,\mathbf D^{-1},\qquad r_{jk}=\frac{s_{jk}}{s_js_k}. \]
+  \end{Teoreme}
+  \pause
+  \begin{Shembull}[(pa ndihmën e PC)]
+    $\mathbf S=\begin{pmatrix}4&3\\3&9\end{pmatrix}$ $\Rightarrow$ $s_1=2$, $s_2=3$, \ $r_{12}=3/(2\cdot3)=0.5$, \
+    $\mathbf R=\begin{pmatrix}1&0.5\\0.5&1\end{pmatrix}$.
+  \end{Shembull}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<cov2cor>>=
+S <- matrix(c(4, 3, 3, 9), 2)
+cov2cor(S)
+D_inv <- diag(1 / sqrt(diag(S)))
+D_inv %*% S %*% D_inv          # same, by the formula
+@
+\end{frame}
+
+\begin{frame}[fragile]{Matrica e kovariancës me algjebër lineare}
+\[ \mathbf S=\frac{1}{n-1}\,\mathbf X_c^\top\mathbf X_c,\qquad \mathbf X_c=\text{të dhënat pa mesataret e kolonave} \]
+<<cov-matrix-algebra>>=
+X  <- as.matrix(adv)
+Xc <- scale(X, center = TRUE, scale = FALSE)   # subtract column means
+S_mine <- crossprod(Xc) / (nrow(X) - 1)        # t(Xc) %*% Xc / (n - 1)
+all.equal(S_mine, cov(X), check.attributes = FALSE)
+@
+  \begin{itemize}
+    \item E njëjta $\mathbf X^\top\mathbf X$ do të shfaqet te regresioni i shumëfishtë (Java 6).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushMat3]{Radha jote!}
+  \begin{Ushtrim}[(pa ndihmën e PC, 5 minuta)]
+    Tri pika: $x=(1,2,3)$, \ $y=(1,3,2)$.
+    \begin{enumerate}
+      \item Llogarit $\bar x$, $\bar y$ dhe devijimet.
+      \item Ndërto matricën $2\times2$ të kovariancës $\mathbf S$.
+      \item Ktheje në matricën e korrelacionit $\mathbf R$.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjMat3}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Vlerat që mungojnë}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{NA} në korrelacion}
+<<na-auto>>=
+auto <- read.csv(file.path(W03DATA, "Auto.csv"), na.strings = "?")
+cor(auto$mpg, auto$horsepower)                         # one NA spoils it
+cor(auto$mpg, auto$horsepower, use = "complete.obs")   # drop rows with NA
+@
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{complete.obs} kundrejt \texttt{pairwise.complete.obs}}
+<<na-pairwise>>=
+set.seed(2026)
+d <- as.data.frame(MASS::mvrnorm(40, rep(0, 3), diag(3) * 0.5 + 0.5))
+names(d) <- c("a", "b", "c")
+d$a[1:10] <- NA; d$b[11:20] <- NA          # different missing rows
+round(cor(d, use = "complete.obs"), 2)      # only rows 21-40
+round(cor(d, use = "pairwise.complete.obs"), 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{complete.obs}: një $n$ i vetëm për të gjithë matricën (këtu 20 rreshta).
+    \item<2-> \texttt{pairwise}: çdo çift përdor të gjitha rreshtat që ka; $n$ ndryshon nga çifti në çift.
+    \item<3-> Pairwise humb më pak të dhëna, por çiftet llogariten mbi njerëz të ndryshëm.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Me \texttt{pairwise}, matrica mund të mos jetë gjysmë-pozitive e përcaktuar: probleme në modelet që e përdorin. Raporto gjithmonë cilën metodë përdore dhe $n$-të.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab10]{Gjej gabimin!}
+<<cor-df-bug, eval=FALSE>>=
+auto <- na.omit(read.csv("week_03_data/Auto.csv", na.strings = "?"))
+cor(auto)                       # (1) error
+cor(auto[, -9])                 # (2) runs, but one column is a trap
+@
+  \begin{Ushtrim}[(Gjej gabimin)]
+    \begin{enumerate}
+      \item Pse thirrja (1) jep gabim?
+      \item Thirrja (2) funksionon. Cila kolonë jep korrelacione pa kuptim? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjGab10}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulimi me $\rho$ të njohur}
+% ------------------------------------------------------------
+
+\begin{frame}{Si ndërtohet një çift me korrelacion $\rho$?}
+  Le të jenë $X, Z\sim N(0,1)$ të pavarura, dhe
+  \[ Y=\rho X+\sqrt{1-\rho^2}\,Z. \]
+  \pause
+  \begin{align*}
+    \operatorname{Var}(Y) &= \rho^2\cdot1+(1-\rho^2)\cdot1=1 \\
+    \onslide<3->{\operatorname{Cov}(X,Y) &= \rho\operatorname{Cov}(X,X)+\sqrt{1-\rho^2}\operatorname{Cov}(X,Z)=\rho\cdot1+0=\rho} \\
+    \onslide<4->{\operatorname{Cor}(X,Y) &= \rho/(1\cdot1)=\rho}
+  \end{align*}
+  \onslide<5->{\begin{Keshille}Kjo është ideja që përdor \texttt{MASS::mvrnorm()} (me zbërthimin e matricës $\boldsymbol\Sigma$).\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me $n = 100\,000$}
+<<rho-formula>>=
+set.seed(2026)
+make_pair <- function(n, rho) {
+  x <- rnorm(n); z <- rnorm(n)
+  data.frame(x = x, y = rho * x + sqrt(1 - rho^2) * z)
+}
+sapply(c(0, 0.3, 0.7, 0.95), function(rho) {
+  p <- make_pair(1e5, rho); c(rho = rho, r = cor(p$x, p$y))
+})
+@
+\end{frame}
+
+\begin{frame}[fragile]{Me $n = 30$: vlerësimi kundrejt së vërtetës}
+<<rho-n30>>=
+set.seed(2026)
+r30 <- sapply(c(0, 0.3, 0.7, 0.95), function(rho) {
+  p <- make_pair(30, rho); cor(p$x, p$y)
+})
+round(rbind(truth = c(0, 0.3, 0.7, 0.95), estimate = r30,
+            error = r30 - c(0, 0.3, 0.7, 0.95)), 3)
+@
+  \begin{itemize}
+    \item Të dhëna: sintetike. Me $n=30$, gabimi mund të jetë $\pm0.2$ ose më shumë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Shpërndarja e $r$: 2\,000 mostra me $n = 30$, $\rho = 0.7$}
+<<r-sampling, fig.height=2.6>>=
+set.seed(2026)
+r_dist <- replicate(2000, { p <- make_pair(30, 0.7); cor(p$x, p$y) })
+hist(r_dist, breaks = 40, col = "#E8EEF7", border = "#2C5AA0",
+     main = "", xlab = "sample r (truth 0.7)")
+abline(v = 0.7, col = "#D97706", lwd = 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Shpërndarja e $r$ është \textbf{e anuar majtas}: $r$ nuk mund të kalojë 1.
+    \item<2-> Mesatarja e $r$: \Sexpr{fmt(mean(r_dist), 3)}; mediana: \Sexpr{fmt(median(r_dist), 3)}. Pak nën 0.7.
+    \item<3-> 95\% e vlerave midis \Sexpr{fmt(quantile(r_dist, 0.025), 2)} dhe \Sexpr{fmt(quantile(r_dist, 0.975), 2)}: interval i gjerë për $n=30$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Kjo asimetri është arsyeja e transformimit $z$ të Fisher-it (Ora 4).\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Sa ndikon $n$?}
+<<r-by-n>>=
+set.seed(2026)
+sizes <- c(10, 30, 100, 300)
+sd_r <- sapply(sizes, function(n)
+  sd(replicate(2000, { p <- make_pair(n, 0.3); cor(p$x, p$y) })))
+round(rbind(n = sizes, sd_of_r = sd_r, approx = (1 - 0.3^2) / sqrt(sizes - 1)), 3)
+@
+  \begin{itemize}
+    \item Përafrimi i njohur: $\operatorname{sd}(r)\approx(1-\rho^2)/\sqrt{n-1}$. Këtu punon mirë; për $\rho$ afër 1 dhe $n$ të vogël bëhet i pasaktë, sepse shpërndarja anohet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Me $n=10$, $r$ i një mostre mund të jetë larg $\rho=0.3$: madje edhe negativ.
+    \item<2-> Për ta përgjysmuar pasigurinë duhet rreth 4 herë më shumë të dhëna.
+    \item<3-> Pyetja për Orën 4: kur është $r$ ``mjaftueshëm larg'' nga 0 për të thënë që $\rho\neq0$?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushSim]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    Në kodin e histogramit të $r$:
+    \begin{enumerate}
+      \item Ndrysho $\rho$ në 0. Parashiko formën; provoje.
+      \item Ndrysho $\rho$ në 0.95. Çfarë ndodh me anshmërinë?
+      \item Ndrysho $n$ në 200 (me $\rho=0.7$). Çfarë ndodh me gjerësinë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSim}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Një funksion raportimi}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{cor\_report()}: çfarë raportojmë?}
+<<cor-report>>=
+cor_report <- function(x, y) {
+  ok <- complete.cases(x, y)                    # same rows for both
+  x <- x[ok]; y <- y[ok]
+  r <- cor(x, y)
+  c(n = length(x), r = r, r2 = r^2,
+    r_rank = cor(rank(x), rank(y)))             # preview: Spearman
+}
+round(cor_report(adv$TV, adv$sales), 3)
+round(cor_report(auto$horsepower, auto$mpg), 3)
+@
+\end{frame}
+
+\begin{frame}[label=ushRep]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    \begin{enumerate}
+      \item Zbato \texttt{cor\_report()} për të tre kanalet e \texttt{Advertising} kundrejt \texttt{sales}, me \texttt{sapply()}.
+      \item Te \texttt{auto}: \texttt{weight}--\texttt{mpg} dhe \texttt{acceleration}--\texttt{mpg}.
+      \item Ku ndryshon më shumë \texttt{r} nga \texttt{r\_rank}? Çfarë sugjeron kjo për formën e lidhjes?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjRep}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp33]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Si ndërtohet $\mathbf R$ nga $\mathbf S$?
+    \item Cili është rreziku i \texttt{use = "pairwise.complete.obs"}?
+    \item Pse shpërndarja e $r$ është e anuar kur $\rho=0.7$?
+  \end{enumerate}
+  \shkoTe{zgjCp33}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item \texttt{my\_cov}, \texttt{my\_cor}: nga cikli te prodhimi skalar te $\mathbf X_c^\top\mathbf X_c/(n-1)$.
+    \item $\mathbf R=\mathbf D^{-1}\mathbf S\mathbf D^{-1}$: \Rkey{cov2cor()}.
+    \item \texttt{NA}: \texttt{complete.obs} kundrejt \texttt{pairwise}; raporto $n$-të.
+    \item $Y=\rho X+\sqrt{1-\rho^2}Z$ jep korrelacion $\rho$; $r$ ka shpërndarje të anuar dhe të gjerë për $n$ të vogël.
+  \end{itemize}
+  \begin{Keshille}Ora 4: Spearman, Kendall, testi i $\rho=0$ dhe intervali i besimit.\end{Keshille}
+\end{frame}
