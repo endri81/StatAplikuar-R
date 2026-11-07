@@ -1,0 +1,287 @@
+% ============================================================
+%  Java 6 · Ora 3 — Laborator I: regresi i shumëfishtë nga zero
+%  Rezultatet: S4, K2, S3
+%  Burimi: ISLR kap. 3.2; repo DS612 (Advertising)
+% ============================================================
+
+\section{Laborator I}
+
+\begin{frame}{Ora 3: Laborator I --- nga zero dhe me \texttt{lm()}}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{OLS me matrica}
+% ------------------------------------------------------------
+
+\begin{frame}{Plani i laboratorit \LO{S4}}
+  \begin{enumerate}
+    \item<1-> $\hat{\bm\beta}$, SE, $t$, $p$ me matrica, kontrolluar me \texttt{lm()}.
+    \item<2-> FWL numerikisht.
+    \item<3-> \texttt{Advertising}: \texttt{summary}, \texttt{confint}, \texttt{predict}, \texttt{anova}.
+    \item<4-> Simulim: pjerrësia e thjeshtë kundrejt asaj të pjesshme.
+    \item<5-> Simulim: $R^2$ me variabla të rastit.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Pesë pikat nga Ora 2}
+<<lab-toy>>=
+x1 <- c(-2, -1, 0, 1, 2); x2 <- c(1, -1, 0, -1, 1); y <- c(1, 2, 4, 5, 8)
+X <- cbind(1, x1, x2)                       # design matrix with intercept
+XtX <- crossprod(X)                         # t(X) %*% X, faster
+Xty <- crossprod(X, y)
+XtX
+beta_hat <- solve(XtX, Xty); t(beta_hat)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Gabimet standarde me matrica}
+<<lab-se>>=
+e <- y - X %*% beta_hat
+n <- nrow(X); k <- ncol(X)                  # k = p + 1
+s2 <- sum(e^2) / (n - k)
+V  <- s2 * solve(XtX)                       # estimated Var(beta_hat)
+se <- sqrt(diag(V))
+cbind(estimate = drop(beta_hat), se = se, t = drop(beta_hat) / se)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me \texttt{lm()}}
+<<lab-check>>=
+fit_toy <- lm(y ~ x1 + x2)
+summary(fit_toy)$coefficients[, 1:3]
+all.equal(unname(V), unname(vcov(fit_toy)))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> E njëjta tabelë si pa ndihmën e PC: $\hat{\bm\beta}=(4,1.7,0.5)$, $t=(40,\ 24.0,\ 4.47)$.
+    \item<2-> \texttt{vcov(fit)} $=\hat\sigma^2(\bm X^\top\bm X)^{-1}$: diagonalja jep SE$^2$.
+    \item<3-> Jashtë diagonales: kovariancat e vlerësuesve. Këtu zero, sepse $\bm X^\top\bm X$ është diagonale.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Funksioni \texttt{my\_mlr()}}
+<<lab-fun>>=
+my_mlr <- function(X, y) {
+  X <- cbind(`(Intercept)` = 1, as.matrix(X))
+  b <- solve(crossprod(X), crossprod(X, y)); e <- y - X %*% b
+  df <- nrow(X) - ncol(X); s2 <- sum(e^2) / df
+  se <- sqrt(diag(s2 * solve(crossprod(X))))
+  t <- drop(b) / se
+  cbind(Estimate = drop(b), SE = se, t = t, p = 2 * pt(-abs(t), df))
+}
+@
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{Advertising}: \texttt{my\_mlr()} kundrejt \texttt{lm()}}
+<<lab-adv>>=
+adv <- read.csv(file.path(W06DATA, "Advertising.csv"))[, -1]
+round(my_mlr(adv[, c("TV", "radio", "newspaper")], adv$sales), 4)
+fit_all <- lm(sales ~ TV + radio + newspaper, data = adv)
+round(summary(fit_all)$coefficients, 4)
+@
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{FWL numerikisht}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Koeficienti i TV me mbetje}
+<<lab-fwl>>=
+r_tv    <- residuals(lm(TV ~ radio + newspaper, data = adv))
+r_sales <- residuals(lm(sales ~ radio + newspaper, data = adv))
+c(both_residualised = unname(coef(lm(r_sales ~ r_tv))[2]),
+  only_x_residualised = unname(coef(lm(adv$sales ~ r_tv))[2]),
+  full_model = unname(coef(fit_all)["TV"]))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të tre japin të njëjtin koeficient: $\Sexpr{fmt(coef(fit_all)["TV"], 5)}$.
+    \item<2-> Mjafton të ``pastrosh'' $x_j$; pastrimi i $y$ nuk e ndryshon pjerrësinë (sepse $\tilde x_j$ është ortogonal me shpjeguesit e tjerë).
+    \item<3-> Por SE e saktë del vetëm nga modeli i plotë: regresionet ndihmëse nuk numërojnë shkallët e lirisë së humbura.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\texttt{Advertising}: modeli i plotë}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile,shrink=14]{\texttt{summary(fit\_all)}}
+<<lab-summary>>=
+summary(fit_all)
+@
+\end{frame}
+
+\begin{frame}{Leximi}
+  \begin{itemize}
+    \item<1-> \texttt{F-statistic}: $\Sexpr{fmt(summary(fit_all)$fstatistic[1], 1)}$ me $(3,196)$ df: të paktën një kanal lidhet me shitjet.
+    \item<2-> \texttt{Multiple R-squared} $=\Sexpr{fmt(summary(fit_all)$r.squared, 4)}$; \texttt{Adjusted} $=\Sexpr{fmt(summary(fit_all)$adj.r.squared, 4)}$: pothuajse njësoj ($n=200$, $p=3$).
+    \item<3-> RSE $=\Sexpr{fmt(sigma(fit_all), 3)}$ me $196=200-3-1$ df.
+    \item<4-> Çdo $t$: ``duke pasur parasysh dy kanalet e tjera''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Intervalet e besimit}
+<<lab-ci>>=
+round(confint(fit_all), 4)
+@
+  \begin{itemize}
+    \item<2-> IB i \texttt{newspaper} përmban 0: $[\Sexpr{fmt(confint(fit_all)["newspaper", 1], 4)},\ \Sexpr{fmt(confint(fit_all)["newspaper", 2], 4)}]$.
+    \item<3-> Radio: 1000 \$ më shumë lidhen me 171--206 njësi më shumë, me TV dhe gazeta konstante.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjePred]{Parashiko!}
+  \begin{Parashiko}
+    Dy tregje me TV $=150$ dhe radio $=25$. Njëri nuk shpenzon për gazeta, tjetri shpenzon 50 mijë \$.
+    \begin{enumerate}
+      \item Sa ndryshojnë shitjet e parashikuara?
+      \item A pret që IP të jenë shumë të ndryshëm?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjPred}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Testi $F$ i pjesshëm në R}
+<<lab-anova>>=
+fit_tr <- lm(sales ~ TV + radio, data = adv)
+anova(fit_tr, fit_all)
+c(adjR2_TV_radio = summary(fit_tr)$adj.r.squared,
+  adjR2_all      = summary(fit_all)$adj.r.squared)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Shtimi i gazetave ul SSE me vetëm $\Sexpr{fmt(anova(fit_tr, fit_all)[2, 4], 3)}$: $F=t^2$, $p=0.86$.
+    \item<2-> $R^2_{adj}$ i modelit pa gazeta është \textbf{më i lartë}: gazetat vetëm sa shtojnë një parametër.
+    \item<3-> Modeli \texttt{sales \textasciitilde{} TV + radio} është më i thjeshtë dhe po aq i mirë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushPartialF]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    Shkruaj \texttt{partial\_F(small, big)} që merr dy modele \texttt{lm} të mbivendosura dhe kthen $F$, $df_1$, $df_2$, $p$ me formulën e Orës 2 (përdor \texttt{deviance()} për SSE dhe \texttt{df.residual()}).
+    Kontrolloje me \texttt{anova(lm(sales \textasciitilde{} TV), fit\_all)}: testi i radios \textbf{dhe} gazetave njëherësh.
+  \end{Ushtrim}
+  \shkoTe{zgjPartialF}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulim: pjerrësia e thjeshtë kundrejt asaj të pjesshme}
+% ------------------------------------------------------------
+
+\begin{frame}{Dizajni}
+  \begin{itemize}
+    \item<1-> E vërteta: $y=1+2x_1-1\cdot x_2+\varepsilon$, $\varepsilon\sim N(0,1)$, $n=100$.
+    \item<2-> $x_1,x_2\sim N(0,1)$ me korrelacion $\rho=0.7$.
+    \item<3-> Regresi i thjeshtë $y\sim x_1$ ``harron'' $x_2$. Teoria (\termi{gabimi i variablës së harruar}{omitted variable bias}):
+      \[ E[\hat\beta_1^{\text{thjeshtë}}]=\beta_1+\beta_2\frac{\operatorname{Cov}(x_1,x_2)}{\operatorname{Var}(x_1)}=2+(-1)(0.7)=1.3. \]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{2000 përsëritje}
+<<sim-ovb>>=
+sim_once <- function(rho, n = 100) {
+  x1 <- rnorm(n); x2 <- rho * x1 + sqrt(1 - rho^2) * rnorm(n)   # corr(x1, x2) = rho
+  y  <- 1 + 2 * x1 - 1 * x2 + rnorm(n)
+  c(simple = unname(coef(lm(y ~ x1))[2]), multiple = unname(coef(lm(y ~ x1 + x2))[2]))
+}
+set.seed(606)
+est <- replicate(2000, sim_once(rho = 0.7))
+rbind(mean = rowMeans(est), sd = apply(est, 1, sd), truth_beta1 = 2)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike ($\beta_1=2$, $\beta_2=-1$, $\rho=0.7$).}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> E thjeshta: mesatarja $\approx1.3$, \textbf{e zhvendosur}, sikurse thotë formula.
+    \item<2-> E shumëfishta: mesatarja $\approx2$, e pazhvendosur.
+    \item<3-> Por SD e së shumëfishtës është \textbf{më e madhe}: korrelacioni i $x_1$ me $x_2$ ``ha'' informacionin (FWL).
+    \item<4-> Kompromisi: përfshirja e $x_2$ heq zhvendosjen, por rrit variancën. Ia vlen nëse $\beta_2\neq0$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushRho]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    Ekzekuto simulimin me $\rho=0$ dhe me $\rho=0.95$.
+    \begin{enumerate}
+      \item Parashiko me formulë mesataren e pjerrësisë së thjeshtë në secilin rast.
+      \item Si ndryshon SD e pjerrësisë së shumëfishtë? Lidhe me $1/(1-\rho^2)$.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjRho}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulim: $R^2$ me variabla të rastit}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Shto zhurmë dhe shiko $R^2$}
+<<sim-noise>>=
+set.seed(61)
+noise <- matrix(rnorm(200 * 60), nrow = 200)          # 60 pure-noise columns
+r2 <- t(sapply(0:60, function(m) {
+  d <- data.frame(sales = adv$sales, TV = adv$TV, noise[, seq_len(m), drop = FALSE])
+  s <- summary(lm(sales ~ ., data = d))
+  c(m = m, R2 = s$r.squared, adjR2 = s$adj.r.squared)
+}))
+round(r2[c(1, 11, 31, 61), ], 3)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: \texttt{Advertising} (reale) + 60 kolona sintetike $N(0,1)$ pa asnjë lidhje me shitjet.}
+\end{frame}
+
+\begin{frame}[fragile]{Pamja}
+<<sim-noise-plot, fig.height=2.4, fig.width=4.6, out.width="0.46\\textwidth">>=
+plot(r2[, "m"], r2[, "R2"], type = "l", lwd = 2, ylim = c(0.55, 0.8),
+     xlab = "number of noise predictors", ylab = "R2")
+lines(r2[, "m"], r2[, "adjR2"], lwd = 2, lty = 2, col = "#D97706")
+legend("topleft", c("R2", "adjusted R2"), lty = 1:2, col = c(1, "#D97706"), bty = "n")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $R^2$ rritet në mënyrë monotone: 60 kolona zhurmë e çojnë nga 0.61 në $\approx\Sexpr{fmt(r2[61, "R2"], 2)}$.
+    \item<2-> $R^2_{adj}$ rritet shumë më pak (në $\Sexpr{fmt(r2[61, "adjR2"], 2)}$), por \textbf{nuk} mbetet te 0.61: penalizimi i tij është i dobët kur $p$ është i madh krahasuar me $n$.
+    \item<3-> Në Orën 6: CV tregon edhe më qartë që modeli me zhurmë parashikon \textbf{më keq} të dhëna të reja.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGabR2]{Gjej gabimin!}
+  \begin{Ushtrim}[(Gjej gabimin)]
+    \small
+    Një student ka 50 bashki dhe 30 tregues socio-ekonomikë. Përshtat \texttt{lm(y \textasciitilde{} ., data)} dhe raporton: ``$R^2=0.82$: modeli shpjegon 82\% të ndryshueshmërisë; është shumë i mirë për politikat.''\\[3pt]
+    \normalsize Çfarë duhet të kontrollojë para se ta besojë?
+  \end{Ushtrim}
+  \shkoTe{zgjGabR2}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp63]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Si merr matricën e kovariancës së $\hat{\bm\beta}$ në R?
+    \item Çfarë është gabimi i variablës së harruar, dhe kur zhduket?
+    \item Pse $R^2$ rritet me variabla të rastit, dhe çfarë përdor në vend të tij?
+  \end{enumerate}
+  \shkoTe{zgjCp63}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item \Rkey{solve(crossprod(X), crossprod(X, y))} = \Rkey{coef(lm())}; \Rkey{vcov()} $=\hat\sigma^2(\bm X^\top\bm X)^{-1}$.
+    \item FWL: mjafton të pastrosh $x_j$ nga të tjerët.
+    \item \texttt{Advertising}: \Rkey{anova(small, big)}; $R^2_{adj}$ preferon \texttt{TV + radio}.
+    \item Variabla e harruar: zhvendosje $\beta_2\operatorname{Cov}(x_1,x_2)/\operatorname{Var}(x_1)$; përfshirja rrit variancën.
+    \item $R^2$ rritet me zhurmë; $R^2_{adj}$ shumë më pak, por jo zero: duhet CV.
+  \end{itemize}
+  \begin{Keshille}Ora 4: parashikuesit cilësorë (dummy) dhe ndërveprimet.\end{Keshille}
+\end{frame}

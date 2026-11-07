@@ -1,0 +1,65 @@
+% ============================================================
+%  Java 6 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjPred]{Zgjidhja: Parashiko (gazetat 0 kundrejt 50)}
+<<sol-pred>>=
+adv <- read.csv(file.path(W06DATA, "Advertising.csv"))[, -1]
+fit_all <- lm(sales ~ TV + radio + newspaper, data = adv)
+predict(fit_all, data.frame(TV = 150, radio = 25, newspaper = c(0, 50)),
+        interval = "prediction")
+@
+  \begin{enumerate}
+    \item Dallimi $=50\times(-0.00104)\approx-0.05$ mijë njësi: praktikisht zero.
+    \item IP pothuajse të njëjtë; ai për 0 është pak më i gjerë sepse 0 është më larg mesatares së gazetave (30.6).
+  \end{enumerate}
+  \vfill\kthehu{pyetjePred}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjPartialF]{Zgjidhja: Radha jote! (\texttt{partial\_F})}
+<<sol-partialF>>=
+partial_F <- function(small, big) {
+  q <- df.residual(small) - df.residual(big); d2 <- df.residual(big)
+  F <- ((deviance(small) - deviance(big)) / q) / (deviance(big) / d2)
+  c(F = F, df1 = q, df2 = d2, p = pf(F, q, d2, lower.tail = FALSE))
+}
+fit_tv <- lm(sales ~ TV, data = adv)
+partial_F(fit_tv, fit_all)
+anova(fit_tv, fit_all)[2, c("Df", "F", "Pr(>F)")]
+@
+  \vfill\kthehu{ushPartialF}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjRho]{Zgjidhja: Ndrysho parametrin ($\rho$)}
+<<sol-rho>>=
+set.seed(607)
+sapply(c(0, 0.7, 0.95), function(r) {
+  e <- replicate(2000, sim_once(rho = r))
+  c(rho = r, mean_simple = mean(e[1, ]), sd_multiple = sd(e[2, ]))
+})
+@
+  \begin{enumerate}
+    \item $\rho=0$: $2+0=2$ (pa zhvendosje). $\rho=0.95$: $2-0.95=1.05$.
+    \item SD e shumëfishtës $\propto1/\sqrt{1-\rho^2}$: $1$, $1.40$, $3.20$ herë SD me $\rho=0$.
+  \end{enumerate}
+  \vfill\kthehu{ushRho}
+\end{frame}
+
+\begin{frame}[label=zgjGabR2]{Zgjidhja: Gjej gabimin ($R^2=0.82$)}
+  \begin{itemize}
+    \item 31 parametra me 50 vëzhgime: vetëm 19 df për gabimin. Edhe me tregues krejt të rastit, $E[R^2]=p/(n-1)=30/49\approx0.61$.
+    \item Kontrollo $R^2_{adj}$, testin $F$ global, dhe sidomos gabimin e parashikimit me CV (Ora 6).
+    \item Treguesit socio-ekonomikë janë shpesh shumë të korreluar: koeficientë të paqëndrueshëm (Java 7).
+    \item Të dhëna në nivel bashkie: përfundimet nuk vlejnë për individët (gabimi ekologjik).
+  \end{itemize}
+  \vfill\kthehu{gjejGabR2}
+\end{frame}
+
+\begin{frame}[label=zgjCp63]{Përgjigjet: Checkpoint Ora 3}
+  \begin{enumerate}
+    \item \texttt{vcov(fit)}, ose \texttt{sigma(fit)\^{}2 * solve(crossprod(model.matrix(fit)))}.
+    \item Zhvendosja e pjerrësisë kur harrohet një shpjegues që lidhet edhe me $y$ ($\beta_2\neq0$) edhe me $x_1$ ($\operatorname{Cov}\neq0$). Zhduket kur njëri nga këto është zero.
+    \item SSE nuk rritet kurrë kur shtohet një kolonë. Përdor $R^2_{adj}$, AIC/BIC ose CV.
+  \end{enumerate}
+  \vfill\kthehu{cp63}
+\end{frame}
