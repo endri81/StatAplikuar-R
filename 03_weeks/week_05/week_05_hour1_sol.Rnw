@@ -1,0 +1,55 @@
+% ============================================================
+%  Java 5 · Ora 1 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjEye]{Zgjidhja: Parashiko (pjerrësia me sy)}
+  \begin{itemize}
+    \item \textbf{B}. Pjerrësia $\approx(21-7)/(300-0)=14/300\approx0.047$.
+    \item OLS jep $\hat\beta_1=0.0475$: syri ishte i mirë!
+    \item Kujdes me njësitë: 0.047 mijë njësi shitje për 1 mijë \$ = 47 njësi për 1000 \$.
+  \end{itemize}
+  \vfill\kthehu{pyetjeEye}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjRev]{Zgjidhja: Radha jote! (dy pjerrësitë)}
+<<sol-rev>>=
+adv <- read.csv(file.path(W05DATA, "Advertising.csv"))[, -1]
+b_yx <- coef(lm(sales ~ TV, data = adv))[2]
+b_xy <- coef(lm(TV ~ sales, data = adv))[2]
+c(b_xy = unname(b_xy), one_over_b_yx = unname(1 / b_yx),
+  product = unname(b_yx * b_xy), r2 = cor(adv$TV, adv$sales)^2)
+@
+  \begin{itemize}
+    \item Jo: $12.87\ne21.04$. Prodhimi $=r\frac{s_y}{s_x}\cdot r\frac{s_x}{s_y}=r^2$.
+  \end{itemize}
+  \vfill\kthehu{ushRev}
+\end{frame}
+
+\begin{frame}[label=zgjSq]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Mbetjet pozitive dhe negative anulohen: çdo vijë që kalon nga $(\bar x,\bar y)$ ka $\sum e_i=0$, edhe një vijë horizontale.
+    \item $\sum e_i^2$: i diferencueshëm, ka zgjidhje të mbyllur, lidhet me variancën dhe me shpërndarjen normale. Disavantazh: katrori i jep shumë peshë mbetjeve të mëdha, pra vlerave ekstreme. $\sum|e_i|$ është më e qëndrueshme (regresi robust, Java 8).
+  \end{enumerate}
+  \vfill\kthehu{ushSq}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjOut]{Zgjidhja: Ndrysho parametrin (vlera ekstreme)}
+<<sol-out>>=
+x <- 1:5
+rbind(original = coef(lm(c(2, 4, 5, 4, 5) ~ x)),
+      outlier  = coef(lm(c(2, 4, 5, 4, 12) ~ x)))
+@
+  \begin{itemize}
+    \item Një pikë e vetme e trefishon pjerrësinë (nga 0.6 në 2.0). Katrori e bën OLS të ndjeshëm ndaj vlerave ekstreme, sidomos në skajet e $x$ (Java 7: leverage).
+  \end{itemize}
+  \vfill\kthehu{ushOut}
+\end{frame}
+
+\begin{frame}[label=zgjCp51]{Përgjigjet: Checkpoint Ora 1}
+  \begin{enumerate}
+    \item $\hat\beta_1=r\,s_y/s_x$; pastaj $\hat\beta_0=\bar y-\hat\beta_1\bar x$.
+    \item E para minimizon distancat vertikale (në $y$), e dyta ato horizontale (në $x$); prodhimi i pjerrësive $=r^2<1$.
+    \item Shumën e katrorëve të mbetjeve, SSE $=\sum(y_i-b_0-b_1x_i)^2$.
+  \end{enumerate}
+  \vfill\kthehu{cp51}
+\end{frame}

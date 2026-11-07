@@ -1,0 +1,334 @@
+% ============================================================
+%  Java 5 · Ora 1 — Motivimi: nga një re pikash te një vijë
+%  Rezultatet: K2, S1, S2
+%  Burimi: ISLR kap. 3; repo DS612 (Advertising.csv)
+% ============================================================
+
+\section{Motivimi}
+
+\begin{frame}{Ora 1: Motivimi --- nga një re pikash te një vijë}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi motivues}
+% ------------------------------------------------------------
+
+\begin{frame}{Pyetja e ditës \LO{K2}}
+  \begin{itemize}
+    \item<1-> Një firmë shpenzon për reklama televizive në 200 tregje.
+    \item<2-> Java 3: $r=0.78$ midis TV dhe shitjeve. Lidhje e fortë.
+    \item<3-> Por menaxheri pyet: \textbf{sa shitje shtesë sjell çdo 1000 \$ më shumë në TV?}
+    \item<4-> Dhe: sa shitje presim në një treg ku shpenzojmë 150 mijë \$?
+  \end{itemize}
+  \onslide<5->{\footnotesize\textcolor{gray}{Të dhëna: reale, \texttt{Advertising.csv} (James et al., \emph{ISLR}, kap.~3, nëpërmjet repo-s DS612). Shitjet në mijë njësi; buxhetet në mijë \$.}}
+\end{frame}
+
+\begin{frame}[fragile]{Kodi R: të dhënat}
+<<adv-read>>=
+adv <- read.csv(file.path(W05DATA, "Advertising.csv"))[, -1]   # drop row index
+dim(adv)
+summary(adv[, c("TV", "sales")])
+@
+\end{frame}
+
+\begin{frame}[fragile]{Pamja}
+<<adv-scatter, fig.height=2.5, fig.width=5.5, out.width="0.6\\textwidth">>=
+library(ggplot2)
+ggplot(adv, aes(TV, sales)) +
+  geom_point(alpha = 0.6, size = 1.2, colour = "#2C5AA0") +
+  labs(x = "TV budget (1000 USD)", y = "sales (1000 units)") +
+  theme_minimal(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Prirje rritëse e qartë: më shumë TV, më shumë shitje.
+    \item<2-> Pikat ``hapen'' djathtas: luhatja rritet me buxhetin (do ta kontrollojmë në Javën 7).
+    \item<3-> Një \textbf{vijë} do ta përmblidhte prirjen me dy numra: ku nis dhe sa ngjitet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeEye]{Parashiko!}
+  \begin{Parashiko}
+    Shiko grafikun. Vijat që ``kalojnë mes pikave'' nisin rreth 7 te TV $=0$ dhe arrijnë rreth 21 te TV $=300$. Sa është afërsisht pjerrësia?\\[3pt]
+    \textbf{A)} 0.005 \qquad \textbf{B)} 0.05 \qquad \textbf{C)} 0.5 \qquad \textbf{D)} 5
+  \end{Parashiko}
+  \shkoTe{zgjEye}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Dy qëllime: parashikim dhe shpjegim}
+  \begin{itemize}
+    \item<1-> \textbf{Parashikim}: dua $\hat y$ për një $x$ të ri. Më intereson saktësia e $\hat y$.
+    \item<2-> \textbf{Inferencë}: dua të kuptoj lidhjen. A ka lidhje? Sa e fortë? Me çfarë pasigurie?
+    \item<3-> Regresi linear u shërben të dyjave (ISLR, kap.~2--3).
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Shumë modele të mëvonshme (KNN, pemët, Java 9) janë të mira për parashikim, por më pak për shpjegim. Regresi linear është ura midis tyre.\end{Keshille}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Objektivat}
+% ------------------------------------------------------------
+
+\begin{frame}{Objektivat e ditës}
+  Në fund të ditës do të jesh në gjendje:
+  \begin{enumerate}
+    \item \LO{S1} të shkruash modelin $y=\beta_0+\beta_1x+\varepsilon$ dhe supozimet e tij;
+    \item \LO{K2} të nxjerrësh vlerësuesit e katrorëve më të vegjël dhe vetitë e tyre;
+    \item \LO{S3} të testosh $\beta_1$, të ndërtosh intervale besimi dhe parashikimi;
+    \item \LO{S4} të përshtatësh, interpretosh dhe vizualizosh një model me \texttt{lm()};
+    \item \LO{S2} të përdorësh modelin për parashikim dhe të njohësh kufijtë e tij.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Lidhja me javët e tjera}
+  \begin{itemize}
+    \item<1-> Java 3: korrelacioni $r$ $\to$ sot: pjerrësia $\hat\beta_1=r\,s_y/s_x$ dhe $R^2=r^2$.
+    \item<2-> Java 4: ANOVA, SST = SSB + SSW $\to$ sot: SST = SSR + SSE.
+    \item<3-> Java 6: shumë shpjegues; Java 7: diagnostikimi; Java 8: vija jo të drejta.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plani i ditës}
+  \centering
+  \begin{tikzpicture}[x=1.55cm,
+      hr/.style={rectangle,draw=white,thick,minimum width=1.55cm,minimum height=1.25cm,align=center,font=\scriptsize\bfseries,text=white}]
+    \node[hr,fill=uptblue] at (0,0) {Ora 1\\Motivimi};
+    \node[hr,fill=uptmid]  at (1,0) {Ora 2\\Katrorët më\\të vegjël};
+    \node[hr,fill=okgreen] at (2,0) {Ora 3\\Nga zero};
+    \node[hr,fill=uptmid]  at (3,0) {Ora 4\\Inferenca};
+    \node[hr,fill=okgreen] at (4,0) {Ora 5\\Simulim,\\parashikim};
+    \node[hr,fill=accent]  at (5,0) {Ora 6\\Rast\\studimi};
+    \node[hr,fill=uptblue] at (6,0) {Ora 7\\Konsolidim};
+  \end{tikzpicture}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Nga korrelacioni te pjerrësia}
+% ------------------------------------------------------------
+
+\begin{frame}{Çfarë nuk na thotë $r$}
+  \begin{itemize}
+    \item<1-> $r$ nuk ka njësi: nuk thotë ``sa njësi shitje për 1000 \$''.
+    \item<2-> $r$ është simetrik: $r(x,y)=r(y,x)$. Por pyetja jonë nuk është simetrike: TV $\to$ shitje.
+    \item<3-> Na duhet një përgjigje në njësitë e $y$ për njësi të $x$: një \textbf{pjerrësi}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pjerrësia nga $r$}
+  \begin{itemize}
+    \item<1-> Standardizo: $z_x=(x-\bar x)/s_x$, \ $z_y=(y-\bar y)/s_y$.
+    \item<2-> Vija më e mirë në shkallën standarde: $\hat z_y=r\,z_x$ (vërtetimi në Orën 2).
+    \item<3-> Kthehu në njësitë origjinale:
+      \[ \frac{\hat y-\bar y}{s_y}=r\,\frac{x-\bar x}{s_x}\quad\Longrightarrow\quad \hat y=\bar y+\underbrace{r\,\frac{s_y}{s_x}}_{\hat\beta_1}(x-\bar x). \]
+    \item<4-> Vija kalon gjithmonë nga pika $(\bar x,\bar y)$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<slope-r>>=
+r  <- cor(adv$TV, adv$sales)
+b1_tv <- r * sd(adv$sales) / sd(adv$TV)
+b0_tv <- mean(adv$sales) - b1_tv * mean(adv$TV)
+c(b0 = b0_tv, b1 = b1_tv)
+coef(lm(sales ~ TV, data = adv))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $\hat\beta_1\approx\Sexpr{fmt(b1_tv, 4)}$: çdo 1000 \$ më shumë në TV lidhet me rreth \Sexpr{fmt(1000 * b1_tv, 0)} njësi shitje më shumë.
+    \item<2-> $\hat\beta_0\approx\Sexpr{fmt(b0_tv, 2)}$: shitjet e pritura pa reklamë TV (rreth \Sexpr{fmt(1000 * b0_tv, 0)} njësi).
+    \item<3-> Për 150 mijë \$: $\hat y=\Sexpr{fmt(b0_tv, 2)}+\Sexpr{fmt(b1_tv, 4)}\times150\approx\Sexpr{fmt(b0_tv + 150 * b1_tv, 1)}$ mijë njësi.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}``Çdo 1000 \$ \textbf{shkakton} 48 njësi''. Të dhënat janë vëzhgimore: modeli përshkruan lidhjen, jo efektin shkakësor.\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Regresi drejt mesatares}
+  \begin{itemize}
+    \item<1-> Në shkallën standarde: $\hat z_y=r\,z_x$ me $|r|<1$.
+    \item<2-> Një treg 2 sd mbi mesatare në TV pritet vetëm $2r\approx1.56$ sd mbi mesatare në shitje.
+    \item<3-> F.~Galton (shek.~XIX): prindërit shumë të gjatë kanë fëmijë të gjatë, por më afër mesatares. Prej këtu emri ``regresion''.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Regresi drejt mesatares nuk është ligj biologjik: ndodh sa herë që $|r|<1$.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=ushRev]{Radha jote!}
+  \begin{Ushtrim}[(4 minuta)]
+    \begin{enumerate}
+      \item Përshtat \texttt{lm(TV \textasciitilde{} sales)}. A është pjerrësia e saj $1/\hat\beta_1$?
+      \item Shumëzo dy pjerrësitë. Çfarë merr? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjRev}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Dy vija, jo një}
+  \begin{itemize}
+    \item<1-> $y$ mbi $x$: minimizon distancat \textbf{vertikale}. Pjerrësia $r\,s_y/s_x$.
+    \item<2-> $x$ mbi $y$: minimizon distancat \textbf{horizontale}. Pjerrësia $r\,s_x/s_y$.
+    \item<3-> Prodhimi i pjerrësive $=r^2$; vijat përputhen vetëm kur $|r|=1$.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Të përdorësh \texttt{lm(x \textasciitilde{} y)} dhe ta ``kthesh'' për të parashikuar $y$. Zgjidh qysh në fillim cila është variabla e përgjigjes.\end{Gabim}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Nga ANOVA te vija}
+% ------------------------------------------------------------
+
+\begin{frame}{ANOVA dhe regresi: e njëjta ide}
+  \begin{itemize}
+    \item<1-> Java 4: $x$ kategorik $\Rightarrow$ $\hat y$ = mesatarja e grupit.
+    \item<2-> Sot: $x$ sasior $\Rightarrow$ $\hat y$ = pika në vijë.
+    \item<3-> Në të dyja: SST = (pjesa e shpjeguar) + (pjesa e mbetur), dhe $R^2$ = pjesa e shpjeguar / SST.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Grupe ose vijë?}
+<<anova-vs-line>>=
+adv$TV_group <- cut(adv$TV, quantile(adv$TV, 0:3 / 3), include.lowest = TRUE,
+                    labels = c("low", "mid", "high"))   # 3 TV terciles
+c(R2_anova_3groups = summary(lm(sales ~ TV_group, data = adv))$r.squared,
+  R2_line          = summary(lm(sales ~ TV, data = adv))$r.squared)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vija shpjegon \textbf{më shumë} se tre grupet, me \textbf{më pak} parametra (2 kundrejt 3).
+    \item<2-> Grupimi hedh informacion: dy tregje me TV 5 dhe 95 bien në të njëjtin grup.
+    \item<3-> Kur lidhja është vërtet lineare, vija është mënyra më ekonomike për ta përshkruar.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Cila vijë?}
+% ------------------------------------------------------------
+
+\begin{frame}{Mbetjet}
+  \begin{itemize}
+    \item<1-> Për çdo vijë $\hat y=b_0+b_1x$, \termi{mbetja}{residual} e pikës $i$: $e_i=y_i-\hat y_i$.
+    \item<2-> $e_i>0$: pika mbi vijë; $e_i<0$: nën vijë.
+    \item<3-> Vija ``e mirë'': mbetje të vogla. Por si i bashkojmë $n$ mbetje në një numër?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pesë pika dhe një vijë}
+<<toy-resid, fig.height=2.6, fig.width=4.2, out.width="0.42\\textwidth">>=
+x <- 1:5; y <- c(2, 4, 5, 4, 5)       # toy data, used all day
+b0 <- 2.2; b1 <- 0.6                  # the OLS line (derived in Hour 2)
+plot(x, y, pch = 19, ylim = c(1, 6), col = "#2C5AA0")
+abline(b0, b1, col = "#D97706", lwd = 2)
+segments(x, y, x, b0 + b1 * x, col = "#B91C1C", lty = 2)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike, 5 pika për llogaritje pa ndihmën e PC.}
+\end{frame}
+
+\begin{frame}[label=ushSq]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(Think--pair--share, 4 minuta)]
+    Tre ide për të matur ``sa larg'' janë pikat nga vija:
+    \[ \textstyle\sum e_i, \qquad \sum|e_i|, \qquad \sum e_i^2. \]
+    \begin{enumerate}
+      \item Pse $\sum e_i$ nuk vlen?
+      \item Çfarë avantazhi ka $\sum e_i^2$? Çfarë disavantazhi?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSq}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Kriteri i katrorëve më të vegjël}
+  \begin{Definicion}[(OLS)]
+    \termi{Katrorët më të vegjël}{ordinary least squares, OLS}: zgjidh $b_0,b_1$ që minimizojnë
+    \[ \text{SSE}(b_0,b_1)=\sum_{i=1}^n\big(y_i-b_0-b_1x_i\big)^2. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item C.~F.~Gauss dhe A.-M.~Legendre (fillimi i shek.~XIX), për orbitat e trupave qiellorë.
+    \pause
+    \item Zgjidhja ka formë të mbyllur (Ora 2) dhe veti optimale nën supozimet e modelit (Ora 4).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Krahaso disa vija}
+<<sse-candidates>>=
+sse <- function(b0, b1) sum((y - b0 - b1 * x)^2)
+c(OLS          = sse(2.2, 0.6),
+  through_ends = sse(1.25, 0.75),     # line through (1,2) and (5,5)
+  diagonal     = sse(1, 1),
+  flat_mean    = sse(4, 0))           # horizontal line at mean(y)
+@
+  \begin{itemize}
+    \item<2-> Vija horizontale te $\bar y$ ka SSE $=$ SST $=6$: ``modeli pa $x$''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{SSE si funksion i pjerrësisë}
+<<sse-curve, fig.height=2.6, fig.width=4.2, out.width="0.45\\textwidth">>=
+b1_grid <- seq(-0.2, 1.4, by = 0.01)
+sse_b1  <- sapply(b1_grid, function(b) sse(mean(y) - b * mean(x), b))
+plot(b1_grid, sse_b1, type = "l", lwd = 2, xlab = "slope b1", ylab = "SSE")
+abline(v = 0.6, lty = 2, col = "#D97706")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Për çdo pjerrësi, vendosëm vijën të kalojë nga $(\bar x,\bar y)$.
+    \item<2-> SSE është një \textbf{parabolë} në $b_1$: ka një minimum të vetëm, te $b_1=0.6$.
+    \item<3-> Kjo sugjeron zgjidhjen analitike: derivati $=0$. Ora 2.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushOut]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(4 minuta)]
+    Ndrysho pikën e fundit nga $(5,5)$ në $(5,12)$.
+    \begin{enumerate}
+      \item Parashiko: si ndryshon pjerrësia?
+      \item Kontrollo me \texttt{coef(lm(y \textasciitilde{} x))}. Çfarë tregon kjo për OLS dhe vlerat ekstreme?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjOut}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Regresi në praktikë}
+% ------------------------------------------------------------
+
+\begin{frame}{Ku përdoret?}
+  \begin{itemize}
+    \item<1-> \textbf{Statistika zyrtare:} shpenzimi i familjes kundrejt të ardhurave; vlerësime për zona të vogla.
+    \item<2-> \textbf{Inxhinieri:} kalibrimi i sensorëve (lexim kundrejt vlerës së njohur); zgjatja kundrejt ngarkesës.
+    \item<3-> \textbf{Mjedis:} përqendrimi i ndotësve kundrejt largësisë nga burimi (Java 12: \texttt{meuse}).
+    \item<4-> \textbf{Biznes:} shitjet kundrejt çmimit ose reklamës.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabime të zakonshme për fillim}
+  \begin{Gabim}Ekstrapolimi: TV vjen nga $\Sexpr{fmt(min(adv$TV), 1)}$ deri $\Sexpr{fmt(max(adv$TV), 1)}$. Parashikimi për TV $=1000$ supozon që vija vazhdon edhe atje ku nuk kemi të dhëna.\end{Gabim}
+  \pause
+  \begin{Gabim}Vija e drejtë për një lidhje të lakuar. Shiko gjithmonë grafikun e pikave para \texttt{lm()} (Anscombe, Java 3).\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp51]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 1}
+  \begin{enumerate}
+    \item Si llogaritet pjerrësia nga $r$, $s_x$ dhe $s_y$?
+    \item Pse \texttt{lm(y \textasciitilde{} x)} dhe \texttt{lm(x \textasciitilde{} y)} japin vija të ndryshme?
+    \item Çfarë minimizon OLS?
+  \end{enumerate}
+  \shkoTe{zgjCp51}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 1}
+  \begin{itemize}
+    \item Pyetja: sa ndryshon $y$ për çdo njësi të $x$? Përgjigjja: pjerrësia.
+    \item $\hat\beta_1=r\,s_y/s_x$; vija kalon nga $(\bar x,\bar y)$; regresi drejt mesatares.
+    \item Regresi i $y$ mbi $x$ $\neq$ regresi i $x$ mbi $y$.
+    \item OLS: minimizon $\sum e_i^2$; SSE është parabolë me një minimum.
+  \end{itemize}
+  \begin{Keshille}Ora 2: nxjerrim formulat e OLS hap pas hapi dhe zbërthimin SST = SSR + SSE.\end{Keshille}
+\end{frame}
