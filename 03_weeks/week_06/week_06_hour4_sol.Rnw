@@ -23,7 +23,7 @@ predict(fit_int, data.frame(TV = c(100, 70, 50), radio = c(0, 30, 50)))
   \vfill\kthehu{ushSyn}
 \end{frame}
 
-\begin{frame}[fragile,label=zgjGabHier]{Zgjidhja: Gjej gabimin (parimi hierarkik)}
+\begin{frame}[fragile,shrink=5,label=zgjGabHier]{Zgjidhja: Gjej gabimin (parimi hierarkik)}
 <<sol-hier>>=
 credit <- read.csv(file.path(W06DATA, "Credit.csv"))
 round(coef(lm(Balance ~ Income:Student, data = credit)), 2)

@@ -1,0 +1,350 @@
+% ============================================================
+%  Java 6 · Ora 6 — Përzgjedhja e modelit dhe validimi
+%  Rezultatet: S3, S2, C1
+%  Burimi: repo DS612 (Test_Training_Split.R, CrossValidation_Review.R); ISLR kap. 5--6
+% ============================================================
+
+\section{Përzgjedhja}
+
+\begin{frame}{Ora 6: Përzgjedhja e modelit dhe validimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi}
+% ------------------------------------------------------------
+
+\begin{frame}{Cilin model të zgjedhim? \LO{S3}}
+  \begin{itemize}
+    \item<1-> $R^2$ rritet me çdo variabël, edhe me zhurmë (Ora 3).
+    \item<2-> Qëllimi i vërtetë: të parashikojmë mirë \textbf{të dhëna të reja}.
+    \item<3-> \termi{Gabimi i trajnimit}{training error}: sa mirë përshtatet modeli me të dhënat që e ndërtuan. Optimist.
+    \item<4-> \termi{Gabimi i testit}{test error}: sa mirë parashikon vëzhgime që nuk i ka parë. Ky na intereson.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kompromisi zhvendosje--variancë}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=7.5cm,height=4.4cm,xmin=0,xmax=10,ymin=0,ymax=10,
+        xlabel={kompleksiteti i modelit},ylabel={gabimi},ticks=none,
+        label style={font=\scriptsize},legend style={font=\tiny,at={(0.98,0.98)},anchor=north east}]
+      \addplot[domain=0.3:10,samples=60,thick,color=uptmid] {8*exp(-0.45*x)+0.4};
+      \addlegendentry{trajnimi}
+      \addplot[domain=0.3:10,samples=60,thick,color=accent] {8*exp(-0.45*x)+0.06*x^2+1.2};
+      \addlegendentry{testi}
+      \addplot[domain=0.3:10,samples=60,dashed,color=gray] {0.06*x^2+0.3};
+      \addlegendentry{varianca}
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Model shumë i thjeshtë: zhvendosje e madhe. Model shumë kompleks: variancë e madhe (\termi{mbipërshtatje}{overfitting}).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=8]{Mbipërshtatja me një simulim}
+<<overfit>>=
+set.seed(660)
+f_true <- function(x) 2 + 1.5 * x - 0.3 * x^2           # truth: quadratic
+x_tr <- runif(40, 0, 5); y_tr <- f_true(x_tr) + rnorm(40)
+x_te <- runif(2000, 0, 5); y_te <- f_true(x_te) + rnorm(2000)
+mse <- t(sapply(1:10, function(d) {
+  m <- lm(y_tr ~ poly(x_tr, d))
+  c(degree = d, train = mean(residuals(m)^2),
+    test = mean((y_te - predict(m, data.frame(x_tr = x_te)))^2))
+}))
+round(mse[c(1, 2, 4, 7, 10), ], 3)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike (e vërteta polinom i shkallës 2, $\sigma=1$, $n=40$).}
+\end{frame}
+
+\begin{frame}[fragile]{Pamja}
+<<overfit-plot, fig.height=2.5, fig.width=4.4, out.width="0.42\\textwidth">>=
+matplot(mse[, "degree"], mse[, c("train", "test")], type = "b", pch = 19,
+        lty = 1, col = c("#2C5AA0", "#D97706"), xlab = "polynomial degree", ylab = "MSE")
+abline(h = 1, lty = 2)                                       # irreducible error sigma^2
+legend("topright", c("train", "test"), col = c("#2C5AA0", "#D97706"), lty = 1, bty = "n")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Gabimi i trajnimit bie gjithmonë me shkallën.
+    \item<2-> Gabimi i testit ka minimum afër shkallës së vërtetë (2), pastaj rritet.
+    \item<3-> Asnjë model nuk shkon nën $\sigma^2=1$ (vija e ndërprerë): \termi{gabimi i pareduktueshëm}{irreducible error}.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Na duhet një mënyrë për të \emph{vlerësuar} gabimin e testit pa pasur të dhëna të reja.\end{Keshille}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ndarja train/test}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Qasja me grup validimi (repo)}
+<<val-split>>=
+auto <- na.omit(read.csv(file.path(W06DATA, "Auto.csv"), na.strings = "?"))
+auto$origin <- factor(auto$origin, labels = c("USA", "Europe", "Japan")); auto$name <- NULL
+forms <- list(m1 = mpg ~ horsepower, m2 = mpg ~ horsepower + weight,
+              m3 = mpg ~ horsepower + weight + displacement)       # repo: fit1--fit3
+val_mse <- function(seed) {
+  set.seed(seed); train <- sample(nrow(auto), 300)                # 300 train, 92 test
+  sapply(forms, function(f) {
+    m <- lm(f, data = auto, subset = train)
+    mean((auto$mpg - predict(m, auto))[-train]^2)
+  })
+}
+round(val_mse(1), 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Shtimi i peshës e ul MSE-në e testit nga 24.4 në 16.5.
+    \item<2-> \texttt{displacement} nuk e përmirëson: pak më keq.
+    \item<3-> Modeli përshtatet vetëm me 300 vëzhgime; 92 të tjerat janë ``të ardhmja''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeSeed]{Parashiko!}
+  \begin{Parashiko}
+    Ndryshojmë vetëm \texttt{set.seed(1)} në \texttt{set.seed(2)}.
+    \begin{enumerate}
+      \item A do të jenë MSE-të të njëjtat?
+      \item A do të mbetet i njëjtë renditja e modeleve?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjSeed}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Dhjetë ndarje të ndryshme}
+<<val-many>>=
+round(t(sapply(1:10, val_mse)), 2)[1:6, ]
+@
+  \begin{itemize}
+    \item<2-> Vlerësimi luhatet shumë nga ndarja; dhe përdor vetëm 300 nga 392 vëzhgime për trajnim.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Cross-validation}
+% ------------------------------------------------------------
+
+\begin{frame}{LOOCV}
+  \begin{Definicion}[(\emph{Leave-one-out cross-validation})]
+    Për çdo $i=1,\dots,n$: përshtat modelin pa vëzhgimin $i$, parashiko $\hat y_{(-i)}$.
+    \[ \text{CV}_{(n)}=\frac1n\sum_{i=1}^n\big(y_i-\hat y_{(-i)}\big)^2. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Përdor $n-1$ vëzhgime për trajnim; nuk ka rastësi.
+    \pause
+    \item Kosto: $n$ përshtatje (por për OLS ka një shkurtore, më poshtë).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{$K$-fold CV}
+  \centering
+  \begin{tikzpicture}[x=0.95cm,y=0.42cm]
+    \foreach \r in {1,...,5}{
+      \foreach \c in {1,...,5}{
+        \ifnum\c=\r \fill[accent!70] (\c,-\r) rectangle ++(0.95,0.8);
+        \else \fill[uptlight] (\c,-\r) rectangle ++(0.95,0.8); \fi
+      }
+      \node[left,font=\tiny] at (1,-\r+0.4) {raundi \r};
+    }
+    \node[font=\tiny,accent] at (7.2,-1.6) {validim};
+    \node[font=\tiny,uptmid] at (7.2,-2.6) {trajnim};
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Ndaj në $K$ pjesë; çdo pjesë bëhet një herë validim. $\text{CV}_{(K)}=\frac1K\sum_k\text{MSE}_k$.
+    \item $K=5$ ose 10: kompromis i mirë midis zhvendosjes dhe variancës së vlerësimit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{cv.glm()} (repo)}
+<<cv-glm>>=
+library(boot)
+cv_loo <- sapply(forms, function(f) cv.glm(auto, glm(f, data = auto))$delta[1])
+set.seed(17)
+cv_10  <- sapply(forms, function(f) cv.glm(auto, glm(f, data = auto), K = 10)$delta[1])
+round(rbind(LOOCV = cv_loo, CV10 = cv_10), 2)
+@
+  \begin{itemize}
+    \item \texttt{glm()} me familjen e parazgjedhur (gaussian) = \texttt{lm()}; \texttt{cv.glm} kërkon objekt \texttt{glm}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> LOOCV dhe 10-fold japin pothuajse të njëjtin vlerësim: $\approx24$, $\approx18$, $\approx18$.
+    \item<2-> Modeli 2 (\texttt{horsepower + weight}) është zgjedhja: \texttt{displacement} nuk ndihmon.
+    \item<3-> Krahasuar me ndarjen e vetme: vlerësime më të qëndrueshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim Shkurtorja e LOOCV për OLS}
+  \[ \text{CV}_{(n)}=\frac1n\sum_{i=1}^n\left(\frac{y_i-\hat y_i}{1-h_{ii}}\right)^2 \]
+<<loocv-short>>=
+loo_short <- function(m) mean((residuals(m) / (1 - hatvalues(m)))^2)
+round(sapply(forms, function(f) loo_short(lm(f, data = auto))), 2)
+@
+  \begin{itemize}
+    \item Një përshtatje e vetme! $h_{ii}$: leverage (Java 7). Vëzhgimet me leverage të lartë ``mbrojnë'' veten në trajnim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabim i zakonshëm}
+  \begin{Gabim}Zgjedh variablat me \emph{të gjitha} të dhënat (p.sh.\ me korrelacione ose \texttt{step()}), pastaj bën CV vetëm për modelin përfundimtar. Përzgjedhja duhet të jetë \emph{brenda} çdo palosjeje; përndryshe gabimi i testit nënvlerësohet (\emph{data leakage}).\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{AIC, BIC dhe \texttt{step()}}
+% ------------------------------------------------------------
+
+\begin{frame}{Kriteret e informacionit}
+  Për një model linear me $k$ parametra (përfshirë konstanten), deri në një konstante:
+  \[ \text{AIC}=n\log\frac{\text{SSE}}{n}+2k,\qquad \text{BIC}=n\log\frac{\text{SSE}}{n}+k\log n. \]
+  \pause
+  \begin{itemize}
+    \item Termi i parë: përshtatja (më i vogël = më mirë). Termi i dytë: dënimi i kompleksitetit.
+    \pause
+    \item $\log n>2$ për $n\ge8$: BIC dënon më shumë, zgjedh modele më të vogla.
+    \pause
+    \item Mallows $C_p$: ekuivalent me AIC për OLS. Më i vogël = më mirë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{step()} mbrapsht te \texttt{Auto}}
+<<step>>=
+full <- lm(mpg ~ cylinders + displacement + horsepower + weight +
+             acceleration + year + origin, data = auto)
+m_aic <- step(full, trace = 0)                          # k = 2
+m_bic <- step(full, trace = 0, k = log(nrow(auto)))     # k = log(n)
+formula(m_aic); formula(m_bic)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> AIC heq vetëm \texttt{acceleration}: 6 variabla.
+    \item<2-> BIC mban vetëm \texttt{weight}, \texttt{year}, \texttt{origin}.
+    \item<3-> \texttt{horsepower} zhduket në modelin BIC: për të njëjtën peshë dhe vit, nuk ka shumë informacion shtesë (Ora 1).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim Përzgjedhja e plotë: \texttt{regsubsets}}
+<<regsub>>=
+library(leaps)
+rs <- summary(regsubsets(mpg ~ cylinders + displacement + horsepower + weight +
+                           acceleration + year + origin, data = auto, nvmax = 8))
+round(cbind(size = 1:8, adjR2 = rs$adjr2, Cp = rs$cp, BIC = rs$bic), 3)
+c(best_BIC = which.min(rs$bic), best_adjR2 = which.max(rs$adjr2))
+@
+\end{frame}
+
+\begin{frame}{\Zgjerim Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Për çdo madhësi, \texttt{regsubsets} gjen modelin me SSE më të vogël (kërkim i plotë, $2^p$ modele).
+    \item<2-> BIC: minimum te 4 kolona (\texttt{weight}, \texttt{year}, 2 dummy të \texttt{origin}). $R^2_{adj}$: te 7.
+    \item<3-> $R^2_{adj}$ rritet shumë pak pas madhësisë 4: kurba ``rrafshohet''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Gjykatësi përfundimtar: CV}
+<<cv-final>>=
+set.seed(17)
+round(sapply(list(full = full, AIC = m_aic, BIC = m_bic), function(m)
+  cv.glm(auto, glm(formula(m), data = auto), K = 10)$delta[1]), 2)
+@
+  \begin{itemize}
+    \item<2-> Të tre modelet parashikojnë pothuajse njësoj ($\approx11$ mpg$^2$; RMSE $\approx3.3$ mpg).
+    \item<3-> Kur dallimet janë të vogla, zgjidh modelin më të \textbf{thjeshtë}: më i lehtë për t'u interpretuar dhe më i qëndrueshëm.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulim: a e gjen modelin e vërtetë?}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Dizajni dhe kodi}
+<<sim-select>>=
+set.seed(66)
+sel <- replicate(200, {
+  n <- 100; X <- matrix(rnorm(n * 8), n)                 # 8 candidate predictors
+  y <- 1 + 2 * X[, 1] - 1 * X[, 2] + 0.5 * X[, 3] + rnorm(n)   # truth: only X1-X3
+  d <- data.frame(y, X); f <- lm(y ~ ., data = d)
+  ta <- attr(terms(step(f, trace = 0)), "term.labels")
+  tb <- attr(terms(step(f, trace = 0, k = log(n))), "term.labels")
+  c(AIC_exact = setequal(ta, c("X1", "X2", "X3")), BIC_exact = setequal(tb, c("X1", "X2", "X3")),
+    AIC_size = length(ta), BIC_size = length(tb))
+})
+rowMeans(sel)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike; 3 nga 8 shpjegues janë të vërtetë.}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> BIC e gjen saktësisht modelin e vërtetë në $\approx\Sexpr{fmt(100 * rowMeans(sel)["BIC_exact"], 0)}$\% të rasteve; AIC vetëm në $\approx\Sexpr{fmt(100 * rowMeans(sel)["AIC_exact"], 0)}$\%.
+    \item<2-> AIC mban mesatarisht $\Sexpr{fmt(rowMeans(sel)["AIC_size"], 1)}$ variabla: shpesh shton një variabël zhurme.
+    \item<3-> AIC synon parashikimin e mirë; BIC synon gjetjen e modelit të vërtetë (kur ai është ndër kandidatët).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushN1000]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    Ndrysho $n=100$ në $n=1000$ (ul përsëritjet në 100 për shpejtësi).
+    \begin{enumerate}
+      \item Si ndryshon përqindja e saktë për BIC? Po për AIC?
+      \item Pse AIC nuk ``përmirësohet'' me $n$ të madh?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjN1000}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Për projektin final}
+% ------------------------------------------------------------
+
+\begin{frame}{Rrjedha e rekomanduar}
+  \begin{enumerate}
+    \item<1-> Përcakto pyetjen: shpjegim apo parashikim?
+    \item<2-> Lista e kandidatëve nga teoria, jo vetëm nga të dhënat.
+    \item<3-> Krahaso disa modele me 10-fold CV (dhe AIC/BIC si kontroll).
+    \item<4-> Zgjidh më të thjeshtin brenda $\approx$1 SE nga minimumi.
+    \item<5-> Raporto: modeli, CV MSE/RMSE, koeficientët me IB, kufizimet.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[label=gjejGabStep]{Gjej gabimin!}
+  \begin{Ushtrim}[(Gjej gabimin)]
+    \small
+    ``Me \texttt{step()} nga 30 variabla mbetën 6, të gjitha me $p<0.01$. Kjo provon që këto 6 variabla kanë efekt të vërtetë.''\\[3pt]
+    \normalsize Pse kjo nuk është e vërtetë?
+  \end{Ushtrim}
+  \shkoTe{zgjGabStep}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp66]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Pse gabimi i trajnimit nuk mjafton për të zgjedhur modelin?
+    \item Çfarë avantazhi ka 10-fold CV kundrejt një ndarjeje të vetme?
+    \item Pse BIC zgjedh modele më të vogla se AIC?
+  \end{enumerate}
+  \shkoTe{zgjCp66}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item Gabimi i testit = zhvendosje$^2$ + variancë + $\sigma^2$; trajnimi është optimist.
+    \item Validimi: ndarja (e paqëndrueshme), LOOCV, $K$-fold (\Rkey{cv.glm()}); shkurtorja $e_i/(1-h_{ii})$.
+    \item AIC $(2k)$, BIC $(k\log n)$, \Rkey{step()}, \Zgjerim \Rkey{regsubsets()}.
+    \item \texttt{Auto}: \texttt{weight + year + origin} parashikon po aq mirë sa modeli i plotë.
+    \item Përzgjedhja brenda CV; $p$-të pas përzgjedhjes janë optimiste.
+  \end{itemize}
+  \begin{Keshille}Ora 7: kuiz, ushtrime, fletë-kujtesa, dhe pamje e Javës 7 (diagnostikimi).\end{Keshille}
+\end{frame}

@@ -1,0 +1,49 @@
+% ============================================================
+%  Java 6 · Ora 6 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjSeed]{Zgjidhja: Parashiko (fara e ndarjes)}
+<<sol-seed>>=
+round(rbind(seed1 = val_mse(1), seed2 = val_mse(2)), 2)
+@
+  \begin{enumerate}
+    \item Jo: MSE-të ndryshojnë shumë (p.sh.\ 24.4 kundrejt 27.1 për m1).
+    \item Renditja m1 kundrejt të tjerëve mbetet; por m2 dhe m3 ndërrojnë vend. Me një ndarje të vetme, dallimet e vogla nuk besohen.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeSeed}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjN1000]{Zgjidhja: Ndrysho parametrin ($n=1000$)}
+<<sol-n1000>>=
+set.seed(67)
+sel_big <- replicate(100, {
+  n <- 1000; X <- matrix(rnorm(n * 8), n)
+  y <- 1 + 2 * X[, 1] - X[, 2] + 0.5 * X[, 3] + rnorm(n); f <- lm(y ~ ., data.frame(y, X))
+  c(AIC_exact = setequal(attr(terms(step(f, trace = 0)), "term.labels"), c("X1", "X2", "X3")),
+    BIC_exact = setequal(attr(terms(step(f, trace = 0, k = log(n))), "term.labels"), c("X1", "X2", "X3")))
+})
+rowMeans(sel_big)
+@
+  \begin{itemize}
+    \item BIC i afrohet 100\% (konsistent). AIC mbetet rreth 40--50\%: dënimi $2k$ nuk rritet me $n$, prandaj çdo variabël zhurme ka gjithmonë $\approx16\%$ shans të hyjë.
+  \end{itemize}
+  \vfill\kthehu{ushN1000}
+\end{frame}
+
+\begin{frame}[label=zgjGabStep]{Zgjidhja: Gjej gabimin (\texttt{step()})}
+  \begin{itemize}
+    \item Vlerat $p$ pas përzgjedhjes janë \textbf{optimiste}: variablat u zgjodhën pikërisht sepse dukeshin të rëndësishme në këto të dhëna. Testet supozojnë që modeli ishte i caktuar paraprakisht.
+    \item Me 30 kandidatë, disa variabla zhurme pritet të kalojnë (Java 3: krahasimet e shumëfishta).
+    \item Kontroll: CV, të dhëna të reja, ose ndarje: përzgjedh në një pjesë, testo në tjetrën.
+  \end{itemize}
+  \vfill\kthehu{gjejGabStep}
+\end{frame}
+
+\begin{frame}[label=zgjCp66]{Përgjigjet: Checkpoint Ora 6}
+  \begin{enumerate}
+    \item Sepse bie gjithmonë me kompleksitetin; nuk mat sa mirë parashikon modeli të dhëna të reja.
+    \item Çdo vëzhgim përdoret si për trajnim ashtu edhe për validim; vlerësimi është më i qëndrueshëm dhe varet më pak nga një ndarje e rastit.
+    \item Dënimi $k\log n$ është më i madh se $2k$ kur $n\ge8$.
+  \end{enumerate}
+  \vfill\kthehu{cp66}
+\end{frame}
