@@ -1,0 +1,55 @@
+% ============================================================
+%  Java 3 · Ora 6 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjCrim]{Zgjidhja: Parashiko (\texttt{crim})}
+<<sol-crim>>=
+library(MASS)
+c(pearson = cor(Boston$crim, Boston$medv),
+  spearman = cor(Boston$crim, Boston$medv, method = "spearman"))
+@
+  \begin{itemize}
+    \item Spearman. \texttt{crim} ka bisht të gjatë djathtas: disa zona me kriminalitet ekstrem dominojnë Pearson-in.
+    \item Lidhja është monotone, por e lakuar; rangjet e kapin më mirë.
+  \end{itemize}
+  \vfill\kthehu{pyetjeCrim}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjCap]{Zgjidhja: Radha jote! (pa censurim)}
+<<sol-cap>>=
+library(MASS)
+keep <- Boston$medv < 50
+rbind(all = c(rm = cor(Boston$rm, Boston$medv), lstat = cor(Boston$lstat, Boston$medv)),
+      no50 = c(rm = cor(Boston$rm[keep], Boston$medv[keep]),
+               lstat = cor(Boston$lstat[keep], Boston$medv[keep])))
+@
+  \begin{itemize}
+    \item Përfundimi nuk ndryshon. \texttt{lstat} ndryshon më shumë: zonat me 50 kanë \texttt{lstat} të ulët (mesorja 3.5 kundrejt 11.4), pikërisht ku kurba është më e pjerrët.
+  \end{itemize}
+  \vfill\kthehu{ushCap}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjSimp]{Zgjidhja: Ndrysho parametrin (Simpson)}
+  \begin{enumerate}
+    \item Mesataret $(0,1,2)$: varianca midis $=(1+0+1)/3=2/3$. \ $\rho=\dfrac{-0.6+2/3}{1+2/3}=\dfrac{0.067}{1.667}\approx0.04$.
+    \item $\rho=0$ kur varianca midis $=0.6$: hapësira $d$ me $2d^2/3=0.6\Rightarrow d\approx0.95$.
+  \end{enumerate}
+<<sol-simp>>=
+set.seed(303)
+sim2 <- do.call(rbind, lapply(c(0, 1, 2), function(m) {
+  x <- rnorm(1e4, m, 1)
+  data.frame(x = x, y = m - 0.6 * (x - m) + 0.8 * rnorm(1e4))
+}))
+round(cor(sim2$x, sim2$y), 3)
+@
+  \vfill\kthehu{ushSimp}
+\end{frame}
+
+\begin{frame}[label=zgjCp36]{Përgjigjet: Checkpoint Ora 6}
+  \begin{enumerate}
+    \item \texttt{crim} është shumë i anuar dhe lidhja është monotone, jo lineare; Spearman përdor rangjet.
+    \item Pjesa \textbf{midis grupeve}, $\operatorname{Cov}(E[X\mid G],E[Y\mid G])$, kur është e madhe dhe me shenjë të kundërt.
+    \item Lidhjen e $X$ me $Y$ pasi kemi hequr linearisht efektin e $Z$ nga të dyja.
+  \end{enumerate}
+  \vfill\kthehu{cp36}
+\end{frame}

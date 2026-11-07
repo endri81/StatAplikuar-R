@@ -1,0 +1,391 @@
+% ============================================================
+%  Java 3 · Ora 6 — Rast studimi: Boston; Simpson; korrelacioni i pjesshëm
+%  Rezultatet: K1, S1, S3, S4, C1
+% ============================================================
+
+\section{Rast studimi}
+
+\begin{frame}{Ora 6: Rast studimi --- çmimet e banesave në Boston}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pyetja dhe të dhënat}
+% ------------------------------------------------------------
+
+\begin{frame}{Pyetja \LO{K1} \LO{C1}}
+  \begin{itemize}
+    \item<1-> Çfarë lidhet me vlerën e banesave në një zonë urbane?
+    \item<2-> Pyetja është reale për INSTAT-in, bankat dhe bashkitë: indekset e çmimeve, vlerësimi i kolateralit, taksa e pronës.
+    \item<3-> Sot: vetëm \textbf{lidhje}. Modelet vijnë në Javët 5--7.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Të dhënat \texttt{MASS::Boston}}
+  \begin{itemize}
+    \item<1-> 506 zona (\emph{census tracts}) rreth Bostonit, regjistrimi i vitit 1970.
+    \item<2-> \texttt{medv}: vlera mesatare e banesave të zëna nga pronarët (mijë \$).
+    \item<3-> 13 variabla: kriminaliteti, ndotja (\texttt{nox}), dhomat (\texttt{rm}), statusi social (\texttt{lstat}), largësia nga qendrat e punës (\texttt{dis}) etj.
+    \item<4-> Një kolonë është ndërtuar nga përbërja racore e zonës: nuk e përdorim.
+  \end{itemize}
+  \onslide<5->{\footnotesize\textcolor{gray}{Të dhëna: reale (Harrison \& Rubinfeld, 1978; paketa \texttt{MASS}).}}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 1: shiko të dhënat}
+<<boston-look>>=
+library(MASS); library(ggplot2)
+bos <- Boston[, setdiff(names(Boston), "black")]   # drop race-derived column
+dim(bos)
+summary(bos[, c("medv", "crim", "lstat", "rm")])
+@
+\end{frame}
+
+\begin{frame}[fragile]{Një detaj i fshehur te \texttt{medv}}
+<<boston-cap, fig.height=2.4>>=
+sum(bos$medv == 50)
+hist(bos$medv, breaks = 40, col = "#2C5AA0", border = "white",
+     main = "", xlab = "medv (1000 USD)")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \Sexpr{sum(bos$medv == 50)} zona kanë saktësisht 50: vlerat mbi 50 janë prerë (\termi{censurim}{censoring}).
+    \item<2-> Vlera e vërtetë e këtyre zonave është $\geq 50$, jo 50.
+    \item<3-> Do të kontrollojmë nëse përfundimet ndryshojnë pa to.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Të mos e vësh re një kufi artificial në të dhëna. Kontrollo gjithmonë maksimumin dhe frekuencat e tij.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile]{Kriminaliteti: shumë i anuar}
+<<boston-crim, fig.height=2.3>>=
+par(mfrow = c(1, 2), mar = c(4, 4, 1, 1))
+hist(bos$crim, breaks = 40, col = "grey70", main = "", xlab = "crim")
+hist(log(bos$crim), breaks = 40, col = "grey70", main = "", xlab = "log(crim)")
+@
+  \begin{itemize}
+    \item Mesatarja \Sexpr{fmt(mean(bos$crim), 2)}, mesorja \Sexpr{fmt(median(bos$crim), 2)}: Pearson do të dominohet nga disa zona.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Lidhjet me \texttt{medv}}
+% ------------------------------------------------------------
+
+\begin{frame}[label=pyetjeCrim]{Parashiko!}
+  \begin{Parashiko}
+    Për \texttt{crim} dhe \texttt{medv}: cili do të jetë më i madh në vlerë absolute, Pearson apo Spearman? Pse?
+  \end{Parashiko}
+  \shkoTe{zgjCrim}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 2: Pearson dhe Spearman krah për krah}
+<<boston-cors>>=
+v <- setdiff(names(bos), "medv")
+cors <- data.frame(
+  pearson  = sapply(bos[, v], function(x) cor(x, bos$medv)),
+  spearman = sapply(bos[, v], function(x) cor(x, bos$medv, method = "spearman")))
+cors <- cors[order(-abs(cors$pearson)), ]
+round(cors[1:6, ], 3)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 2 (vazhdim): gjysma e dytë}
+<<boston-cors2>>=
+round(cors[7:12, ], 3)
+@
+  \begin{itemize}
+    \item Renditja sipas $|r|$ Pearson. Krahaso kolonat rresht për rresht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{lstat} (\Sexpr{fmt(cors["lstat","pearson"], 2)}) dhe \texttt{rm} (\Sexpr{fmt(cors["rm","pearson"], 2)}) janë më të lidhurat.
+    \item<2-> Për \texttt{crim}, \texttt{nox}, \texttt{age}, \texttt{dis}: $|r_s|$ shumë më i madh se $|r|$ $\Rightarrow$ lidhje monotone, por jo lineare.
+    \item<3-> \texttt{chas} është 0/1 (buzë lumit): korrelacion pikë-biserial i dobët.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{lstat} dhe \texttt{medv}: a është vijë e drejtë?}
+<<boston-lstat, fig.height=2.4, fig.width=5.5, out.width="0.62\\textwidth">>=
+ggplot(bos, aes(lstat, medv)) +
+  geom_point(alpha = 0.4, size = 1) +
+  geom_smooth(method = "loess", formula = y ~ x, se = FALSE, colour = "#D97706") +
+  theme_minimal(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Një transformim e drejton lidhjen}
+<<boston-loglstat>>=
+c(r_lstat = cor(bos$lstat, bos$medv),
+  r_log_lstat = cor(log(bos$lstat), bos$medv),
+  spearman = cor(bos$lstat, bos$medv, method = "spearman"))
+@
+  \begin{itemize}
+    \item<2-> Kurba zbret shpejt e pastaj rrafshohet: $\log(\texttt{lstat})$ e bën më lineare, $|r|$ rritet.
+    \item<3-> Spearman nuk ndryshon nga logaritmi: rangjet mbeten të njëjta.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 3: intervale dhe korrigjim}
+<<boston-tests>>=
+tests <- t(sapply(bos[, v], function(x) {
+  ct <- cor.test(x, bos$medv)
+  c(r = unname(ct$estimate), lo = ct$conf.int[1], hi = ct$conf.int[2], p = ct$p.value)
+}))
+tests <- cbind(round(tests[, 1:3], 2), p_holm = signif(p.adjust(tests[, 4], "holm"), 2))
+tests[order(-abs(tests[, "r"])), ][1:6, ]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Me $n=506$ dhe Holm, \Sexpr{sum(tests[, "p_holm"] < 0.05)} nga \Sexpr{nrow(tests)} lidhjet mbeten të rëndësishme.
+    \item<2-> Me $n$ të madh, rëndësia është e lehtë. Pyetja e mirë: \textbf{sa e fortë} është lidhja? Shiko intervalin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 4: lidhjet midis parashikuesve}
+<<boston-corrplot, fig.height=3.3, fig.width=5, out.width="0.48\\textwidth">>=
+library(corrplot)
+corrplot(cor(bos[, v]), type = "upper", order = "hclust",
+         tl.col = "black", tl.cex = 0.8)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Një bllok i madh: \texttt{indus}, \texttt{nox}, \texttt{age}, \texttt{tax}, \texttt{rad}, \texttt{crim}, \texttt{lstat} lidhen të gjitha bashkë; \texttt{dis} i kundërt.
+    \item<2-> \texttt{tax}--\texttt{rad}: $r=\Sexpr{fmt(cor(bos$tax, bos$rad), 2)}$.
+    \item<3-> Kjo do të thotë: lidhja e \texttt{nox} me \texttt{medv} mund të jetë pjesërisht lidhja e \texttt{lstat}. Si t'i ndajmë? Seksioni i fundit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushCap]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Hiq \Sexpr{sum(bos$medv == 50)} zonat me \texttt{medv == 50}.
+      \item Rillogarit $r$ për \texttt{rm} dhe \texttt{lstat} me \texttt{medv}.
+      \item A ndryshon përfundimi? Cili ndryshon më shumë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjCap}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Paradoksi i Simpson-it}
+% ------------------------------------------------------------
+
+\begin{frame}{Kur grupet përmbysin lidhjen}
+  \begin{itemize}
+    \item<1-> \termi{Paradoksi i Simpson-it}{Simpson's paradox}: lidhja në çdo grup ka një shenjë; në të dhënat e bashkuara ka shenjën e kundërt.
+    \item<2-> Shkaku: një variabël grupi që ndryshon mesataret e $X$ dhe $Y$ njëkohësisht.
+    \item<3-> Shembull tipik: orët e studimit dhe nota në tre kurse me vështirësi të ndryshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  Grupi A: $(1,2),\ (2,1)$. \quad Grupi B: $(5,6),\ (6,5)$.
+  \pause
+  \begin{itemize}
+    \item Brenda çdo grupi: dy pika në një vijë me pjerrësi $-1$ $\Rightarrow r=-1$.
+    \pause
+    \item Të bashkuara: $\bar x=\bar y=3.5$; \ $d_x=(-2.5,-1.5,1.5,2.5)$, \ $d_y=(-1.5,-2.5,2.5,1.5)$.
+    \pause
+    \item $\sum d_xd_y=4\times3.75=15$, \ $\sum d_x^2=\sum d_y^2=17$.
+    \pause
+    \item $r=15/17\approx0.88$: shenja u përmbys!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pse ndodh? Zbërthimi i kovariancës}
+  Për një variabël grupi $G$ (\termi{ligji i kovariancës totale}{law of total covariance}):
+  \[
+    \operatorname{Cov}(X,Y)=\underbrace{E\big[\operatorname{Cov}(X,Y\mid G)\big]}_{\text{brenda grupeve}}+\underbrace{\operatorname{Cov}\big(E[X\mid G],\,E[Y\mid G]\big)}_{\text{midis grupeve}}
+  \]
+  \pause
+  \begin{itemize}
+    \item Te shembulli: brenda $=-0.25$, midis $=+4$ (kovarianca e popullimit, pjesëtim me $n$).
+    \pause
+    \item Totali $3.75=15/4$: pjesa midis grupeve dominon.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Të dhëna sintetike me parametra të njohur}
+<<simpson-gen>>=
+set.seed(303)
+n_g <- 100; mu <- c(0, 3, 6); rho_w <- -0.6       # truth
+sim <- do.call(rbind, lapply(1:3, function(g) {
+  x <- rnorm(n_g, mu[g], 1)
+  y <- mu[g] + rho_w * (x - mu[g]) + sqrt(1 - rho_w^2) * rnorm(n_g)
+  data.frame(group = factor(g), x = x, y = y)
+}))
+head(sim, 3)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike.}
+\end{frame}
+
+\begin{frame}{E vërteta, pa ndihmën e PC}
+  \begin{itemize}
+    \item<1-> Brenda grupit: $\operatorname{Var}(X\mid G)=\operatorname{Var}(Y\mid G)=1$, \ $\operatorname{Cov}=-0.6$ $\Rightarrow\rho_w=-0.6$.
+    \item<2-> Midis grupeve: mesataret $(0,3,6)$, varianca $=(9+0+9)/3=6$, kovarianca $=6$.
+    \item<3-> Totali: $\rho=\dfrac{-0.6+6}{\sqrt{(1+6)(1+6)}}=\dfrac{5.4}{7}\approx0.771$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Vlerësimi kundrejt së vërtetës}
+<<simpson-est>>=
+within <- sapply(split(sim, sim$group), function(d) cor(d$x, d$y))
+rbind(estimate = c(round(within, 3), total = round(cor(sim$x, sim$y), 3)),
+      truth    = c(rep(rho_w, 3), round(5.4 / 7, 3)))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Pamja}
+<<simpson-plot, fig.height=2.4, fig.width=5.5, out.width="0.58\\textwidth">>=
+ggplot(sim, aes(x, y)) +
+  geom_point(aes(colour = group), alpha = 0.5, size = 1) +
+  geom_smooth(aes(colour = group), method = "lm", formula = y ~ x, se = FALSE) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, colour = "black", linetype = 2) +
+  theme_minimal(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vijat me ngjyrë zbresin; vija e zezë e ndërprerë ngjitet.
+    \item<2-> Të dyja janë ``të sakta'': u përgjigjen pyetjeve të ndryshme.
+    \item<3-> Brenda grupit: ``nëse $X$ rritet për të njëjtin grup''. Totali: ``krahasimi i njësive nga grupe të ndryshme''.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}\termi{Gabimi ekologjik}{ecological fallacy}: të nxjerrësh përfundim për individët nga lidhja e mesatareve të grupeve (p.sh.\ të qarqeve).\end{Gabim}}
+\end{frame}
+
+\begin{frame}[label=ushSimp]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(4 minuta)]
+    Në kodin sintetik:
+    \begin{enumerate}
+      \item Vendos \texttt{mu <- c(0, 1, 2)}. Llogarit pa ndihmën e PC $\rho$ totale, pastaj kontrollo në R.
+      \item Për çfarë hapësire midis grupeve $\rho$ totale bëhet 0?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSimp}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\Zgjerim Korrelacioni i pjesshëm}
+% ------------------------------------------------------------
+
+\begin{frame}{\Zgjerim Ideja: hiq efektin e $Z$}
+  \begin{itemize}
+    \item<1-> \texttt{age} (pjesa e banesave të vjetra) dhe \texttt{medv}: $r=\Sexpr{fmt(cor(bos$age, bos$medv), 3)}$.
+    \item<2-> Por zonat e vjetra kanë edhe \texttt{lstat} më të lartë: $r=\Sexpr{fmt(cor(bos$age, bos$lstat), 3)}$.
+    \item<3-> Pyetja: a lidhet \texttt{age} me \texttt{medv} \textbf{për të njëjtin nivel} të \texttt{lstat}?
+    \item<4-> \termi{Korrelacioni i pjesshëm}{partial correlation} $r_{XY\cdot Z}$: korrelacioni i mbetjeve të $X$ dhe $Y$ pasi i kemi shpjeguar linearisht me $Z$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\Zgjerim Formula}
+  \[
+    r_{XY\cdot Z}=\frac{r_{XY}-r_{XZ}\,r_{YZ}}{\sqrt{\big(1-r_{XZ}^2\big)\big(1-r_{YZ}^2\big)}}
+  \]
+  \pause
+  \begin{itemize}
+    \item Numëruesi: lidhja totale minus pjesa që kalon përmes $Z$.
+    \pause
+    \item Emëruesi: shkallëzon me variancën e mbetur të $X$ dhe $Y$.
+    \pause
+    \item Nëse $r_{XZ}=0$ ose $r_{YZ}=0$: numëruesi $=r_{XY}$, vetëm emëruesi e rrit pak $|r|$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\Zgjerim Shembull pa ndihmën e PC}
+  $X=\texttt{age}$, $Y=\texttt{medv}$, $Z=\texttt{lstat}$: \ $r_{XY}=-0.377$, \ $r_{XZ}=0.602$, \ $r_{YZ}=-0.738$.
+  \pause
+  \begin{enumerate}
+    \item Numëruesi: $-0.377-(0.602)(-0.738)=-0.377+0.444=0.067$.
+    \pause
+    \item Emëruesi: $\sqrt{(1-0.362)(1-0.545)}=\sqrt{0.638\times0.455}\approx0.539$.
+    \pause
+    \item $r_{XY\cdot Z}\approx0.067/0.539\approx0.12$.
+  \end{enumerate}
+  \pause
+  \begin{itemize}
+    \item Shenja ndryshoi: lidhja negative ishte kryesisht efekt i \texttt{lstat}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim Me mbetje në R}
+<<partial-resid>>=
+res_x <- resid(lm(age ~ lstat, data = bos))    # age not explained by lstat
+res_y <- resid(lm(medv ~ lstat, data = bos))   # medv not explained by lstat
+r_part <- cor(res_x, res_y)
+R3 <- cor(bos[, c("age", "medv", "lstat")])
+r_form <- (R3[1, 2] - R3[1, 3] * R3[2, 3]) / sqrt((1 - R3[1, 3]^2) * (1 - R3[2, 3]^2))
+c(residuals = r_part, formula = r_form)
+@
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim Testi i rëndësisë}
+  Me $k$ variabla kontrolli: $t=r_{XY\cdot Z}\sqrt{n-2-k}\,/\sqrt{1-r_{XY\cdot Z}^2}$, \ $df=n-2-k$.
+<<partial-test>>=
+n <- nrow(bos); k <- 1
+t_part <- r_part * sqrt(n - 2 - k) / sqrt(1 - r_part^2)
+c(t = t_part, df = n - 2 - k, p = 2 * pt(-abs(t_part), n - 2 - k))
+@
+  \begin{Gabim}\texttt{cor.test(res\_x, res\_y)} përdor $df=n-2$: harron që $Z$ u vlerësua.\end{Gabim}
+\end{frame}
+
+\begin{frame}{\Zgjerim Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Për të njëjtin \texttt{lstat}, zonat me më shumë banesa të vjetra kanë vlerë pak \textbf{më të lartë}.
+    \item<2-> Interpretim i mundshëm: lagje historike, me arkitekturë të vlerësuar.
+    \item<3-> Ky është ``efekti i \texttt{age} duke mbajtur \texttt{lstat} konstant'': pikërisht ideja e koeficientit në regresionin e shumëfishtë (Java 6).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Raporti}
+% ------------------------------------------------------------
+
+\begin{frame}{Si ta shkruajmë raportin}
+  \small
+  \begin{itemize}
+    \item<1-> \textbf{Të dhënat:} ``506 zona, \texttt{MASS::Boston}; 16 vlera të censuruara te 50.''
+    \item<2-> \textbf{Metoda:} ``Pearson dhe Spearman; IB 95\% me Fisher $z$; Holm për \Sexpr{length(v)} teste.''
+    \item<3-> \textbf{Rezultati:} ``\texttt{lstat} kishte lidhjen më të fortë ($r=\Sexpr{fmt(cors["lstat","pearson"], 2)}$, IB [\Sexpr{fmt(tests["lstat","lo"], 2)}, \Sexpr{fmt(tests["lstat","hi"], 2)}]; $r_s=\Sexpr{fmt(cors["lstat","spearman"], 2)}$); lidhja është monotone, jo lineare.''
+    \item<4-> \textbf{Kufizimi:} ``Lidhje, jo shkakësi; shumë parashikues lidhen fort mes tyre.''
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Korrelacioni nuk është shkakësi}
+  \begin{itemize}
+    \item<1-> \texttt{nox} dhe \texttt{medv}: $r=\Sexpr{fmt(cor(bos$nox, bos$medv), 2)}$. A e ul ndotja vlerën e banesave?
+    \item<2-> Ndoshta po; por zonat industriale kanë edhe \texttt{lstat}, \texttt{indus}, \texttt{tax} të ndryshme.
+    \item<3-> Kontrolli për \texttt{lstat}: $r_{\texttt{nox},\texttt{medv}\cdot\texttt{lstat}}=\Sexpr{fmt(cor(resid(lm(nox ~ lstat, data = bos)), resid(lm(medv ~ lstat, data = bos))), 3)}$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Për shkakësi duhen eksperimente, ose dizajne të veçanta. Ato nuk janë pjesë e këtij kursi.\end{Keshille}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp36]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Pse $|r_s|>|r|$ për \texttt{crim} dhe \texttt{medv}?
+    \item Në paradoksin e Simpson-it, cila pjesë e kovariancës ndryshon shenjën e totalit?
+    \item Çfarë mat $r_{XY\cdot Z}$ që nuk e mat $r_{XY}$?
+  \end{enumerate}
+  \shkoTe{zgjCp36}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item Rrjedha e punës: shiko të dhënat $\to$ shpërndarjet $\to$ Pearson + Spearman $\to$ IB + Holm $\to$ matrica.
+    \item \texttt{Boston}: censurim te 50; lidhje monotone, jo lineare; parashikues të lidhur mes tyre.
+    \item Simpson: kovarianca = brenda + midis grupeve.
+    \item \Zgjerim $r_{XY\cdot Z}$ me mbetje ose formulë; $df=n-2-k$.
+  \end{itemize}
+  \begin{Keshille}Ora 7: kuiz në stilin e provimit, ushtrime, fleta përmbledhëse dhe Java 4 (ANOVA).\end{Keshille}
+\end{frame}
