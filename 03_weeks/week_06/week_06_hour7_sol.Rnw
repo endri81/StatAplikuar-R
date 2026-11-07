@@ -1,0 +1,189 @@
+% ============================================================
+%  Java 6 · Ora 7 — Zgjidhjet e kuizit dhe të ushtrimeve
+% ============================================================
+
+\begin{frame}[label=s6T1]{Zgjidhja: Teori 1}
+  \begin{enumerate}
+    \item Ndryshimi i pritur i $y$ kur $x_j$ rritet me 1 dhe të gjithë shpjeguesit e tjerë mbeten konstantë. (4 pikë)
+    \item Kur shpjeguesit janë të korreluar, koeficienti i thjeshtë përmban edhe efektin e variablave të harruara: $\beta_2\operatorname{Cov}(x_1,x_2)/\operatorname{Var}(x_1)$. Shembuj: \texttt{newspaper} $0.055\to-0.001$; \texttt{Income} te \texttt{Credit} $+6.05\to-7.87$; \texttt{horsepower} $-0.158\to-0.047$. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q6T1}
+\end{frame}
+
+\begin{frame}[label=s6T2]{Zgjidhja: Teori 2}
+  \begin{enumerate}
+    \item OLS mund të vendosë koeficientin e ri $=0$ dhe të marrë SSE e vjetër, pra SSE nuk rritet. $R^2_{adj}$ pjesëton SSE dhe SST me shkallët e lirisë, duke penalizuar çdo parametër. (4 pikë)
+    \item $F$ global: të gjithë $\beta_j=0$. $t$: një $\beta_j=0$ duke pasur parasysh të tjerët. $F$ i pjesshëm: një grup $q$ koeficientësh $=0$ (modele të mbivendosura). (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q6T2}
+\end{frame}
+
+\begin{frame}[label=s6T3]{Zgjidhja: Teori 3}
+  \begin{enumerate}
+    \item $k-1$; secili = diferenca e mesatares (të kushtëzuar) të nivelit nga niveli bazë. (3 pikë)
+    \item Ndërveprimi: efekti i një shpjeguesi varet nga një tjetër (term prodhim). Parimi hierarkik: nëse ka $x_1x_2$, mbaj edhe $x_1$ dhe $x_2$. (3 pikë)
+    \item AIC: dënim $2k$, synon parashikimin. BIC: $k\log n$, modele më të vogla, gjen modelin e vërtetë me $n$ të madh. CV: vlerëson drejtpërdrejt gabimin e testit, pa supozime për numrin e parametrave. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q6T3}
+\end{frame}
+
+\begin{frame}[label=s6E1]{Zgjidhja: Ushtrimi 1}
+  \begin{enumerate}
+    \item $\sum x_1=\sum x_2=\sum x_1x_2=0$. $\bm X^\top\bm X=\operatorname{diag}(5,10,4)$; $\bm X^\top\bm y=(25,\ 21,\ 7)$. (3 pikë)
+    \item $\hat{\bm\beta}=(25/5,\ 21/10,\ 7/4)=(5,\ 2.1,\ 1.75)$. (3 pikë)
+    \item $\hat y=(2.55,1.15,5,5.35,10.95)$; $e=(0.45,-0.15,-1,0.65,0.05)$; SSE $=1.65$; SST $=4+16+1+1+36=58$; $R^2=0.972$; $R^2_{adj}=1-\frac{1.65/2}{58/4}=0.943$. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q6E1}
+\end{frame}
+
+\begin{frame}[fragile,label=s6E2]{Zgjidhja: Ushtrimi 2}
+  \begin{enumerate}
+    \item $\hat\sigma^2=1.65/2=0.825$; $SE_1=\sqrt{0.825/10}=0.287$, $t_1=7.31$; $SE_2=\sqrt{0.825/4}=0.454$, $t_2=3.85$. (4 pikë)
+    \item $|t_1|>4.303$: i rëndësishëm; $|t_2|<4.303$: jo (me vetëm 2 df). (3 pikë)
+    \item SSR $=56.35$; $F=(56.35/2)/0.825\approx34.2>19$: hedhim poshtë $H_0$. (3 pikë)
+  \end{enumerate}
+<<sol-q6e2>>=
+x1 <- c(-2, -1, 0, 1, 2); x2 <- c(1, -1, 0, -1, 1); y <- c(3, 1, 4, 6, 11)
+round(summary(lm(y ~ x1 + x2))$coefficients[, 1:3], 3)
+@
+  \vfill\kthehu{q6E2}
+\end{frame}
+
+\begin{frame}[label=s6E3]{Zgjidhja: Ushtrimi 3}
+  \begin{enumerate}
+    \item $H_0$: koeficientët e 3 shpjeguesve $=0$; $df=(3,\ 60-5-1=54)$. (3 pikë)
+    \item $F=\dfrac{(520-400)/3}{400/54}=\dfrac{40}{7.41}\approx5.40>2.78$: hedhim poshtë $H_0$. (4 pikë)
+    \item Jo: tre testet $t$ testojnë secilin \emph{duke mbajtur dy të tjerët}; me shpjegues të korreluar mund të jenë të gjithë jo të rëndësishëm, ndërsa grupi është. Dhe tre teste kanë problemin e krahasimeve të shumëfishta. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q6E3}
+\end{frame}
+
+\begin{frame}[label=s6E4]{Zgjidhja: Ushtrimi 4}
+  \begin{enumerate}
+    \item Rural: $\hat y=30+2.5x$; urban: $\hat y=38+1.5x$. (4 pikë)
+    \item $x=0$: $+8$ mijë lekë për urbanin; $x=10$: $8-10=-2$ mijë lekë. (3 pikë)
+    \item $8-1.0x=0\Rightarrow x=8$ vjet. Fillestarët fitojnë më shumë në qytet, por çdo vit përvojë vlen më shumë në zonat rurale (në këtë shembull hipotetik). (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q6E4}
+\end{frame}
+
+\begin{frame}[label=s6E5]{Zgjidhja: Ushtrimi 5}
+  \begin{enumerate}
+    \item $0.0191+0.00109\times25=0.0464$: $\approx46$ njësi për 1000 \$. (4 pikë)
+    \item $6.75+1.91+0.7225+0.00109\times2500=6.75+1.91+0.72+2.73\approx12.1$ mijë njësi. (4 pikë)
+    \item Sepse me ndërveprim, $0.0191$ është efekti i TV vetëm kur radio $=0$. (2 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q6E5}
+\end{frame}
+
+\begin{frame}[label=s6E6]{Zgjidhja: Ushtrimi 6}
+  \begin{enumerate}
+    \item \texttt{weight}: 1000 lb më shumë $\leftrightarrow$ $-5.9$ mpg, me vitin dhe origjinën konstante. (2 pikë)
+    \item \texttt{year}: çdo vit model më i ri $\leftrightarrow$ $+0.77$ mpg, me peshën dhe origjinën konstante. (2 pikë)
+    \item \texttt{originJapan}: $+2.2$ mpg kundrejt SHBA, për të njëjtën peshë dhe vit. (2 pikë)
+    \item $R^2_{adj}=0.817$: 4 kolona shpjegojnë 82\% të ndryshueshmërisë, pa ``fryrje'' (n i madh). Origjina: \texttt{anova(lm(mpg \textasciitilde{} weight + year), fit)}, $F$ me 2 df. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q6E6}
+\end{frame}
+
+\begin{frame}[label=s6E7]{Zgjidhja: Ushtrimi 7}
+  \small
+  \begin{enumerate}
+    \item AIC: $91.6+6=97.6$; $83.3+10=93.3$; $81.1+16=97.1$. BIC: $91.6+13.8=105.4$; $83.3+23.0=106.3$; $81.1+36.8=117.9$. (6 pikë)
+    \item AIC $\to$ M2; BIC $\to$ M1. CV: minimum M2 (2.55); kufiri 1 SE $=2.65$; M1 (2.62) është brenda $\Rightarrow$ rregulli 1 SE zgjedh M1. (5 pikë)
+    \item Për parashikim: M2 ose M1 janë praktikisht njësoj; M1 është më i thjeshtë dhe zgjidhet nga BIC dhe rregulli 1 SE. M3 mbipërshtatet. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q6E7}
+\end{frame}
+
+\begin{frame}[fragile,label=s6H1]{Zgjidhja: Shtëpi 1}
+<<sol-h61>>=
+library(boot)
+adv <- read.csv(file.path(W06DATA, "Advertising.csv"))[, -1]
+set.seed(61)
+sapply(list(add = sales ~ TV + radio, int = sales ~ TV * radio,
+            int_q = sales ~ TV * radio + I(TV^2)),
+       function(f) round(cv.glm(adv, glm(f, data = adv), K = 10)$delta[1], 3))
+@
+  \begin{itemize}
+    \item Ndërveprimi e ul CV MSE nga $\approx2.9$ në $\approx0.9$; termi $\text{TV}^2$ e ul edhe më (lakimi i TV-së, Java 5).
+  \end{itemize}
+  \vfill\kthehu{h6H1}
+\end{frame}
+
+\begin{frame}[fragile,shrink=10,label=s6H2]{Zgjidhja: Shtëpi 2}
+<<sol-h62>>=
+credit <- read.csv(file.path(W06DATA, "Credit.csv"))
+f6  <- lm(Balance ~ Rating + Income + Student, data = credit)
+f6i <- lm(Balance ~ Rating * Student + Income, data = credit)
+round(coef(f6i), 3); anova(f6, f6i)[2, c("F", "Pr(>F)")]
+@
+  \begin{itemize}
+    \item Ndërveprimi është i rëndësishëm ($p<0.001$): çdo pikë Rating shton $\approx3.96$ \$ borxh te jo-studentët dhe $\approx4.37$ \$ te studentët. Efekti i vogël praktikisht, por i qartë statistikisht me $n=400$.
+  \end{itemize}
+  \vfill\kthehu{h6H1}
+\end{frame}
+
+\begin{frame}[fragile,label=s6H3]{Zgjidhja: Shtëpi 3}
+<<sol-h63>>=
+auto <- na.omit(read.csv(file.path(W06DATA, "Auto.csv"), na.strings = "?"))
+set.seed(63)
+sapply(list(lin = mpg ~ horsepower + weight, quad = mpg ~ horsepower + I(horsepower^2) + weight),
+       function(f) round(cv.glm(auto, glm(f, data = auto), K = 10)$delta[1], 2))
+@
+  \begin{itemize}
+    \item Termi katror e ul CV MSE: lakimi i Javës 5 mbetet edhe pasi kontrollohet pesha. Java 8.
+  \end{itemize}
+  \vfill\kthehu{h6H3}
+\end{frame}
+
+\begin{frame}[fragile,label=s6H4]{Zgjidhja: Shtëpi 4}
+<<sol-h64>>=
+set.seed(64)
+t(sapply(c(-2, 0, 1), function(b2) {
+  s <- replicate(1000, { x1 <- rnorm(100); x2 <- 0.5 * x1 + sqrt(0.75) * rnorm(100)
+    y <- 1 + 2 * x1 + b2 * x2 + rnorm(100); coef(lm(y ~ x1))[2] })
+  c(beta2 = b2, mean_simple = mean(s), formula = 2 + b2 * 0.5)
+}))
+@
+  \vfill\kthehu{h6H3}
+\end{frame}
+
+\begin{frame}[fragile,label=s6H5]{Zgjidhja: Shtëpi 5}
+<<sol-h65>>=
+cv_lm <- function(formula, data, K = 10) {
+  folds <- sample(rep(1:K, length.out = nrow(data)))
+  yname <- all.vars(formula)[1]
+  mean(sapply(1:K, function(k) {
+    m <- lm(formula, data = data[folds != k, ])
+    mean((data[[yname]][folds == k] - predict(m, data[folds == k, ]))^2)
+  }))
+}
+set.seed(65); round(cv_lm(mpg ~ horsepower + weight, auto), 2)
+@
+  \begin{itemize}
+    \item Afër vlerës së \texttt{cv.glm} ($\approx18$); ndryshon pak sepse palosjet janë të rastit.
+  \end{itemize}
+  \vfill\kthehu{h6H5}
+\end{frame}
+
+\begin{frame}[fragile,label=s6H6]{Zgjidhja: Shtëpi 6}
+<<sol-h66>>=
+library(MASS)
+bos <- Boston[, setdiff(names(Boston), "black")]
+m_b <- step(lm(medv ~ ., data = bos), trace = 0, k = log(nrow(bos)))
+attr(terms(m_b), "term.labels")
+set.seed(66); round(cv.glm(bos, glm(formula(m_b), data = bos), K = 10)$delta[1], 2)
+round(coef(m_b)[c("rm", "lstat", "ptratio")], 3)
+@
+  \vfill\kthehu{h6H5}
+\end{frame}
+
+\begin{frame}[label=zgjCp67]{Përgjigjet: Checkpoint Ora 7}
+  \begin{enumerate}
+    \item Vlerësimin (me njësi dhe ``duke mbajtur të tjerat konstante''), IB, dhe testin; plus $R^2_{adj}$ dhe RSE për modelin.
+    \item Kur testoj disa koeficientë njëherësh: një faktor me $k-1$ dummy, një grup variablash, ndërveprimet.
+    \item Gabimi i testit i vlerësuar me $K$-fold CV.
+  \end{enumerate}
+  \vfill\kthehu{cp67}
+\end{frame}

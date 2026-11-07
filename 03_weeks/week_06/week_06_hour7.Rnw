@@ -1,0 +1,347 @@
+% ============================================================
+%  Java 6 · Ora 7 — Konsolidimi
+%  Rezultatet: K2, S1, S2, S3, S4, C1
+% ============================================================
+
+\section{Konsolidimi}
+
+\begin{frame}{Ora 7: Konsolidimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuizi në stilin e provimit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuizi: si funksionon}
+  \begin{itemize}
+    \item<1-> Si në provim: \textbf{25\% teori, 75\% ushtrime}; 3 pyetje teorike (25 pikë) + 7 ushtrime (75 pikë).
+    \item<2-> Koha: 45 minuta. Ushtrimet 1--5 dhe 7 bëhen pa ndihmën e PC.
+    \item<3-> Ushtrimet 1--2: $x_1=(-2,-1,0,1,2)$, $x_2=(1,-1,0,-1,1)$, $y=(3,1,4,6,11)$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Te çdo koeficient i pjesshëm shkruaj ``duke mbajtur \dots{} konstante''.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=q6T1]{Teori 1 (8 pikë)}
+  \begin{Ushtrim}[(Teori 1)]
+    \begin{enumerate}
+      \item Si interpretohet $\beta_j$ në regresin e shumëfishtë?
+      \item Pse koeficienti i një shpjeguesi mund të ndryshojë (madje edhe shenjë) kur shtohen shpjegues të tjerë? Jepni një shembull nga java.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s6T1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q6T2]{Teori 2 (8 pikë)}
+  \begin{Ushtrim}[(Teori 2)]
+    \begin{enumerate}
+      \item Pse $R^2$ nuk mund të ulet kur shtohet një shpjegues? Çfarë korrigjon $R^2_{adj}$?
+      \item Dalloni testin $F$ global, testin $t$ të një koeficienti dhe testin $F$ të pjesshëm.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s6T2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q6T3]{Teori 3 (9 pikë)}
+  \begin{Ushtrim}[(Teori 3)]
+    \begin{enumerate}
+      \item Sa dummy duhen për një faktor me $k$ nivele? Çfarë mat koeficienti i secilit?
+      \item Çfarë është ndërveprimi dhe parimi hierarkik?
+      \item Dalloni AIC, BIC dhe $K$-fold CV si kritere përzgjedhjeje.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s6T3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q6E1]{Ushtrimi 1 (10 pikë): vlerësimi}
+  \begin{Ushtrim}[(Ushtrimi 1, pa ndihmën e PC)]
+    $x_1=(-2,-1,0,1,2)$, $x_2=(1,-1,0,-1,1)$, $y=(3,1,4,6,11)$.
+    \begin{enumerate}
+      \item Tregoni që $x_1$ dhe $x_2$ janë ortogonalë dhe shkruani $\bm X^\top\bm X$, $\bm X^\top\bm y$.
+      \item Gjeni $\hat{\bm\beta}$.
+      \item Llogaritni mbetjet, SSE, SST, $R^2$ dhe $R^2_{adj}$.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s6E1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q6E2]{Ushtrimi 2 (10 pikë): testet}
+  \begin{Ushtrim}[(Ushtrimi 2, pa ndihmën e PC)]
+    Me të dhënat e Ushtrimit 1 ($t_{0.975;\,2}=4.303$, $F_{0.95;\,2,2}=19$):
+    \begin{enumerate}
+      \item Llogaritni $\hat\sigma^2$, $SE(\hat\beta_1)$, $SE(\hat\beta_2)$ dhe statistikat $t$.
+      \item Cilët koeficientë janë të rëndësishëm në $\alpha=0.05$?
+      \item Llogaritni $F$ global dhe vendosni.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s6E2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q6E3]{Ushtrimi 3 (10 pikë): testi $F$ i pjesshëm}
+  \begin{Ushtrim}[(Ushtrimi 3, pa ndihmën e PC)]
+    $n=60$. Modeli i plotë ka 5 shpjegues dhe SSE $=400$. Pa 3 prej tyre, SSE $=520$.
+    \begin{enumerate}
+      \item Shkruani $H_0$ dhe shkallët e lirisë.
+      \item Llogaritni $F$; vendosni me $F_{0.95;\,3,54}=2.78$.
+      \item A mund ta merrnit këtë përfundim nga tre testet $t$ veç e veç? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s6E3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q6E4]{Ushtrimi 4 (10 pikë): dummy dhe ndërveprim}
+  \begin{Ushtrim}[(Ushtrimi 4, pa ndihmën e PC; shembull hipotetik)]
+    \small
+    $y$ = të ardhurat mujore (mijë lekë), $x$ = vite përvojë, $d=1$ urban, $0$ rural:
+    \[ \hat y=30+2.5x+8d-1.0\,x\,d. \]
+    \begin{enumerate}
+      \item Shkruani vijën për rural dhe për urban.
+      \item Sa është dallimi urban$-$rural për $x=0$ dhe për $x=10$?
+      \item Për cilën $x$ vijat priten? Interpretoni.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s6E4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q6E5]{Ushtrimi 5 (10 pikë): ndërveprim sasior}
+  \begin{Ushtrim}[(Ushtrimi 5, pa ndihmën e PC)]
+    \texttt{Advertising}: $\widehat{\texttt{sales}}=6.75+0.0191\,\texttt{TV}+0.0289\,\texttt{radio}+0.00109\,\texttt{TV}\cdot\texttt{radio}$.
+    \begin{enumerate}
+      \item Efekti i 1 mijë \$ më shumë në TV kur radio $=25$.
+      \item Shitjet e parashikuara për TV $=100$, radio $=25$.
+      \item Pse koeficienti $0.0191$ vetëm nuk është ``efekti i TV''?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s6E5}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[fragile,shrink=14,label=q6E6]{Ushtrimi 6 (10 pikë): lexo output-in}
+<<quiz-auto, echo=FALSE>>=
+auto <- na.omit(read.csv(file.path(W06DATA, "Auto.csv"), na.strings = "?"))
+auto$origin <- factor(auto$origin, labels = c("USA", "Europe", "Japan"))
+summary(lm(mpg ~ weight + year + origin, data = auto))
+@
+  Interpretoni \texttt{weight}, \texttt{year} dhe \texttt{originJapan}. Çfarë tregon $R^2_{adj}$? Si do ta testonit origjinën si faktor? \hfill\shkoTe{s6E6}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[shrink=5,label=q6E7]{Ushtrimi 7 (15 pikë): përzgjedhja}
+  \begin{Ushtrim}[(Ushtrimi 7, pa ndihmën e PC)]
+    \small
+    $n=100$; $\log 2.5=0.916$, $\log 2.3=0.833$, $\log 2.25=0.811$, $\log100=4.605$.
+    \begin{center}
+      \begin{tabular}{@{}lccc@{}}
+        \toprule
+        Modeli & $k$ (parametra) & SSE & 10-fold CV MSE (SE) \\ \midrule
+        M1 & 3 & 250 & 2.62 (0.10) \\
+        M2 & 5 & 230 & 2.55 (0.10) \\
+        M3 & 8 & 225 & 2.71 (0.11) \\ \bottomrule
+      \end{tabular}
+    \end{center}
+    \begin{enumerate}
+      \item Llogaritni AIC $=n\log(\text{SSE}/n)+2k$ dhe BIC $=n\log(\text{SSE}/n)+k\log n$.
+      \item Cilin model zgjedh secili kriter? Po CV, me rregullin ``1 SE''?
+      \item Cilin do të raportonit dhe pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s6E7}{Zgjidhja}
+\end{frame}
+
+\begin{frame}{Tabela e pikëve}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Pjesa & Pyetjet & Pikët \\ \midrule
+    Teori (25\%) & T1, T2, T3 & 8 + 8 + 9 = 25 \\
+    Ushtrime (75\%) & U1--U6 & $6\times10=60$ \\
+     & U7 & 15 \\ \midrule
+    Gjithsej & 10 & 100 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Nën 50 pikë: përsëritni Orët 2, 4 dhe 6.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ushtrime për shtëpi}
+% ------------------------------------------------------------
+
+\begin{frame}[label=h6H1]{Ushtrime për shtëpi 1--2}
+  \begin{Ushtrim}[(Shtëpi 1: \texttt{Advertising})]
+    Krahaso me 10-fold CV: \texttt{TV + radio}, \texttt{TV * radio}, \texttt{TV * radio + I(TV\^{}2)}. Cilin zgjedh?
+  \end{Ushtrim}
+  \shkoTe{s6H1}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 2: \texttt{Credit})]
+    Shto ndërveprimin \texttt{Rating * Student} te \texttt{fit6}. Testoje dhe interpretoje.
+  \end{Ushtrim}
+  \shkoTe{s6H2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=h6H3]{Ushtrime për shtëpi 3--4}
+  \begin{Ushtrim}[(Shtëpi 3: \texttt{Auto}, lakimi)]
+    Krahaso me CV \texttt{mpg \textasciitilde{} horsepower + weight} me \texttt{mpg \textasciitilde{} horsepower + I(horsepower\^{}2) + weight}.
+  \end{Ushtrim}
+  \shkoTe{s6H3}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 4: variabla e harruar)]
+    Përsërit simulimin e Orës 3 me $\beta_2\in\{-2,0,1\}$ dhe $\rho=0.5$. Krahaso mesataren e pjerrësisë së thjeshtë me $\beta_1+\beta_2\rho$.
+  \end{Ushtrim}
+  \shkoTe{s6H4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=h6H5]{Ushtrime për shtëpi 5--6}
+  \begin{Ushtrim}[(Shtëpi 5: CV nga zero)]
+    Shkruaj \texttt{cv\_lm(formula, data, K)} pa \texttt{boot}. Krahasoje me \texttt{cv.glm()} te \texttt{Auto}.
+  \end{Ushtrim}
+  \shkoTe{s6H5}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 6: \texttt{Boston})]
+    Me \texttt{MASS::Boston} pa kolonën e racës: \texttt{step()} me BIC nga \texttt{medv \textasciitilde{} .}; CV i modelit të zgjedhur; interpreto tre koeficientë.
+  \end{Ushtrim}
+  \shkoTe{s6H6}{Zgjidhja}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gabimet e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet e zakonshme: interpretimi}
+  \begin{itemize}
+    \item<1-> Koeficienti i pjesshëm lexuar si efekt total (pa ``duke mbajtur të tjerat konstante'').
+    \item<2-> ``Nuk është i rëndësishëm, pra nuk ka efekt'' kur shpjeguesit janë të korreluar.
+    \item<3-> Krahasimi i koeficientëve me njësi të ndryshme.
+    \item<4-> Efekti kryesor i interpretuar kur ka ndërveprim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: modelimi}
+  \begin{itemize}
+    \item<1-> Faktori i koduar si numër.
+    \item<2-> Testi i faktorit me $t$ të dummy-ve në vend të \texttt{anova()}.
+    \item<3-> Ndërveprim pa efektet kryesore (shkelje e parimit hierarkik).
+    \item<4-> Zgjedhja e modelit me $R^2$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: validimi}
+  \begin{itemize}
+    \item<1-> Vlerësimi i gabimit me të njëjtat të dhëna që ndërtuan modelin.
+    \item<2-> Përzgjedhja e variablave jashtë CV (rrjedhje informacioni).
+    \item<3-> Vlerat $p$ pas \texttt{step()} të trajtuara si të ``pastra''.
+    \item<4-> Një ndarje e vetme train/test si e vërtetë absolute.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit e një regresioni të shumëfishtë}
+  \begin{enumerate}
+    \item Pyetja: shpjegim apo parashikim? Kandidatët nga teoria.
+    \item Faktorët si \texttt{factor()}, niveli bazë i qartë.
+    \item Korrelacionet midis shpjeguesve (Java 3).
+    \item \texttt{lm()}, \texttt{summary()}: $F$, $t$, $R^2_{adj}$, RSE.
+    \item Ndërveprime vetëm me arsye; parimi hierarkik; qendërzim.
+    \item Krahaso modelet me CV (+ AIC/BIC); zgjidh më të thjeshtin të mirë.
+    \item Diagnostikimi (Java 7) dhe raporti me IB.
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fletë-kujtesa}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë-kujtesa 1: formulat}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Madhësia & Formula \\ \midrule
+    OLS & $\hat{\bm\beta}=(\bm X^\top\bm X)^{-1}\bm X^\top\bm y$, \ $\operatorname{Var}=\sigma^2(\bm X^\top\bm X)^{-1}$ \\
+    Gabimi & $\hat\sigma^2=\text{SSE}/(n-p-1)$ \\
+    $R^2_{adj}$ & $1-(1-R^2)(n-1)/(n-p-1)$ \\
+    $F$ global & $\dfrac{\text{SSR}/p}{\text{SSE}/(n-p-1)}$ \\
+    $F$ i pjesshëm & $\dfrac{(\text{SSE}_R-\text{SSE}_F)/q}{\text{SSE}_F/(n-p-1)}$ \\
+    Variabla e harruar & $E[\hat\beta_1^{\text{thj}}]=\beta_1+\beta_2\operatorname{Cov}(x_1,x_2)/\operatorname{Var}(x_1)$ \\
+    AIC, BIC & $n\log(\text{SSE}/n)+2k$, \ $n\log(\text{SSE}/n)+k\log n$ \\
+    LOOCV (OLS) & $\frac1n\sum\big(e_i/(1-h_{ii})\big)^2$ \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 2: funksionet R}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    Modeli & \texttt{lm(y \textasciitilde{} x1 + x2 + f, data)}, \texttt{lm(y \textasciitilde{} .)} \\
+    Ndërveprime & \texttt{x * d}, \texttt{x:d}, \texttt{I(x\^{}2)} \\
+    Faktorët & \texttt{factor()}, \texttt{relevel(ref = )}, \texttt{model.matrix()} \\
+    Testet & \texttt{summary()}, \texttt{anova(small, big)}, \texttt{confint()}, \texttt{vcov()} \\
+    Përzgjedhja & \texttt{step(fit, k = 2 / log(n))}, \texttt{leaps::regsubsets()} \\
+    Kriteret & \texttt{AIC()}, \texttt{BIC()}, \texttt{summary(fit)\$adj.r.squared} \\
+    Validimi & \texttt{sample()}, \texttt{boot::cv.glm(data, glm(...), K = 10)} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 3: grafikët}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Grafiku & Funksioni \\ \midrule
+    Vija sipas grupit & \texttt{ggplot(aes(x, y, colour = g)) + geom\_smooth(method = "lm")} \\
+    Ndërveprim sasior & \texttt{expand.grid()} + \texttt{predict()} + \texttt{geom\_line()} \\
+    Plani 3D & \texttt{pgfplots} \texttt{surf}, ose \texttt{persp()} \\
+    Kurba e CV & \texttt{plot(size, cv\_mse, type = "b")} \\
+    Kriteret sipas madhësisë & \texttt{plot(regsubsets\_obj, scale = "bic")} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pamje e Javës 7}
+% ------------------------------------------------------------
+
+\begin{frame}{Java 7: testet dhe diagnostikimi \LO{S3} \LO{C1}}
+  \begin{itemize}
+    \item<1-> A i plotëson modeli supozimet? Mbetjet, QQ, \texttt{plot(fit)}.
+    \item<2-> Vëzhgimet e veçanta: leverage $h_{ii}$, mbetjet e studentizuara, distanca e Cook-ut.
+    \item<3-> Multikolineariteti: VIF (\texttt{car::vif}, si në repo për \texttt{fit6}); \texttt{Rating + Limit}.
+    \item<4-> Heteroskedasticiteti: testi Breusch--Pagan, SE robuste, transformimet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Para Javës 7}
+  \begin{itemize}
+    \item Mbaroni ushtrimet për shtëpi 1--6.
+    \item Rishikoni grafikët e mbetjeve të Javës 5 (\texttt{Boston}, \texttt{Auto}, \texttt{Advertising}).
+    \item Lexoni ISLR kap.~3.3.3 (problemet e mundshme).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Burime}
+  \footnotesize
+  \begin{itemize}
+    \item E.~Raço, E.~Llagami, K.~Haxhi, O.~Zaçaj, \emph{Teoria e Probabilitetit dhe Statistika Matematike me ilustrime në gjuhën R}, Kotti, 2021 (regresi i shumëfishtë).
+    \item J.~Cohen, P.~Cohen, S.~G.~West, L.~S.~Aiken, \emph{Applied Multiple Regression/Correlation Analysis for the Behavioral Sciences}, LEA, 2003 (koeficientët e pjesshëm, variablat kategorike, ndërveprimet).
+    \item G.~James, D.~Witten, T.~Hastie, R.~Tibshirani, \emph{An Introduction to Statistical Learning}, Springer, kap.~3, 5, 6; \url{https://www.statlearning.com}.
+    \item N.~Lo, \emph{DS612 Data Mining with Business Applications (R)}, \url{https://github.com/NormanLo4319/DS612_Data_Mining_with_Business_Applications_R} (licencë MIT): \texttt{Linear\_Regression.R} (\texttt{fit1}--\texttt{fit7}), \texttt{Test\_Training\_Split.R}, \texttt{CrossValidation\_Review.R}.
+    \item H.~Akaike (1974), \emph{IEEE Transactions on Automatic Control} 19(6); G.~Schwarz (1978), \emph{Annals of Statistics} 6(2).
+    \item Paketat: \texttt{boot}, \texttt{leaps}, \texttt{car}, \texttt{ggplot2}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp67]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 7}
+  \begin{enumerate}
+    \item Çfarë raporton për çdo koeficient të një modeli të shumëfishtë?
+    \item Kur përdor testin $F$ të pjesshëm në vend të testeve $t$?
+    \item Cili është gjykatësi përfundimtar kur krahason modele për parashikim?
+  \end{enumerate}
+  \shkoTe{zgjCp67}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje e Javës 6}
+  \begin{itemize}
+    \item Koeficientët e pjesshëm: ``duke mbajtur të tjerat konstante''; FWL; variabla e harruar.
+    \item Testet: $F$ global, $t$, $F$ i pjesshëm; $R^2_{adj}$.
+    \item Dummy, faktorë me $k$ nivele, ndërveprime, parimi hierarkik, qendërzimi.
+    \item Përzgjedhja: train/test, LOOCV, $K$-fold, AIC/BIC, \texttt{step()}.
+    \item Rastet: \texttt{Advertising}, \texttt{Credit} (repo), \texttt{Auto}.
+  \end{itemize}
+\end{frame}
