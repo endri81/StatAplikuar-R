@@ -1,0 +1,363 @@
+% ============================================================
+%  Java 7 · Ora 3 — R Lab I: diagnostikimi nga zero
+%  Rezultatet: S4, S3
+%  Burimi: repo DS612 (Lecture_3: plot(fit)); ISLR kap. 3.3.3, 3.6; dokumentacioni i car
+% ============================================================
+
+\section{R Lab I: diagnostikimi nga zero}
+
+\begin{frame}{Ora 3: R Lab I --- diagnostikimi nga zero}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Të dhënat dhe modeli}
+% ------------------------------------------------------------
+
+\begin{frame}{Plani i laboratorit \LO{S4} \LO{S3}}
+  \begin{itemize}
+    \item<1-> Të dhëna: \texttt{Auto} (ISLR), \textbf{reale} (StatLib, CMU); 392 makina pas heqjes së vlerave që mungojnë.
+    \item<2-> Model: \texttt{mpg \textasciitilde{} horsepower + weight + year}.
+    \item<3-> Hapi 1: $h_{ii}$, $r_i$, $t_i$, $D_i$ me formulat e Orës 2, vetëm me algjebër matricash.
+    \item<4-> Hapi 2: i krahasojmë me \texttt{hatvalues}, \texttt{rstandard}, \texttt{rstudent}, \texttt{cooks.distance}.
+    \item<5-> Hapi 3: grafikët \texttt{plot(fit)}, \texttt{car::influencePlot}, \texttt{car::outlierTest}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Leximi i të dhënave}
+<<h3-read>>=
+auto <- read.csv(file.path(W07DATA, "Auto.csv"),
+                 na.strings = "?", stringsAsFactors = TRUE)
+auto <- na.omit(auto)          # 5 cars without horsepower
+dim(auto)
+fit_auto <- lm(mpg ~ horsepower + weight + year, data = auto)
+round(coef(fit_auto), 5)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $n=392$, $p=3$ parashikues, $p+1=4$ koeficientë.
+    \item<2-> Çdo vit modeli shton rreth 0.75 milje/gallon, me fuqi dhe peshë të njëjtë.
+    \item<3-> 1000 paund më shumë peshë: $-6.4$ milje/gallon.
+    \item<4-> Para se t'i besojmë këta numra: diagnostikim.
+  \end{itemize}
+  \begin{Gabim}\texttt{na.omit()} ndryshon numrat e rreshtave: emrat e rreshtave (\texttt{"327"}) nuk përputhen më me pozicionet (325). Përdor gjithmonë \texttt{rownames()} kur raporton një vëzhgim.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Leverage nga zero}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Matrica e modelit dhe $h_{ii}$}
+<<h3-hat>>=
+X <- model.matrix(fit_auto)        # n x (p+1), first column = 1
+y <- auto$mpg
+n <- nrow(X); k <- ncol(X)         # k = p + 1
+XtX_inv <- solve(crossprod(X))     # (X'X)^{-1}
+# h_ii = x_i' (X'X)^{-1} x_i, without building the n x n matrix H
+h <- unname(rowSums((X %*% XtX_inv) * X))
+all.equal(h, unname(hatvalues(fit_auto)))
+c(sum_h = sum(h), k = k)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Formula jonë jep të njëjtat vlera si \texttt{hatvalues()}. \checkmark
+    \item<2-> $\sum h_{ii}=4=p+1$: vetia e gjurmës. \checkmark
+    \item<3-> \textbf{Pse \texttt{rowSums}?} $H$ do të ishte $392\times392$; na duhet vetëm diagonalja.
+    \item<4-> Rreshti $i$ i $(XA)\circ X$, i mbledhur, është $x_i^\top A\,x_i$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Sa pika kanë leverage të lartë?}
+<<h3-levsum>>=
+summary(h)
+c(threshold = 2 * k / n, n_above = sum(h > 2 * k / n))
+auto[which.max(h), c("mpg", "horsepower", "weight", "year", "name")]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mesatarja $\bar h = k/n = 0.0102$; pragu $2k/n=0.0204$.
+    \item<2-> 21 makina mbi prag; maksimumi $0.095\approx 9\bar h$.
+    \item<3-> \texttt{buick estate wagon}: 225 kuaj-fuqi, por vetëm 3086 paund, një kombinim i rrallë.
+    \item<4-> Leverage i lartë $\ne$ problem. Duhet parë edhe mbetja.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbetjet nga zero}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Mbetjet e standardizuara}
+<<h3-rstd>>=
+beta_hat <- XtX_inv %*% crossprod(X, y)    # OLS by matrix formula
+e <- as.numeric(y - X %*% beta_hat)        # raw residuals
+sigma_hat <- sqrt(sum(e^2) / (n - k))
+c(ours = sigma_hat, lm = sigma(fit_auto))
+r <- e / (sigma_hat * sqrt(1 - h))         # standardized residuals
+all.equal(r, as.numeric(rstandard(fit_auto)))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Mbetjet e studentizuara}
+<<h3-rstud>>=
+# t_i = r_i * sqrt((n - p - 2) / (n - p - 1 - r_i^2)),  n - p - 1 = n - k
+t_stud <- r * sqrt((n - k - 1) / (n - k - r^2))
+all.equal(t_stud, as.numeric(rstudent(fit_auto)))
+sum(abs(t_stud) > 3)
+head(sort(round(t_stud, 2), decreasing = TRUE), 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të tri formulat (për $\hat\sigma$, $r_i$, $t_i$) përputhen me R. \checkmark
+    \item<2-> 7 makina kanë $|t_i|>3$.
+    \item<3-> Nëse modeli do të ishte i saktë, me $t_{387}$ prisnim rreth $392\cdot0.0029\approx1.1$.
+    \item<4-> 7 është shumë: sinjal për një problem \textbf{sistematik}, jo vetëm disa pika të veçanta.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTi]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    Vëzhgimi me emër rreshti \texttt{"327"} ka $t_i=3.73$.
+    \begin{enumerate}
+      \item Rivlerëso modelin \textbf{pa} këtë vëzhgim dhe merr $\hat\sigma_{(i)}$ me \texttt{sigma()}.
+      \item Llogarit $e_i/(\hat\sigma_{(i)}\sqrt{1-h_{ii}})$.
+      \item A merr 3.73? Pse nuk përdorim \texttt{sigma(fit\_auto)}?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTi}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ndikimi nga zero}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Distanca e Cook-ut}
+<<h3-cook>>=
+D <- r^2 / k * h / (1 - h)
+all.equal(D, as.numeric(cooks.distance(fit_auto)))
+c(max_D = max(D), above_4n = sum(D > 4 / n), above_1 = sum(D > 1))
+@
+\end{frame}
+
+\begin{frame}[label=pyetjeMaxD]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Kemi tri kandidatë:
+    \begin{itemize}
+      \item \texttt{"14"}: leverage më i lartë ($h=0.095$), $t=-1.12$;
+      \item \texttt{"323"}: $|t|$ më i madh ($t=4.29$), $h=0.0069$;
+      \item \texttt{"327"}: $t=3.73$, $h=0.0112$.
+    \end{itemize}
+    Cili ka $D_i$ më të madh? Arsyeto me $D_i=\frac{r_i^2}{p+1}\frac{h_{ii}}{1-h_{ii}}$.
+  \end{Parashiko}
+  \shkoTe{zgjMaxD}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Përgjigjja në R}
+<<h3-top>>=
+top <- order(D, decreasing = TRUE)[1:3]
+data.frame(row = rownames(auto)[top], h = round(h[top], 4),
+           t = round(t_stud[top], 2), D = round(D[top], 4),
+           name = auto$name[top])
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Asnjë $D_i$ afër 1: \textbf{asnjë pikë e vetme} nuk e drejton modelin.
+    \item<2-> 28 pika mbi $4/n$: me $n=392$ ky prag është shumë i ulët.
+    \item<3-> Renditja e kombinon leverage-in dhe mbetjen: \texttt{"14"} ka $h$ të lartë, \texttt{"327"} ka $t$ të madh.
+    \item<4-> Me $n$ të madh, pikat individuale ndikojnë pak. Problemi i vërtetë është te \textbf{forma} e modelit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{DFBETA: sa lëvizin koeficientët?}
+<<h3-dfbeta>>=
+i <- which(rownames(auto) == "327")
+fit_wo <- update(fit_auto, data = auto[-i, ])
+rbind(by_refit = coef(fit_auto) - coef(fit_wo),
+      dfbeta   = dfbeta(fit_auto)[i, ])
+@
+  \footnotesize \texttt{dfbeta()} = $\hat\beta-\hat\beta_{(i)}$: ndryshimi \textbf{kur shtohet} pika.
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Rivlerësimi dhe \texttt{dfbeta()} japin të njëjtin rezultat. \checkmark
+    \item<2-> Ndryshimet janë të vogla në krahasim me SE: pika ka ndikim të kufizuar.
+    \item<3-> \texttt{dfbetas()} (me ``s'') i pjesëton me SE: prag $2/\sqrt n = 0.10$.
+  \end{itemize}
+  \begin{Gabim}Shenja: \texttt{dfbeta} është $\hat\beta-\hat\beta_{(i)}$, jo $\hat\beta_{(i)}-\hat\beta$. Kontrollo para se ta interpretosh.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=ushDffits]{Radha jote!}
+  \begin{Ushtrim}[(4 minuta)]
+    \begin{enumerate}
+      \item Llogarit DFFITS nga zero: $t_i\sqrt{h_{ii}/(1-h_{ii})}$.
+      \item Krahaso me \texttt{dffits(fit\_auto)} me \texttt{all.equal()}.
+      \item Sa vëzhgime kalojnë pragun $2\sqrt{(p+1)/n}$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjDffits}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Testi Bonferroni}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Testi i vlerës ekstreme nga zero}
+<<h3-bonf>>=
+df_t <- n - k - 1                           # n - p - 2
+p_raw  <- 2 * pt(-abs(t_stud), df = df_t)
+p_bonf <- pmin(1, n * p_raw)
+j <- which.min(p_bonf)
+c(row = rownames(auto)[j], t = round(t_stud[j], 3),
+  p_raw = signif(p_raw[j], 4), p_bonf = signif(p_bonf[j], 4))
+car::outlierTest(fit_auto)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Numrat tanë = \texttt{outlierTest}. \checkmark
+    \item<2-> \texttt{mazda glc} (1980): 46.6 milje/gallon, rreth 14 më shumë se sa parashikon modeli.
+    \item<3-> $p_{\text{Bonf}}=0.0088<0.05$: vlerë ekstreme statistikisht e rëndësishme.
+    \item<4-> \textbf{Pse?} Makinat e vogla japoneze të viteve '80 janë më ekonomike se ç'e lejon një model linear.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Grafikët gati}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{plot(fit)}: grafikët 1--3}
+<<h3-plot13, fig.height=2.4, fig.width=8, out.width="0.92\\textwidth">>=
+par(mfrow = c(1, 3), cex = 0.75)
+plot(fit_auto, which = 1:3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \textbf{Residuals vs Fitted}: formë U e qartë $\Rightarrow$ \textbf{jolinearitet}.
+    \item<2-> \textbf{Q-Q}: bishti i djathtë largohet: disa makina shumë ekonomike.
+    \item<3-> \textbf{Scale-Location}: përhapja rritet me $\hat y$ $\Rightarrow$ heteroskedasticitet.
+    \item<4-> Kjo shpjegon 7 pikat me $|t_i|>3$: modeli, jo pikat, ka problem.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{plot(fit)}: grafikët 4--6}
+<<h3-plot46, fig.height=2.4, fig.width=8, out.width="0.92\\textwidth">>=
+par(mfrow = c(1, 3), cex = 0.75)
+plot(fit_auto, which = 4:6)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{which = 4}: $D_i$ sipas indeksit; tre etiketat më të larta.
+    \item<2-> \texttt{which = 5}: $r_i$ kundrejt $h_{ii}$, me konturet $D=0.5$ dhe $D=1$.
+    \item<3-> \texttt{which = 6}: $D_i$ kundrejt $h_{ii}/(1-h_{ii})$; vijat janë $r_i$ konstant.
+    \item<4-> Parazgjedhja \texttt{plot(fit)} jep vetëm 1, 2, 3, 5.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{car::influencePlot}}
+<<h3-infl, fig.height=3, fig.width=6, out.width="0.55\\textwidth", results="hide">>=
+car::influencePlot(fit_auto, scale = 5, fill = FALSE, id = list(n = 2))
+@
+  \footnotesize Boshti $x$: $h_{ii}$; boshti $y$: $t_i$; madhësia e rrethit $\propto\sqrt{D_i}$.
+\end{frame}
+
+\begin{frame}[fragile,shrink=8]{Grafiku ynë, nga zero}
+<<h3-own, fig.height=3, fig.width=6, out.width="0.55\\textwidth">>=
+plot(h, t_stud, cex = 10 * sqrt(D), xlab = "leverage h",
+     ylab = "studentized residual", col = "#2C5AA0")
+abline(v = c(2, 3) * k / n, lty = 2, col = "gray50")
+abline(h = c(-3, 3), lty = 2, col = "#D97706")
+lab <- order(D, decreasing = TRUE)[1:3]
+text(h[lab], t_stud[lab], rownames(auto)[lab], pos = 4, cex = 0.8)
+@
+\end{frame}
+
+\begin{frame}[label=pyetjePlot]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Dëshiron të gjesh shpejt vëzhgimin me ndikimin më të madh mbi koeficientin e \texttt{weight}. Cili mjet është më i drejtpërdrejtë?
+    \begin{enumerate}[A)]
+      \item \texttt{plot(fit, which = 4)}
+      \item \texttt{car::outlierTest(fit)}
+      \item \texttt{dfbetas(fit)[, "weight"]}
+      \item \texttt{hatvalues(fit)}
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjPlot}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gjej gabimin}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile,label=gjejGab73]{Gjej gabimin: ``pastrimi'' automatik}
+<<h3-clean>>=
+d <- auto; rounds <- 0
+repeat {   # "clean" until no residual exceeds 2 sigma
+  f   <- lm(mpg ~ horsepower + weight + year, data = d)
+  out <- abs(resid(f)) > 2 * sigma(f)
+  if (!any(out)) break
+  d <- d[!out, ]; rounds <- rounds + 1
+}
+c(rounds = rounds, kept = nrow(d), removed = nrow(auto) - nrow(d))
+sigma(f)
+@
+  \shkoTe{zgjGab73}{Çfarë nuk shkon?}
+\end{frame}
+
+\begin{frame}[fragile,shrink=8]{Pasoja}
+<<h3-clean2>>=
+round(rbind(all_392 = coef(fit_auto), cleaned = coef(f)), 4)
+round(rbind(all_392 = coef(summary(fit_auto))[, 2],
+            cleaned = coef(summary(f))[, 2]), 4)          # SEs
+@
+  \begin{itemize}
+    \item<2-> 14 raunde, 69 makina (18\%) të hequra.
+    \item<3-> Koeficienti i \texttt{horsepower} ndryshon shenjë: $-0.005\to+0.028$.
+    \item<4-> $\hat\sigma$: $3.43\to2.10$ dhe SE më të vogla: saktësi e \textbf{rreme}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabime të zakonshme në laborator}
+  \begin{Gabim}Pragu me mbetje të papërpunuara (\texttt{resid}): injoron $h_{ii}$. Përdor \texttt{rstudent}.\end{Gabim}
+  \pause
+  \begin{Gabim}Heqje e përsëritur: pas çdo raundi $\hat\sigma$ zvogëlohet, kështu që pika të reja dalin ``ekstreme''.\end{Gabim}
+  \pause
+  \begin{Gabim}Kur shumë pika duken ekstreme, problemi është zakonisht \textbf{forma e modelit}, jo të dhënat.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp73]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Si e llogarit $h_{ii}$ në R pa ndërtuar matricën $n\times n$?
+    \item Pse \texttt{outlierTest} jep $p$ të rregulluar, dhe sa është shumëzuesi?
+    \item Pse 7 pika me $|t_i|>3$ te \texttt{Auto} tregojnë problem me modelin?
+  \end{enumerate}
+  \shkoTe{zgjCp73}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item $h$, $r$, $t$, $D$, DFBETA, Bonferroni: të gjitha nga zero = funksionet e R. \checkmark
+    \item \texttt{Auto}: asnjë pikë me $D>1$, por formë U dhe heteroskedasticitet.
+    \item \texttt{plot(fit, which = 1:6)}, \texttt{influencePlot}, \texttt{outlierTest}.
+    \item Mos ``pastro'' automatikisht: heqja e përsëritur ndryshon përfundimet dhe jep saktësi të rreme.
+  \end{itemize}
+  \begin{Keshille}Ora 4: si i testojmë supozimet formalisht: grafikët CR, Breusch--Pagan, SE robuste, Q-Q dhe Shapiro, VIF, Box--Cox.\end{Keshille}
+\end{frame}

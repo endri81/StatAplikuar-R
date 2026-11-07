@@ -1,0 +1,71 @@
+% ============================================================
+%  Java 7 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjTi]{Zgjidhja: Radha jote! ($t_i$ me rivlerësim)}
+<<sol-ti>>=
+auto_s <- na.omit(read.csv(file.path(W07DATA, "Auto.csv"),
+                           na.strings = "?", stringsAsFactors = TRUE))
+fit_s <- lm(mpg ~ horsepower + weight + year, data = auto_s)
+i <- which(rownames(auto_s) == "327")
+fit_wo_s <- update(fit_s, data = auto_s[-i, ])
+c(sigma_all = sigma(fit_s), sigma_wo = sigma(fit_wo_s),
+  t_i = resid(fit_s)[[i]] / (sigma(fit_wo_s) * sqrt(1 - hatvalues(fit_s)[[i]])))
+@
+  \begin{itemize}
+    \item Po: 3.73. Me \texttt{sigma(fit\_s)} do të merrnim $r_i$, sepse $\hat\sigma$ përfshin vetë pikën.
+  \end{itemize}
+  \vfill\kthehu{ushTi}
+\end{frame}
+
+\begin{frame}[label=zgjMaxD]{Zgjidhja: Parashiko ($D_i$ maksimal)}
+  \begin{itemize}
+    \item \texttt{"14"}: $h/(1-h)=0.105$ i madh, por $r^2$ i vogël.
+    \item \texttt{"323"}: $r^2$ më i madhi, por $h/(1-h)=0.007$.
+    \item \texttt{"327"}: $r^2$ i madh \textbf{dhe} $h/(1-h)=0.011$ $\Rightarrow$ $D=0.038$, maksimumi.
+    \item Të tre janë afër (0.038, 0.033, 0.031): asnjë s'ka ndikim të madh.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMaxD}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjDffits]{Zgjidhja: Radha jote! (DFFITS)}
+<<sol-dffits>>=
+h_s <- hatvalues(fit_s); t_s <- rstudent(fit_s)
+dff <- t_s * sqrt(h_s / (1 - h_s))
+all.equal(dff, dffits(fit_s))
+c(threshold = 2 * sqrt(4 / nrow(auto_s)),
+  n_above = sum(abs(dff) > 2 * sqrt(4 / nrow(auto_s))))
+@
+  \vfill\kthehu{ushDffits}
+\end{frame}
+
+\begin{frame}[label=zgjPlot]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}. \texttt{dfbetas()} jep ndryshimin e \textbf{secilit} koeficient, në njësi SE.
+    \item A: Cook mat ndikimin mbi të gjitha $\hat y$, jo mbi një koeficient.
+    \item B: teston vlerat ekstreme në $y$, jo ndikimin.
+    \item D: leverage nuk varet nga $y$ fare.
+    \item Te \texttt{Auto}: \texttt{"14"} ka $|\text{DFBETAS}|=0.31$ për \texttt{weight}, mbi pragun $0.10$.
+  \end{itemize}
+  \vfill\kthehu{pyetjePlot}
+\end{frame}
+
+\begin{frame}[label=zgjGab73]{Zgjidhja: Gjej gabimin}
+  \begin{enumerate}
+    \item Përdor \texttt{resid()}: injoron leverage-in (Ora 2); duhej \texttt{rstudent}.
+    \item Rivlerëson pas çdo raundi: $\hat\sigma$ bie ($3.43\to2.10$), kështu pragu $2\hat\sigma$ bie dhe pika të reja dalin ``ekstreme''.
+    \item Me $n=392$ dhe gabime normale, rreth 5\% e pikave kalojnë $2\sigma$ \textbf{natyrshëm}; ato nuk janë gabime.
+    \item Nuk kontrollon burimin e asnjë pike.
+    \item Rezultati: 18\% e të dhënave humbet, shenja e \texttt{horsepower} ndryshon dhe SE nënvlerësohen.
+  \end{enumerate}
+  \vfill\kthehu{gjejGab73}
+\end{frame}
+
+\begin{frame}[label=zgjCp73]{Përgjigjet: Checkpoint Ora 3}
+  \begin{enumerate}
+    \item \texttt{rowSums((X \%*\% solve(crossprod(X))) * X)}, ose \texttt{hatvalues(fit)}.
+    \item Testohen $n$ pika njëkohësisht; Bonferroni shumëzon $p$ me $n=392$ (kufizuar në 1).
+    \item Nën model prisnim rreth 1; 7 sugjerojnë jolinearitet ose variancë jo-konstante, siç tregon Residuals vs Fitted.
+  \end{enumerate}
+  \vfill\kthehu{cp73}
+\end{frame}
