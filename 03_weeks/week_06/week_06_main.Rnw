@@ -164,6 +164,9 @@ attach(list(
 <<hour4, child='week_06_hour4.Rnw'>>=
 @
 
+<<hour5, child='week_06_hour5.Rnw'>>=
+@
+
 % ===================== SHTOJCA =====================
 \appendix
 \section*{Zgjidhjet}
@@ -178,6 +181,9 @@ attach(list(
 @
 
 <<hour4sol, child='week_06_hour4_sol.Rnw'>>=
+@
+
+<<hour5sol, child='week_06_hour5_sol.Rnw'>>=
 @
 
 \end{document}

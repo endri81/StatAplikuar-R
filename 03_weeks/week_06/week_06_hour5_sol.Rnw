@@ -1,0 +1,56 @@
+% ============================================================
+%  Java 6 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjIncSign]{Zgjidhja: Parashiko (shenja e \texttt{Income})}
+  \begin{itemize}
+    \item Negative ($-7.87$). Rating dhe Income janë të lidhura ($r=0.79$): klientët me të ardhura të larta kanë edhe vlerësim të lartë.
+    \item Vetëm, Income ``merr kredi'' për efektin e Rating-ut. Kur Rating mbahet konstant, një klient me më shumë të ardhura mban më pak borxh, ndoshta sepse e paguan kartën.
+  \end{itemize}
+  \vfill\kthehu{pyetjeIncSign}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjRelevel]{Zgjidhja: Ndrysho parametrin (\texttt{relevel})}
+<<sol-relevel>>=
+credit <- read.csv(file.path(W06DATA, "Credit.csv"))[, -1]
+credit$Student <- relevel(factor(credit$Student), ref = "Yes")
+fit6b <- lm(Balance ~ Rating + Income + Student, data = credit)
+round(coef(fit6b), 3); c(R2 = summary(fit6b)$r.squared, RSE = sigma(fit6b))
+@
+  \begin{enumerate}
+    \item \texttt{StudentNo} $=-418.76$: e njëjta diferencë, me shenjë të kundërt.
+    \item Konstantja bëhet $-581.08+418.76=-162.32$ (prerja e studentëve). $R^2$ dhe RSE nuk ndryshojnë: i njëjti model.
+  \end{enumerate}
+  \vfill\kthehu{ushRelevel}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjCenter]{Zgjidhja: Ndrysho parametrin (qendërzimi)}
+<<sol-center>>=
+adv <- read.csv(file.path(W06DATA, "Advertising.csv"))[, -1]
+adv$TV_c <- adv$TV - mean(adv$TV); adv$radio_c <- adv$radio - mean(adv$radio)
+round(coef(lm(sales ~ TV_c * radio_c, data = adv)), 5)
+c(mean_radio = mean(adv$radio))
+@
+  \begin{enumerate}
+    \item Ndryshojnë konstantja dhe efektet kryesore; koeficienti i ndërveprimit (0.00109) mbetet i njëjtë.
+    \item Koeficienti i \texttt{TV\_c} $=0.0444$ = efekti i TV te radio mesatare ($23.3$): midis vlerave të tabelës për radio $=20$ dhe $30$.
+  \end{enumerate}
+  \vfill\kthehu{ushCenter}
+\end{frame}
+
+\begin{frame}[label=zgjGabInt]{Zgjidhja: Gjej gabimin (formula)}
+  \begin{itemize}
+    \item \texttt{TV * radio} zgjerohet në \texttt{TV + radio + TV:radio}. R heq termat e përsëritur: modeli ka 4 koeficientë (konstantja, TV, radio, TV:radio), jo 5.
+    \item Formula e saktë dhe e qartë: \texttt{sales \textasciitilde{} TV * radio}.
+  \end{itemize}
+  \vfill\kthehu{gjejGabInt}
+\end{frame}
+
+\begin{frame}[label=zgjCp65]{Përgjigjet: Checkpoint Ora 5}
+  \begin{enumerate}
+    \item \texttt{Limit} dhe \texttt{Rating} kanë $r=0.997$: pasi Rating është në model, Limit nuk ka informacion të ri; SE fryhen.
+    \item Sepse Income dhe Rating janë të korreluar: koeficienti i pjesshëm mat efektin e Income \emph{për të njëjtin Rating}.
+    \item $\sqrt{\operatorname{Var}\hat\beta_1+c^2\operatorname{Var}\hat\beta_3+2c\operatorname{Cov}(\hat\beta_1,\hat\beta_3)}$, me elementet nga \texttt{vcov(fit)}.
+  \end{enumerate}
+  \vfill\kthehu{cp65}
+\end{frame}

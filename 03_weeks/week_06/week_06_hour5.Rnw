@@ -1,0 +1,258 @@
+% ============================================================
+%  Java 6 · Ora 5 — Laborator II: Credit, dummy, ndërveprime
+%  Rezultatet: S4, S2, S3
+%  Burimi: repo DS612 (DS612_R-Code_Linear_Regression.R, fit1--fit7), rishkruar
+% ============================================================
+
+\section{Laborator II}
+
+\begin{frame}{Ora 5: Laborator II --- \texttt{Credit} dhe ndërveprimet}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Modelet e repo-s për \texttt{Credit}}
+% ------------------------------------------------------------
+
+\begin{frame}{Plani \LO{S4}}
+  \begin{itemize}
+    \item<1-> Repo-ja ndërton modelet \texttt{fit1}--\texttt{fit8} duke shtuar një variabël çdo herë.
+    \item<2-> Ne i rishkruajmë pa \texttt{attach()}, në një tabelë të vetme krahasimi.
+    \item<3-> \texttt{fit8} përdor kolonën e etnisë: e përjashtojmë, si në Javën 3.
+  \end{itemize}
+  \onslide<4->{\footnotesize\textcolor{gray}{Të dhëna: \texttt{Credit.csv} (ISLR, të dhëna të simuluara nga autorët, nëpërmjet repo-s DS612); 400 klientë.}}
+\end{frame}
+
+\begin{frame}[fragile]{Leximi dhe faktorët}
+<<cr-read>>=
+credit <- read.csv(file.path(W06DATA, "Credit.csv"))[, -1]     # drop row index X
+credit$Ethnicity <- NULL                                         # not used
+credit[c("Gender", "Student", "Married")] <-
+  lapply(credit[c("Gender", "Student", "Married")], factor)
+sapply(credit[c("Gender", "Student", "Married")], levels)
+@
+\end{frame}
+
+\begin{frame}[fragile,shrink=14]{Shtatë modelet në një tabelë}
+<<cr-fits>>=
+forms <- list(fit1 = Balance ~ Rating,          fit2 = Balance ~ Rating + Limit,
+              fit3 = Balance ~ Rating + Income, fit4 = Balance ~ Rating + Income + Cards,
+              fit5 = Balance ~ Rating + Income + Gender,
+              fit6 = Balance ~ Rating + Income + Student,
+              fit7 = Balance ~ Rating + Income + Student + Married)
+tab <- t(sapply(forms, function(f) {
+  s <- summary(lm(f, data = credit))
+  c(R2 = s$r.squared, adjR2 = s$adj.r.squared, RSE = s$sigma,
+    p_new_term = s$coefficients[nrow(s$coefficients), 4])
+}))
+round(tab, 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{Limit} (fit2): $p=0.70$, $R^2_{adj}$ bie. Me \texttt{Rating} në model, s'shton asgjë ($r=0.997$, Java 3).
+    \item<2-> \texttt{Income} (fit3): $R^2$ nga 0.75 në 0.88, RSE nga 232 në 163.
+    \item<3-> \texttt{Cards}, \texttt{Gender} (fit4, fit5): pa efekt të dukshëm.
+    \item<4-> \texttt{Student} (fit6): $R^2=0.95$, RSE $=103$: kërcimi i dytë i madh.
+    \item<5-> \texttt{Married} (fit7): $p=0.27$. Modeli i zgjedhur nga repo-ja: \texttt{fit6}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{fit2}: dy shpjegues që thonë të njëjtën gjë}
+<<cr-fit2>>=
+round(summary(lm(Balance ~ Rating + Limit, data = credit))$coefficients, 4)
+round(summary(lm(Balance ~ Rating, data = credit))$coefficients, 4)
+@
+  \begin{itemize}
+    \item<2-> SE e \texttt{Rating} rritet nga $0.075$ në $0.95$: rreth 13 herë! Multikolineariteti (Java 7: VIF).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeIncSign]{Parashiko!}
+  \begin{Parashiko}
+    Vetëm, \texttt{Income} ka pjerrësi $+6.05$ (Java 5). Në \texttt{fit6 = Balance \textasciitilde{} Rating + Income + Student}, çfarë shenje pret për \texttt{Income}? Pse?
+  \end{Parashiko}
+  \shkoTe{zgjIncSign}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{fit6}}
+<<cr-fit6>>=
+fit6 <- lm(Balance ~ Rating + Income + Student, data = credit)
+round(summary(fit6)$coefficients, 3)
+round(confint(fit6), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{Rating}: çdo pikë $\leftrightarrow$ $+3.99$ \$ borxh, me të ardhura dhe status konstant.
+    \item<2-> \texttt{Income}: \textbf{negativ} ($-7.87$)! Për të njëjtin vlerësim krediti, klientët me më shumë të ardhura mbajnë më pak borxh.
+    \item<3-> \texttt{StudentYes}: $+419$ \$ (IB 385--453), me Rating dhe Income konstante.
+    \item<4-> Shenja e \texttt{Income} ndryshoi sepse Rating dhe Income janë të lidhura ($r=0.79$): Simpson-i në regresion.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\texttt{model.matrix()} dhe \texttt{relevel()}}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Si e kodon R një faktor?}
+<<cr-mm>>=
+head(model.matrix(fit6), 4)
+head(credit[, c("Rating", "Income", "Student")], 4)
+@
+  \begin{itemize}
+    \item \texttt{StudentYes} $=1$ për ``Yes''; niveli bazë ``No'' (i pari alfabetik).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushRelevel]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(4 minuta)]
+    Ekzekuto \texttt{credit\$Student <- relevel(credit\$Student, ref = "Yes")} dhe ripërshtat \texttt{fit6}.
+    \begin{enumerate}
+      \item Si quhet tani koeficienti i dummy-t dhe sa vlen?
+      \item Çfarë ndodh me konstanten? Po me $R^2$ dhe RSE?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjRelevel}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Faktor me tre nivele: \texttt{origin}}
+<<auto-mm>>=
+auto <- na.omit(read.csv(file.path(W06DATA, "Auto.csv"), na.strings = "?"))
+auto$origin <- factor(auto$origin, levels = 1:3, labels = c("USA", "Europe", "Japan"))
+fit_o <- lm(mpg ~ weight + origin, data = auto)
+round(coef(fit_o), 4)
+anova(lm(mpg ~ weight, data = auto), fit_o)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Për \textbf{të njëjtën peshë}, makinat evropiane dhe japoneze kanë $\approx1$--2 mpg më shumë se ato amerikane.
+    \item<2-> Java 4: pa peshën, dallimi ishte 8--10 mpg. Pjesa më e madhe vinte nga pesha (makinat amerikane janë më të rënda).
+    \item<3-> Testi $F$ i pjesshëm me $q=2$: a ka rëndësi origjina, \emph{pasi} mbahet pesha konstante?
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ndërveprimi \texttt{Income} $\times$ \texttt{Student}}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Dy modele, dy grafikë}
+<<cr-lines, fig.height=2.3, fig.width=6.5, out.width="0.7\\textwidth">>=
+library(ggplot2)
+credit$Student <- relevel(credit$Student, ref = "No")        # back to default
+ggplot(credit, aes(Income, Balance, colour = Student)) +
+  geom_point(alpha = 0.35, size = 0.8) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE) +   # separate slopes
+  theme_minimal(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}[fragile]{A ndryshojnë pjerrësitë?}
+<<cr-int-test>>=
+fit_add <- lm(Balance ~ Income + Student, data = credit)
+fit_int <- lm(Balance ~ Income * Student, data = credit)
+round(coef(fit_int), 3)
+anova(fit_add, fit_int)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pjerrësitë në grafik: 6.22 (jo-studentë) dhe 4.22 (studentë). Vija e studentëve është më lart.
+    \item<2-> $F=1.33$, $p=0.25$: të dhënat nuk e mbështesin ndërveprimin.
+    \item<3-> Modeli aditiv (vija paralele) mjafton. ISLR arrin të njëjtin përfundim.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{TV $\times$ radio: efekti marxhinal}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Modeli me ndërveprim}
+<<adv-int>>=
+adv <- read.csv(file.path(W06DATA, "Advertising.csv"))[, -1]
+fit_tr  <- lm(sales ~ TV + radio, data = adv)
+fit_trx <- lm(sales ~ TV * radio, data = adv)
+round(summary(fit_trx)$coefficients, 5)
+c(R2_add = summary(fit_tr)$r.squared, R2_int = summary(fit_trx)$r.squared,
+  RSE_add = sigma(fit_tr), RSE_int = sigma(fit_trx))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Efekti i TV sipas radios, me IB}
+<<adv-marg>>=
+b <- coef(fit_trx); V <- vcov(fit_trx)
+radio_vals <- c(0, 10, 20, 30, 40)
+eff <- b["TV"] + b["TV:radio"] * radio_vals                       # dE[y]/dTV
+se  <- sqrt(V["TV", "TV"] + radio_vals^2 * V["TV:radio", "TV:radio"] +
+            2 * radio_vals * V["TV", "TV:radio"])                 # Var of a linear combo
+round(cbind(radio = radio_vals, effect = eff, lower = eff - 1.97 * se,
+            upper = eff + 1.97 * se), 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Efekti i TV trefishohet kur radio shkon nga 0 në 40.
+    \item<2-> SE e një kombinimi linear: $\operatorname{Var}(\hat\beta_1+c\hat\beta_3)=\operatorname{Var}\hat\beta_1+c^2\operatorname{Var}\hat\beta_3+2c\operatorname{Cov}$. Kovarianca ka rëndësi!
+    \item<3-> RSE nga 1.68 në 0.94: ndërveprimi e përmirëson shumë parashikimin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pamja: vija e TV për tre nivele të radios}
+<<adv-int-plot, fig.height=2.3, fig.width=5.5, out.width="0.58\\textwidth">>=
+grid <- expand.grid(TV = seq(0, 300, 10), radio = c(5, 25, 45))
+grid$sales <- predict(fit_trx, grid)
+ggplot(grid, aes(TV, sales, colour = factor(radio))) + geom_line(linewidth = 1) +
+  labs(colour = "radio") + theme_minimal(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}[label=ushCenter]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    Qendërzo TV dhe radio dhe ripërshtat modelin me ndërveprim.
+    \begin{enumerate}
+      \item Cilët koeficientë ndryshojnë? Cili jo?
+      \item Krahaso koeficientin e ri të TV me tabelën e efekteve marxhinale te radio $\approx23$.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjCenter}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGabInt]{Gjej gabimin!}
+<<bug-int>>=
+fit_bad <- lm(sales ~ TV + radio + TV * radio + TV:radio, data = adv)
+length(coef(fit_bad))
+@
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Studenti mendon që modeli ka 5 terma dhe se ndërveprimi është ``futur dy herë, pra numërohet dyfish''. Çfarë ka bërë R në të vërtetë?
+  \end{Ushtrim}
+  \shkoTe{zgjGabInt}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp65]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Pse \texttt{Limit} nuk shton asgjë te \texttt{fit2}?
+    \item Pse shenja e \texttt{Income} ndryshon te \texttt{fit6}?
+    \item Si llogaritet SE e efektit marxhinal $\hat\beta_1+c\hat\beta_3$?
+  \end{enumerate}
+  \shkoTe{zgjCp65}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item \texttt{Credit}: \texttt{fit6 = Rating + Income + Student}, $R^2=0.95$; \texttt{Limit}, \texttt{Cards}, \texttt{Gender}, \texttt{Married} nuk shtojnë.
+    \item Shenja e një koeficienti mund të ndryshojë kur shtohen variabla të lidhura.
+    \item \Rkey{model.matrix()}, \Rkey{relevel()}, \Rkey{anova(small, big)} për faktorët dhe ndërveprimet.
+    \item TV $\times$ radio: efekt marxhinal me IB nga \Rkey{vcov()}; RSE 1.68 $\to$ 0.94.
+  \end{itemize}
+  \begin{Keshille}Ora 6: si zgjedhim midis modeleve: train/test, CV, AIC/BIC, \texttt{step()}.\end{Keshille}
+\end{frame}
