@@ -1,0 +1,330 @@
+% ============================================================
+%  Java 5 · Ora 3 — Laborator I: OLS nga zero dhe lm()
+%  Rezultatet: S4, K2
+%  Burimi: repo DS612 (DS612_R-Code_Lecture_3.R, Linear_Regression.R), rishkruar
+% ============================================================
+
+\section{Laborator I}
+
+\begin{frame}{Ora 3: Laborator I --- OLS nga zero dhe \texttt{lm()}}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{OLS nga zero}
+% ------------------------------------------------------------
+
+\begin{frame}{Plani i laboratorit \LO{S4}}
+  \begin{enumerate}
+    \item<1-> OLS me formulat $S_{xy}/S_{xx}$ te pesë pikat.
+    \item<2-> Funksioni \texttt{my\_ols()} dhe versioni me matrica.
+    \item<3-> \texttt{lm()} te \texttt{Advertising}: \texttt{summary()} rresht pas rreshti.
+    \item<4-> Çfarë ndodh kur ndryshojmë shkallën ose qendrën e $x$.
+    \item<5-> Një model nga repo-ja: \texttt{Credit}.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 1: shumat bazë}
+<<lab-sums>>=
+x <- 1:5; y <- c(2, 4, 5, 4, 5)          # toy data from Hour 2
+xbar <- mean(x); ybar <- mean(y)
+Sxx <- sum((x - xbar)^2)
+Sxy <- sum((x - xbar) * (y - ybar))
+Syy <- sum((y - ybar)^2)
+c(xbar = xbar, ybar = ybar, Sxx = Sxx, Sxy = Sxy, Syy = Syy)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 2: vlerësuesit dhe mbetjet}
+<<lab-coef>>=
+b1 <- Sxy / Sxx; b0 <- ybar - b1 * xbar
+y_hat <- b0 + b1 * x; e <- y - y_hat
+c(b0 = b0, b1 = b1)
+rbind(y_hat = y_hat, e = e)
+c(sum_e = sum(e), sum_xe = sum(x * e), sum_yhat_e = sum(y_hat * e))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> E njëjta tabelë si pa ndihmën e PC: $\hat y=2.2+0.6x$.
+    \item<2-> Tre vetitë e OLS vlejnë numerikisht (zero deri në rrumbullakim).
+    \item<3-> Kjo është mënyra më e mirë për të kontrolluar një formulë: ta llogarisësh në dy mënyra.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 3: funksioni \texttt{my\_ols()}}
+<<lab-fun>>=
+my_ols <- function(x, y) {
+  n <- length(y)
+  b1 <- sum((x - mean(x)) * (y - mean(y))) / sum((x - mean(x))^2)
+  b0 <- mean(y) - b1 * mean(x)
+  e  <- y - (b0 + b1 * x)
+  sse <- sum(e^2); sst <- sum((y - mean(y))^2)
+  c(b0 = b0, b1 = b1, RSE = sqrt(sse / (n - 2)), R2 = 1 - sse / sst)
+}
+my_ols(x, y)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 4: me matrica}
+<<lab-matrix>>=
+X <- cbind(1, x)                         # design matrix: column of 1s + x
+XtX <- t(X) %*% X; Xty <- t(X) %*% y
+XtX; t(Xty)
+solve(XtX, Xty)                          # solves XtX b = Xty
+@
+\end{frame}
+
+\begin{frame}{Pse \texttt{solve(A, b)} dhe jo \texttt{solve(A) \%*\% b}?}
+  \begin{itemize}
+    \item<1-> \texttt{solve(A, b)} zgjidh sistemin drejtpërdrejt; \texttt{solve(A)} llogarit të anasjelltën e plotë.
+    \item<2-> Inversi është më i ngadaltë dhe numerikisht më i paqëndrueshëm kur $\bm X^\top\bm X$ është afër singularitetit.
+    \item<3-> \texttt{lm()} nuk përdor asnjërën: përdor zbërthimin QR të $\bm X$, edhe më të qëndrueshëm.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Formula $(\bm X^\top\bm X)^{-1}\bm X^\top\bm y$ është për të kuptuar; për llogaritje përdor \texttt{lm()} ose \texttt{qr.solve()}.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 5: krahasimi me \texttt{lm()}}
+<<lab-compare>>=
+fit_toy <- lm(y ~ x)
+rbind(by_hand = my_ols(x, y)[1:2], matrix = drop(solve(XtX, Xty)),
+      lm = coef(fit_toy))
+all.equal(unname(my_ols(x, y)[1:2]), unname(coef(fit_toy)))
+@
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\texttt{lm()} te \texttt{Advertising}}
+% ------------------------------------------------------------
+
+\begin{frame}[label=pyetjeR2]{Parashiko!}
+  \begin{Parashiko}
+    Në Javën 3 gjetëm $r(\texttt{TV},\texttt{sales})=0.782$. Para se ta ekzekutosh \texttt{summary(lm(sales \textasciitilde{} TV))}:
+    \begin{enumerate}
+      \item Sa do të jetë \texttt{Multiple R-squared}?
+      \item A do të jetë vlera $p$ e \texttt{TV} e njëjtë me atë të \texttt{cor.test()}?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjR2}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Modeli}
+<<adv-fit>>=
+adv <- read.csv(file.path(W05DATA, "Advertising.csv"))[, -1]
+fit <- lm(sales ~ TV, data = adv)      # response ~ predictor
+fit
+@
+  \begin{itemize}
+    \item \texttt{print(fit)} jep vetëm thirrjen dhe koeficientët. Për inferencën duhet \texttt{summary()}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=14]{\texttt{summary(fit)}}
+<<adv-summary>>=
+summary(fit)
+@
+\end{frame}
+
+\begin{frame}{Leximi 1: thirrja dhe mbetjet}
+  \begin{itemize}
+    \item<1-> \texttt{Call}: modeli që përshtatëm. Kontrollo që $y$ është në të majtë të \textasciitilde.
+    \item<2-> \texttt{Residuals}: pesë numrat e mbetjeve. Mediana afër 0 dhe $|$Min$|\approx|$Max$|$: mbetjet janë përafërsisht simetrike.
+    \item<3-> Këtu: mediana $\Sexpr{fmt(median(residuals(fit)), 2)}$, min $\Sexpr{fmt(min(residuals(fit)), 2)}$, max $\Sexpr{fmt(max(residuals(fit)), 2)}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Leximi 2: tabela e koeficientëve}
+  \begin{itemize}
+    \item<1-> \texttt{Estimate}: $\hat\beta_0=\Sexpr{fmt(coef(fit)[1], 3)}$, $\hat\beta_1=\Sexpr{fmt(coef(fit)[2], 4)}$.
+    \item<2-> \texttt{Std. Error}: SE e vlerësimit, pasiguria nga zgjedhja (Ora 4).
+    \item<3-> \texttt{t value} $=$ Estimate / Std.~Error; teston $H_0:\beta_j=0$.
+    \item<4-> \texttt{Pr(>|t|)}: vlera $p$ e dyanshme, me $df=n-2=198$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Leximi 3: rreshtat e fundit}
+  \begin{itemize}
+    \item<1-> \texttt{Residual standard error}: RSE $=\Sexpr{fmt(sigma(fit), 3)}$ me 198 df.
+    \item<2-> \texttt{Multiple R-squared}: $R^2=\Sexpr{fmt(summary(fit)$r.squared, 4)}$; \texttt{Adjusted}: për Javën 6.
+    \item<3-> \texttt{F-statistic}: testi ANOVA i modelit; me një shpjegues $F=t^2$:\\ $\Sexpr{fmt(summary(fit)$coefficients[2, 3], 2)}^2\approx\Sexpr{fmt(summary(fit)$fstatistic[1], 1)}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{my\_ols()} kundrejt \texttt{lm()}}
+<<adv-myols>>=
+round(my_ols(adv$TV, adv$sales), 5)
+round(c(coef(fit), RSE = sigma(fit), R2 = summary(fit)$r.squared), 5)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Çfarë përmban objekti \texttt{fit}?}
+<<adv-names>>=
+names(fit)
+head(fitted(fit), 3); head(residuals(fit), 3)
+c(df = df.residual(fit), n = nobs(fit))
+@
+  \begin{itemize}
+    \item Përdor funksionet nxjerrëse (\texttt{coef}, \texttt{fitted}, \texttt{residuals}, \texttt{sigma}) dhe jo \texttt{fit\$...}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Vija mbi pikat}
+<<adv-plot, fig.height=2.4, fig.width=5.5, out.width="0.58\\textwidth">>=
+library(ggplot2)
+ggplot(adv, aes(TV, sales)) +
+  geom_point(alpha = 0.5, size = 1) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, colour = "#D97706") +
+  theme_minimal(base_size = 10)
+@
+  \footnotesize Në R bazë: \texttt{plot(sales \textasciitilde{} TV, adv); abline(fit, col = "red")} (si në repo).
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vija përmbledh mirë prirjen në mes të të dhënave.
+    \item<2-> Në TV të ulët, pikat janë afër vijës; në TV të lartë, më të shpërndara.
+    \item<3-> Për TV $<30$, rreth 3/4 e pikave janë nën vijë: shenjë e lehtë lakimi. Do ta shohim me mbetjet në Orën 5.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{ANOVA e regresionit}
+<<adv-anova>>=
+anova(fit)
+@
+  \begin{itemize}
+    \item<2-> SSR $=\Sexpr{fmt(anova(fit)[1, 2], 1)}$, SSE $=\Sexpr{fmt(anova(fit)[2, 2], 1)}$; \ $R^2=\text{SSR}/(\text{SSR}+\text{SSE})=\Sexpr{fmt(summary(fit)$r.squared, 3)}$.
+    \item<3-> Mean Sq e mbetjeve $=\text{RSE}^2=\Sexpr{fmt(sigma(fit)^2, 2)}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGabRev]{Gjej gabimin!}
+<<adv-bug>>=
+wrong <- lm(TV ~ sales, data = adv)           # student's model
+b <- coef(wrong)
+(290 - b[1]) / b[2]                           # "solve" for sales at TV = 290
+predict(fit, newdata = data.frame(TV = 290))  # correct prediction
+@
+  \begin{Ushtrim}[(Gjej gabimin)]
+    Studenti përshtati \texttt{TV \textasciitilde{} sales} dhe e ``ktheu'' për të parashikuar shitjet. Pse të dy numrat ndryshojnë? Cili është i saktë?
+  \end{Ushtrim}
+  \shkoTe{zgjGabRev}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushChannels]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    Përshtat \texttt{sales \textasciitilde{} radio} dhe \texttt{sales \textasciitilde{} newspaper}.
+    \begin{enumerate}
+      \item Plotëso një tabelë: $\hat\beta_0$, $\hat\beta_1$, $R^2$, RSE për TV, radio, gazeta.
+      \item Cili kanal ka pjerrësinë më të madhe? Cili shpjegon më shumë? Pse nuk përputhen?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjChannels}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shkalla dhe qendra e $x$}
+% ------------------------------------------------------------
+
+\begin{frame}[label=ushScaleX]{Ndrysho parametrin dhe shiko}
+  \begin{Parashiko}
+    Shprehim buxhetin në \textbf{dollarë} (\texttt{TV * 1000}) në vend të mijëra dollarëve.
+    \begin{enumerate}
+      \item Si ndryshon $\hat\beta_1$? Po $\hat\beta_0$?
+      \item Po vlera $t$, $R^2$ dhe RSE?
+    \end{enumerate}
+    Parashiko, pastaj ekzekuto kodin në slajdin tjetër.
+  \end{Parashiko}
+  \shkoTe{zgjScaleX}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Shkalla e $x$}
+<<scale-x>>=
+fit_usd <- lm(sales ~ I(TV * 1000), data = adv)   # I(): arithmetic inside formula
+rbind(thousands = summary(fit)$coefficients[2, ],
+      dollars   = summary(fit_usd)$coefficients[2, ])
+c(R2_th = summary(fit)$r.squared, R2_usd = summary(fit_usd)$r.squared)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Qendërzimi i $x$}
+<<center-x>>=
+adv$TV_c <- adv$TV - mean(adv$TV)              # centred predictor
+coef(lm(sales ~ TV_c, data = adv))
+c(mean_sales = mean(adv$sales), mean_TV = mean(adv$TV))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pjerrësia nuk ndryshon: zhvendosja e $x$ nuk ndryshon ``sa ngjitet'' vija.
+    \item<2-> Prerja bëhet $\bar y=\Sexpr{fmt(mean(adv$sales), 2)}$: shitjet e pritura në një treg me buxhet mesatar ($\Sexpr{fmt(mean(adv$TV), 1)}$).
+    \item<3-> Qendërzimi e bën $\hat\beta_0$ të interpretueshëm dhe do të jetë i dobishëm me ndërveprimet (Java 6).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Regresi i standardizuar}
+<<std-x>>=
+coef(lm(scale(sales) ~ scale(TV), data = adv))
+cor(adv$TV, adv$sales)
+@
+  \begin{itemize}
+    \item<2-> Me të dyja variablat të standardizuara: prerja $=0$, pjerrësia $=r$. Ora 1, \checkmark.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Nga repo-ja: \texttt{Credit}}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{Balance \textasciitilde{} Rating}}
+<<credit-fit>>=
+credit <- read.csv(file.path(W05DATA, "Credit.csv"))   # repo: Data/Textbook_Data
+fit_cr <- lm(Balance ~ Rating, data = credit)          # repo: fit1
+round(summary(fit_cr)$coefficients, 4)
+c(R2 = summary(fit_cr)$r.squared, RSE = sigma(fit_cr))
+@
+  \footnotesize\textcolor{gray}{Repo-ja DS612 (\texttt{Linear\_Regression.R}) e nis zgjedhjen e modelit pikërisht me këtë model.}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Çdo pikë më shumë në vlerësimin e kredisë lidhet me $\Sexpr{fmt(coef(fit_cr)[2], 2)}$ \$ borxh më shumë.
+    \item<2-> Prerja negative ($\Sexpr{fmt(coef(fit_cr)[1], 0)}$ \$) nuk ka kuptim: vlerësimet nisin te $\Sexpr{min(credit$Rating)}$, jo te 0.
+    \item<3-> Shumë klientë kanë borxh $=0$ (Java 2): vija e drejtë nuk mund ta kapë këtë ``dysheme''. Diagnostikimi: Java 7.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushIncome]{Radha jote!}
+  \begin{Ushtrim}[(4 minuta)]
+    Përshtat \texttt{Balance \textasciitilde{} Income}.
+    \begin{enumerate}
+      \item Interpreto pjerrësinë (\texttt{Income} është në mijë \$).
+      \item Krahaso $R^2$ me atë të \texttt{Rating}. Lidhe me korrelacionet e Javës 3.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjIncome}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp53]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Si llogarit $\hat{\bm\beta}$ me matrica në R?
+    \item Ku gjen RSE dhe $R^2$ në \texttt{summary(lm)}?
+    \item Çfarë ndodh me $\hat\beta_0$ kur qendërzon $x$?
+  \end{enumerate}
+  \shkoTe{zgjCp53}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item OLS nga zero: $S_{xy}/S_{xx}$, \Rkey{solve(XtX, Xty)}, të njëjta me \Rkey{lm()}.
+    \item \Rkey{summary(lm)}: koeficientët, SE, $t$, $p$, RSE, $R^2$, $F=t^2$.
+    \item Nxjerrësit: \Rkey{coef()}, \Rkey{fitted()}, \Rkey{residuals()}, \Rkey{sigma()}, \Rkey{anova()}.
+    \item Shkalla e $x$ ndryshon $\hat\beta_1$, jo $t$ ose $R^2$; qendërzimi ndryshon vetëm $\hat\beta_0$.
+  \end{itemize}
+  \begin{Keshille}Ora 4: nga ku vijnë SE, testet $t$ dhe intervalet e besimit dhe parashikimit.\end{Keshille}
+\end{frame}

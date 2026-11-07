@@ -1,0 +1,70 @@
+% ============================================================
+%  Java 5 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjR2]{Zgjidhja: Parashiko ($R^2$ dhe $p$)}
+<<sol-r2>>=
+adv <- read.csv(file.path(W05DATA, "Advertising.csv"))[, -1]
+c(r2 = cor(adv$TV, adv$sales)^2,
+  p_cor = cor.test(adv$TV, adv$sales)$p.value,
+  p_lm  = summary(lm(sales ~ TV, data = adv))$coefficients[2, 4])
+@
+  \begin{enumerate}
+    \item $R^2=r^2=0.782^2\approx0.612$.
+    \item Po: testi $t$ i $\beta_1=0$ dhe testi i $\rho=0$ janë i njëjti test, me të njëjtën statistikë $t$ dhe $df=n-2$.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeR2}
+\end{frame}
+
+\begin{frame}[label=zgjGabRev]{Zgjidhja: Gjej gabimin (\texttt{lm(TV \textasciitilde{} sales)})}
+  \begin{itemize}
+    \item \texttt{lm(TV \textasciitilde{} sales)} minimizon gabimet \textbf{horizontale} (në TV). Kthimi i vijës nuk jep vijën që minimizon gabimet në shitje.
+    \item Pjerrësia e ``kthyer'' është $1/12.87=0.078$, kurse ajo e saktë 0.0475: dallimi $=1/r^2$ herë.
+    \item E saktë: \texttt{predict(lm(sales \textasciitilde{} TV), \dots)} $\approx20.8$. Vija e kthyer ``ekzagjeron'' (25.1): injoron regresin drejt mesatares.
+  \end{itemize}
+  \vfill\kthehu{gjejGabRev}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjChannels]{Zgjidhja: Radha jote! (tre kanalet)}
+<<sol-channels>>=
+t(sapply(c("TV", "radio", "newspaper"), function(v) {
+  f <- lm(adv$sales ~ adv[[v]])
+  round(c(b0 = coef(f)[[1]], b1 = coef(f)[[2]], R2 = summary(f)$r.squared,
+          RSE = sigma(f)), 4)
+}))
+@
+  \begin{itemize}
+    \item Radio ka pjerrësinë më të madhe (0.20 për 1000 \$), TV ka $R^2$ më të madh. Pjerrësia varet nga shkalla e buxhetit (TV deri në 300, radio deri në 50); $R^2$ nuk varet.
+  \end{itemize}
+  \vfill\kthehu{ushChannels}
+\end{frame}
+
+\begin{frame}[label=zgjScaleX]{Zgjidhja: Ndrysho parametrin (shkalla e $x$)}
+  \begin{enumerate}
+    \item $\hat\beta_1$ pjesëtohet me 1000 (0.0475 $\to$ 0.0000475): një dollar shton 1000 herë më pak se një mijë dollarë. $\hat\beta_0$ nuk ndryshon: $x=0$ mbetet $x=0$.
+    \item SE pjesëtohet gjithashtu me 1000, prandaj $t$ dhe $p$ nuk ndryshojnë. $R^2$ dhe RSE nuk ndryshojnë: $\hat y$ janë të njëjtat.
+  \end{enumerate}
+  \vfill\kthehu{ushScaleX}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjIncome]{Zgjidhja: Radha jote! (\texttt{Income})}
+<<sol-income>>=
+credit <- read.csv(file.path(W05DATA, "Credit.csv"))
+fit_inc <- lm(Balance ~ Income, data = credit)
+c(coef(fit_inc), R2 = summary(fit_inc)$r.squared,
+  r_squared_J3 = cor(credit$Income, credit$Balance)^2)
+@
+  \begin{itemize}
+    \item Çdo 1000 \$ të ardhura më shumë lidhen me rreth 6 \$ borxh më shumë. $R^2=0.21$ kundrejt 0.75 për \texttt{Rating}: pikërisht $0.464^2$ dhe $0.864^2$ (Java 3).
+  \end{itemize}
+  \vfill\kthehu{ushIncome}
+\end{frame}
+
+\begin{frame}[label=zgjCp53]{Përgjigjet: Checkpoint Ora 3}
+  \begin{enumerate}
+    \item \texttt{X <- cbind(1, x); solve(t(X) \%*\% X, t(X) \%*\% y)}.
+    \item Në dy rreshtat e fundit: \texttt{Residual standard error} dhe \texttt{Multiple R-squared}.
+    \item Bëhet $\bar y$, vlera e pritur kur $x$ është në mesataren e tij; pjerrësia nuk ndryshon.
+  \end{enumerate}
+  \vfill\kthehu{cp53}
+\end{frame}

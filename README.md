@@ -25,7 +25,7 @@ Titullari: Prof. Asoc. Dr. Endri Raço (eraco@fimif.edu.al)
 | 02 | Statistikat përmbledhëse dhe EDA | K1, S4 | ✅ gati (299 frame, 552 faqe PDF) |
 | 03 | Korrelacioni dhe bashkëshoqërimet | K1 | ✅ Gati (222 slide + 46 zgjidhje) |
 | 04 | ANOVA njëfaktoriale dhe shumëfaktoriale, Tukey | K1, S3 | ✅ Gati (249 slide + 48 zgjidhje) |
-| 05 | Regresi i thjeshtë linear | K2, S2 | 🔄 Orët 1–2 gati (62 slide) |
+| 05 | Regresi i thjeshtë linear | K2, S2 | 🔄 Orët 1–3 gati (94 slide) |
 | 06 | Regresi i shumëfishtë, përzgjedhja, CV | K2, S2, S3 | ⏳ |
 | 07 | Kontrolli i hipotezave dhe diagnostikimi | S3, C1 | ⏳ |
 | 08 | Regresi jolinear dhe robust | K2, S2 | ⏳ |
