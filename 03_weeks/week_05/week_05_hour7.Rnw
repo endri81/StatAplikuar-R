@@ -1,0 +1,338 @@
+% ============================================================
+%  Java 5 · Ora 7 — Konsolidimi
+%  Rezultatet: K2, S1, S2, S3, S4
+% ============================================================
+
+\section{Konsolidimi}
+
+\begin{frame}{Ora 7: Konsolidimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuizi në stilin e provimit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuizi: si funksionon}
+  \begin{itemize}
+    \item<1-> Si në provim: \textbf{25\% teori, 75\% ushtrime}; 3 pyetje teorike (25 pikë) + 7 ushtrime (75 pikë).
+    \item<2-> Koha: 45 minuta. Ushtrimet 1--5 dhe 7 bëhen pa ndihmën e PC.
+    \item<3-> Ushtrimet 1--3 përdorin: $x=(2,4,6,8,10)$, \ $y=(5,9,10,13,18)$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Shkruaj gjithmonë njësitë dhe interpretimin me fjalë: pikët jepen edhe për to.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=q5T1]{Teori 1 (8 pikë)}
+  \begin{Ushtrim}[(Teori 1)]
+    \begin{enumerate}
+      \item Shkruani modelin e regresit të thjeshtë dhe supozimet LINE.
+      \item Cilat supozime duhen që $\hat\beta_1$ të jetë i pazhvendosur? Cilat për testin $t$ me $n$ të vogël?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s5T1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q5T2]{Teori 2 (8 pikë)}
+  \begin{Ushtrim}[(Teori 2)]
+    \begin{enumerate}
+      \item Dalloni $R^2$ dhe RSE. Pse $R^2=r^2$ në regresin e thjeshtë?
+      \item Dalloni intervalin e besimit për mesataren dhe intervalin e parashikimit. Cili është më i gjerë dhe pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s5T2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q5T3]{Teori 3 (9 pikë)}
+  \begin{Ushtrim}[(Teori 3)]
+    \begin{enumerate}
+      \item Çfarë është regresi drejt mesatares?
+      \item Pse ekstrapolimi është i rrezikshëm, edhe kur IP e merr parasysh largësinë nga $\bar x$?
+      \item Çfarë tregon kuarteti i Anscombe-s për $R^2$ dhe vlerat $p$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s5T3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q5E1]{Ushtrimi 1 (10 pikë): vlerësuesit OLS}
+  \begin{Ushtrim}[(Ushtrimi 1, pa ndihmën e PC)]
+    $x=(2,4,6,8,10)$, \ $y=(5,9,10,13,18)$.
+    \begin{enumerate}
+      \item Llogaritni $\bar x$, $\bar y$, $S_{xx}$, $S_{xy}$.
+      \item Gjeni $\hat\beta_0$, $\hat\beta_1$ dhe interpretoni pjerrësinë.
+      \item Llogaritni mbetjet dhe kontrolloni $\sum e_i=0$.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s5E1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q5E2]{Ushtrimi 2 (10 pikë): zbërthimi}
+  \begin{Ushtrim}[(Ushtrimi 2, pa ndihmën e PC)]
+    Me të dhënat e Ushtrimit 1:
+    \begin{enumerate}
+      \item Llogaritni SST, SSE dhe SSR.
+      \item Llogaritni $R^2$, $\hat\sigma^2$ dhe RSE.
+      \item Plotësoni tabelën ANOVA të regresionit.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s5E2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q5E3]{Ushtrimi 3 (10 pikë): inferenca}
+  \begin{Ushtrim}[(Ushtrimi 3, pa ndihmën e PC)]
+    Me të dhënat e Ushtrimit 1 ($t_{0.975;\,3}=3.182$):
+    \begin{enumerate}
+      \item Llogaritni $SE(\hat\beta_1)$ dhe testoni $H_0:\beta_1=0$.
+      \item Ndërtoni IB 95\% për $\beta_1$.
+      \item A është $\beta_1=1$ e pajtueshme me të dhënat?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s5E3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q5E4]{Ushtrimi 4 (10 pikë): nga statistikat përmbledhëse}
+  \begin{Ushtrim}[(Ushtrimi 4, pa ndihmën e PC)]
+    $n=25$, $\bar x=10$, $s_x=2$, $\bar y=50$, $s_y=8$, $r=0.6$.
+    \begin{enumerate}
+      \item Gjeni $\hat\beta_1$, $\hat\beta_0$ dhe $R^2$.
+      \item Parashikoni $y$ për $x=12$.
+      \item Llogaritni statistikën $t$ për $H_0:\beta_1=0$ ($t_{0.975;\,23}=2.069$).
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s5E4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q5E5]{Ushtrimi 5 (10 pikë): IB dhe IP}
+  \begin{Ushtrim}[(Ushtrimi 5, pa ndihmën e PC)]
+    $n=20$, $\bar x=5$, $S_{xx}=80$, $\hat\sigma=2$; në $x_0=9$ kemi $\hat y_0=30$; $t_{0.975;\,18}=2.101$.
+    \begin{enumerate}
+      \item Ndërtoni IB 95\% për mesataren në $x_0=9$.
+      \item Ndërtoni IP 95\% për një vëzhgim të ri në $x_0=9$.
+      \item Në cilën $x_0$ do të ishte IB më i ngushtë? Sa i gjerë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s5E5}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[fragile,shrink=12,label=q5E6]{Ushtrimi 6 (10 pikë): lexo output-in}
+<<quiz-cars, echo=FALSE>>=
+summary(lm(dist ~ speed, data = cars))
+@
+  \texttt{cars}: shpejtësia (mph) dhe distanca e frenimit (ft), 50 makina të viteve 1920 (reale, R bazë).
+  Interpretoni pjerrësinë, $R^2$ dhe testin; parashikoni distancën për 20 mph. \hfill\shkoTe{s5E6}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q5E7]{Ushtrimi 7 (15 pikë): interpretimi}
+  \begin{Ushtrim}[(Ushtrimi 7, pa ndihmën e PC; shembull hipotetik)]
+    \small
+    Një studim hipotetik me 102 familje: shpenzimi $y$ (mijë lekë/muaj) kundrejt të ardhurave $x$ (mijë lekë/muaj), me $x\in[40,300]$:
+    $\hat y=12+0.65x$, \ $SE(\hat\beta_1)=0.05$, \ $R^2=0.42$, \ RSE $=15$; \ $t_{0.975;\,100}=1.984$.
+    \begin{enumerate}
+      \item Interpretoni $\hat\beta_1$ me fjalë. Gjeni $r$.
+      \item Ndërtoni IB 95\% për $\beta_1$.
+      \item Nëse të dyja variablat shprehen në lekë (jo mijë lekë), si ndryshojnë $\hat\beta_0$, $\hat\beta_1$, $R^2$, RSE?
+      \item A ka kuptim të parashikohet shpenzimi për të ardhura 500 mijë lekë? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s5E7}{Zgjidhja}
+\end{frame}
+
+\begin{frame}{Tabela e pikëve}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Pjesa & Pyetjet & Pikët \\ \midrule
+    Teori (25\%) & T1, T2, T3 & 8 + 8 + 9 = 25 \\
+    Ushtrime (75\%) & U1--U6 & $6\times10=60$ \\
+     & U7 & 15 \\ \midrule
+    Gjithsej & 10 & 100 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Nën 50 pikë: përsëritni Orët 2 dhe 4.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ushtrime për shtëpi}
+% ------------------------------------------------------------
+
+\begin{frame}[label=h5H1]{Ushtrime për shtëpi 1--2}
+  \begin{Ushtrim}[(Shtëpi 1: \texttt{Advertising}, radio)]
+    \texttt{sales \textasciitilde{} radio}: rrjedha e plotë e Orës 6 (EDA, modeli, IB, IP për radio $=30$, mbetjet, raporti).
+  \end{Ushtrim}
+  \shkoTe{s5H1}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 2: \texttt{cars})]
+    Përshtat \texttt{dist \textasciitilde{} speed} dhe \texttt{sqrt(dist) \textasciitilde{} speed}. Krahaso grafikët e mbetjeve. Pse rrënja katrore ka kuptim fizik?
+  \end{Ushtrim}
+  \shkoTe{s5H2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=h5H3]{Ushtrime për shtëpi 3--4}
+  \begin{Ushtrim}[(Shtëpi 3: mbulimi i IP)]
+    Simulo $y=2+0.5x+\varepsilon$, $n=30$. Në çdo përsëritje ndërto IP 95\% për $x_0=8$ dhe gjenero një $y_0$ të ri. Sa përqind e $y_0$ bien brenda?
+  \end{Ushtrim}
+  \shkoTe{s5H3}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 4: intervalet nga zero)]
+    Shkruaj \texttt{my\_intervals(x, y, x0)} me formulat e Orës 4. Krahasoje me \texttt{predict()} te \texttt{Boston}.
+  \end{Ushtrim}
+  \shkoTe{s5H4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=h5H5]{Ushtrime për shtëpi 5--6}
+  \begin{Ushtrim}[(Shtëpi 5: \texttt{Boston}, \texttt{rm})]
+    Përshtat \texttt{medv \textasciitilde{} rm}. Interpreto pjerrësinë dhe prerjen. Krahaso $R^2$ me \texttt{lstat}.
+  \end{Ushtrim}
+  \shkoTe{s5H5}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 6: Anscombe)]
+    Për katër grupet e \texttt{anscombe}, vizato mbetjet kundrejt vlerave të përshtatura. Cili grup e plotëson modelin?
+  \end{Ushtrim}
+  \shkoTe{s5H6}{Zgjidhja}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gabimet e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet e zakonshme: interpretimi}
+  \begin{itemize}
+    \item<1-> ``$x$ shkakton $y$'' nga të dhëna vëzhgimore.
+    \item<2-> Interpretimi i $\hat\beta_0$ kur $x=0$ është larg të dhënave.
+    \item<3-> $R^2$ i lartë $\Rightarrow$ ``modeli është i saktë'' (Anscombe).
+    \item<4-> IB përdorur për një vëzhgim të vetëm (duhet IP).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: llogaritja dhe kodi}
+  \begin{itemize}
+    \item<1-> \texttt{lm(x \textasciitilde{} y)} në vend të \texttt{lm(y \textasciitilde{} x)}.
+    \item<2-> \texttt{\$} brenda formulës: \texttt{predict()} injoron \texttt{newdata}.
+    \item<3-> Pjesëtimi i SSE me $n$ ose $n-1$ në vend të $n-2$.
+    \item<4-> Vlerat ``?'' të pakonvertuara në \texttt{NA}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: modeli}
+  \begin{itemize}
+    \item<1-> Vija e drejtë pa parë grafikun (lakim, si te \texttt{Auto} dhe \texttt{Boston}).
+    \item<2-> Injorimi i formës së hinkës te mbetjet.
+    \item<3-> Ekstrapolimi: çmime negative, mpg negative.
+    \item<4-> Krahasimi i $R^2$ midis modeleve me $y$ dhe $\log y$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit e një regresioni të thjeshtë}
+  \begin{enumerate}
+    \item Grafiku i pikave: lineare? vlera ekstreme? gama e $x$?
+    \item \texttt{lm(y \textasciitilde{} x, data = )}; \texttt{summary()}.
+    \item Interpreto $\hat\beta_1$ me njësi; $\hat\beta_0$ vetëm nëse ka kuptim.
+    \item \texttt{confint()}; $R^2$ dhe RSE.
+    \item Mbetjet kundrejt $\hat y$ dhe QQ.
+    \item \texttt{predict()} me IB ose IP, vetëm brenda gamës.
+    \item Raporti: numrat, kufizimet, pa shkakësi.
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fletë-kujtesa}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë-kujtesa 1: formulat}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Madhësia & Formula \\ \midrule
+    Vlerësuesit & $\hat\beta_1=S_{xy}/S_{xx}=r\,s_y/s_x$, \ $\hat\beta_0=\bar y-\hat\beta_1\bar x$ \\
+    Zbërthimi & SST = SSR + SSE; \ $R^2=\text{SSR}/\text{SST}=r^2$ \\
+    Gabimi & $\hat\sigma^2=\text{SSE}/(n-2)$, \ RSE $=\hat\sigma$ \\
+    SE & $SE(\hat\beta_1)=\hat\sigma/\sqrt{S_{xx}}$, \ $SE(\hat\beta_0)=\hat\sigma\sqrt{1/n+\bar x^2/S_{xx}}$ \\
+    Testi, IB & $t=(\hat\beta_1-c)/SE\sim t_{n-2}$; \ $\hat\beta_1\pm t_{1-\alpha/2}SE$ \\
+    IB për $\mu_0$ & $\hat y_0\pm t\,\hat\sigma\sqrt{1/n+(x_0-\bar x)^2/S_{xx}}$ \\
+    IP për $y_0$ & $\hat y_0\pm t\,\hat\sigma\sqrt{1+1/n+(x_0-\bar x)^2/S_{xx}}$ \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 2: funksionet R}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    Përshtatja & \texttt{fit <- lm(y \textasciitilde{} x, data = d)} \\
+    Përmbledhja & \texttt{summary(fit)}, \texttt{coef()}, \texttt{sigma()}, \texttt{anova()} \\
+    IB për $\beta$ & \texttt{confint(fit, level = 0.95)} \\
+    Parashikimi & \texttt{predict(fit, newdata, interval = "confidence"/"prediction")} \\
+    Mbetjet & \texttt{residuals()}, \texttt{fitted()}, \texttt{plot(fit, which = 1:2)} \\
+    Matricat & \texttt{model.matrix(fit)}, \texttt{solve(t(X) \%*\% X, t(X) \%*\% y)} \\
+    Transformimet & \texttt{lm(log(y) \textasciitilde{} log(x))}, \texttt{I(x / 1000)} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 3: grafikët}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Grafiku & Funksioni \\ \midrule
+    Pikat + vija & \texttt{plot(y \textasciitilde{} x); abline(fit)} \\
+    Vija + IB (ggplot) & \texttt{geom\_smooth(method = "lm")} \\
+    Kurba e lëmuar & \texttt{geom\_smooth(method = "loess")}, \texttt{lowess()} \\
+    Brezi IP & \texttt{geom\_ribbon(aes(ymin = lwr, ymax = upr))} \\
+    Mbetjet & \texttt{plot(fitted(fit), residuals(fit)); abline(h = 0)} \\
+    QQ & \texttt{plot(fit, which = 2)}, \texttt{qqnorm()} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pamje e Javës 6}
+% ------------------------------------------------------------
+
+\begin{frame}{Java 6: regresi i shumëfishtë \LO{K2} \LO{S2} \LO{S3}}
+  \begin{itemize}
+    \item<1-> Sot: një shpjegues. Java 6: shumë shpjegues njëherësh,
+      \[ y=\beta_0+\beta_1x_1+\dots+\beta_px_p+\varepsilon. \]
+    \item<2-> \texttt{mpg \textasciitilde{} horsepower + weight}: efekti i secilit, \textbf{duke mbajtur tjetrin konstant}.
+    \item<3-> Parashikues cilësorë (\texttt{origin}, Java 4), ndërveprimet, përzgjedhja e variablave (AIC/BIC).
+    \item<4-> Ndarja train/test dhe cross-validation (repo: \texttt{Test\_Training\_Split}, \texttt{CrossValidation\_Review}).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Para Javës 6}
+  \begin{itemize}
+    \item Përsëritni algjebrën e matricave: shumëzimi, e anasjellta, rangu.
+    \item Mbaroni ushtrimet për shtëpi 1--6.
+    \item Lexoni ISLR kap.~3.2--3.3.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Burime}
+  \footnotesize
+  \begin{itemize}
+    \item E.~Raço, E.~Llagami, K.~Haxhi, O.~Zaçaj, \emph{Teoria e Probabilitetit dhe Statistika Matematike me ilustrime në gjuhën R}, Kotti, 2021 (regresi linear, vlerësuesit, intervalet).
+    \item J.~Cohen, P.~Cohen, S.~G.~West, L.~S.~Aiken, \emph{Applied Multiple Regression/Correlation Analysis for the Behavioral Sciences}, LEA, 2003 (regresi bivariat, interpretimi).
+    \item G.~James, D.~Witten, T.~Hastie, R.~Tibshirani, \emph{An Introduction to Statistical Learning}, Springer, kap.~3; \url{https://www.statlearning.com} (\texttt{Advertising}, \texttt{Auto}, \texttt{Credit}; ushtrimi 3.8).
+    \item N.~Lo, \emph{DS612 Data Mining with Business Applications (R)}, \url{https://github.com/NormanLo4319/DS612_Data_Mining_with_Business_Applications_R} (licencë MIT): \texttt{DS612\_R-Code\_Lecture\_3.R} (Boston, \texttt{confint}, \texttt{predict}), \texttt{DS612\_R-Code\_Linear\_Regression.R} (Credit).
+    \item D.~Harrison, D.~L.~Rubinfeld (1978), \emph{J.\ Environmental Economics and Management} 5 (\texttt{Boston}); F.~J.~Anscombe (1973), \emph{The American Statistician} 27(1).
+    \item Të dhënat e R bazë: \texttt{cars}, \texttt{anscombe}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp57]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 7}
+  \begin{enumerate}
+    \item Cilat pesë numra raporton për një regresion të thjeshtë?
+    \item Cilët dy grafikë kontrollon pas \texttt{lm()}?
+    \item Pse IP nuk ngushtohet në zero me $n\to\infty$?
+  \end{enumerate}
+  \shkoTe{zgjCp57}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje e Javës 5}
+  \begin{itemize}
+    \item OLS: $\hat\beta_1=S_{xy}/S_{xx}=r\,s_y/s_x$; SST = SSR + SSE; $R^2=r^2$.
+    \item Inferenca: $SE=\hat\sigma/\sqrt{S_{xx}}$, testi $t_{n-2}$, IB, IB për mesataren, IP.
+    \item Simulimi konfirmon teorinë; plani i $x$ ndikon në saktësi.
+    \item Diagnostikimi: U $\Rightarrow$ lakim; hinkë $\Rightarrow$ heteroskedasticitet; ekstrapolimi.
+    \item Rastet: \texttt{Advertising}, \texttt{Boston}, \texttt{Auto}, \texttt{Credit}.
+  \end{itemize}
+\end{frame}

@@ -1,0 +1,195 @@
+% ============================================================
+%  Java 5 · Ora 7 — Zgjidhjet e kuizit dhe të ushtrimeve
+% ============================================================
+
+\begin{frame}[label=s5T1]{Zgjidhja: Teori 1}
+  \begin{enumerate}
+    \item $y_i=\beta_0+\beta_1x_i+\varepsilon_i$; Linear ($E[y\mid x]=\beta_0+\beta_1x$), Independence, Normal $\varepsilon$, Equal variance. (4 pikë)
+    \item Pazhvendosja: vetëm $E[\varepsilon_i]=0$ (lineariteti) me $x$ të fiksuar. Testi $t$ me $n$ të vogël: të katër supozimet, përfshirë normalitetin. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q5T1}
+\end{frame}
+
+\begin{frame}[label=s5T2]{Zgjidhja: Teori 2}
+  \begin{enumerate}
+    \item $R^2$: pjesa e SST e shpjeguar, pa njësi. RSE: gabimi tipik në njësitë e $y$. SSR $=\hat\beta_1^2S_{xx}=S_{xy}^2/S_{xx}$, pra $R^2=S_{xy}^2/(S_{xx}S_{yy})=r^2$. (4 pikë)
+    \item IB: për $\mu_0=E[y\mid x_0]$; IP: për një $y_0$ të ri. IP më i gjerë: përfshin edhe $\sigma^2$ të vëzhgimit të ri (termi ``1''). (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q5T2}
+\end{frame}
+
+\begin{frame}[label=s5T3]{Zgjidhja: Teori 3}
+  \begin{enumerate}
+    \item Me $|r|<1$, $\hat z_y=r\,z_x$: vlera e parashikuar është më afër mesatares (në sd) se $x$. (3 pikë)
+    \item IP e merr parasysh pasigurinë e vijës, por \emph{supozon} që modeli vlen jashtë të dhënave; lidhja mund të ndryshojë formë. (3 pikë)
+    \item Katër grupe me të njëjtat $\hat\beta$, $R^2$, $p$, por vetëm njëri i përshtatet modelit linear: numrat nuk mjaftojnë, duhen grafikët. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q5T3}
+\end{frame}
+
+\begin{frame}[label=s5E1]{Zgjidhja: Ushtrimi 1}
+  \begin{enumerate}
+    \item $\bar x=6$, $\bar y=11$; $d_x=(-4,-2,0,2,4)$, $d_y=(-6,-2,-1,2,7)$; $S_{xx}=40$, $S_{xy}=24+4+0+4+28=60$. (4 pikë)
+    \item $\hat\beta_1=1.5$, $\hat\beta_0=11-9=2$. Çdo njësi më shumë në $x$ lidhet me 1.5 njësi më shumë në $y$. (4 pikë)
+    \item $\hat y=(5,8,11,14,17)$, $e=(0,1,-1,-1,1)$, $\sum e_i=0$. \checkmark\ (2 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q5E1}
+\end{frame}
+
+\begin{frame}[label=s5E2]{Zgjidhja: Ushtrimi 2}
+  \begin{enumerate}
+    \item SST $=36+4+1+4+49=94$; SSE $=0+1+1+1+1=4$; SSR $=90$ ($=1.5^2\times40$). (3 pikë)
+    \item $R^2=90/94\approx0.957$; $\hat\sigma^2=4/3\approx1.333$; RSE $\approx1.155$. (3 pikë)
+  \end{enumerate}
+  \centering\small
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Burimi & df & SS & MS & $F$ \\ \midrule
+    Regresioni & 1 & 90 & 90 & 67.5 \\
+    Mbetjet & 3 & 4 & 1.333 & \\ \midrule
+    Totali & 4 & 94 & & \\ \bottomrule
+  \end{tabular}
+  \normalsize\par (4 pikë)
+  \vfill\kthehu{q5E2}
+\end{frame}
+
+\begin{frame}[fragile,label=s5E3]{Zgjidhja: Ushtrimi 3}
+  \begin{enumerate}
+    \item $SE=\sqrt{1.333/40}=\sqrt{0.0333}\approx0.183$; $t=1.5/0.183\approx8.22>3.182$: hedhim poshtë $H_0$. (4 pikë)
+    \item $1.5\pm3.182\times0.183=1.5\pm0.58=[0.92,\ 2.08]$. (4 pikë)
+    \item Po: $1$ është brenda intervalit $[0.92,\ 2.08]$, pra $H_0:\beta_1=1$ nuk hidhet poshtë në $\alpha=0.05$. (2 pikë)
+  \end{enumerate}
+<<sol-q5e3>>=
+x <- c(2, 4, 6, 8, 10); y <- c(5, 9, 10, 13, 18)
+confint(lm(y ~ x))["x", ]
+@
+  \vfill\kthehu{q5E3}
+\end{frame}
+
+\begin{frame}[label=s5E4]{Zgjidhja: Ushtrimi 4}
+  \begin{enumerate}
+    \item $\hat\beta_1=0.6\times8/2=2.4$; $\hat\beta_0=50-2.4\times10=26$; $R^2=0.36$. (4 pikë)
+    \item $\hat y=26+2.4\times12=54.8$. (2 pikë)
+    \item $t=r\sqrt{n-2}/\sqrt{1-r^2}=0.6\sqrt{23}/0.8\approx3.60>2.069$: pjerrësia e rëndësishme. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q5E4}
+\end{frame}
+
+\begin{frame}[label=s5E5]{Zgjidhja: Ushtrimi 5}
+  \begin{enumerate}
+    \item $SE=2\sqrt{1/20+(9-5)^2/80}=2\sqrt{0.25}=1$; IB: $30\pm2.10=[27.9,\ 32.1]$. (4 pikë)
+    \item $SE=2\sqrt{1.25}\approx2.236$; IP: $30\pm4.70=[25.3,\ 34.7]$. (4 pikë)
+    \item Te $x_0=\bar x=5$: $SE=2\sqrt{0.05}\approx0.447$, gjerësia $2\times2.101\times0.447\approx1.88$. (2 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q5E5}
+\end{frame}
+
+\begin{frame}[label=s5E6]{Zgjidhja: Ushtrimi 6}
+  \begin{enumerate}
+    \item Çdo mph më shumë lidhet me $\approx3.93$ ft më shumë distancë frenimi. (3 pikë)
+    \item $R^2=0.65$: shpejtësia shpjegon 65\% të ndryshueshmërisë; RSE $=15.4$ ft. (2 pikë)
+    \item $t=9.46$, $df=48$, $p<0.001$: $\beta_1\neq0$. (2 pikë)
+    \item $\hat y=-17.58+3.932\times20\approx61.1$ ft. Prerja negative ($-17.6$ ft në 0 mph) tregon që vija nuk vlen afër zeros. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q5E6}
+\end{frame}
+
+\begin{frame}[label=s5E7]{Zgjidhja: Ushtrimi 7}
+  \begin{enumerate}
+    \item 1000 lekë më shumë të ardhura lidhen mesatarisht me 650 lekë më shumë shpenzim. $r=+\sqrt{0.42}\approx0.65$ (shenja e pjerrësisë). (4 pikë)
+    \item $0.65\pm1.984\times0.05=0.65\pm0.099=[0.55,\ 0.75]$. (4 pikë)
+    \item $\hat\beta_1$ nuk ndryshon (të dyja $\times1000$); $\hat\beta_0=12\,000$ lekë; $R^2$ njësoj; RSE $=15\,000$ lekë. (4 pikë)
+    \item Jo: 500 është jashtë $[40,300]$, ekstrapolim; familjet me të ardhura të larta mund të kursejnë më shumë. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q5E7}
+\end{frame}
+
+\begin{frame}[fragile,label=s5H1]{Zgjidhja: Shtëpi 1}
+<<sol-h51>>=
+adv <- read.csv(file.path(W05DATA, "Advertising.csv"))[, -1]
+fit_r <- lm(sales ~ radio, data = adv)
+round(summary(fit_r)$coefficients, 4); c(R2 = summary(fit_r)$r.squared, RSE = sigma(fit_r))
+predict(fit_r, data.frame(radio = 30), interval = "prediction")
+@
+  \begin{itemize}
+    \item 1000 \$ më shumë në radio lidhen me $\approx202$ njësi shitje më shumë; $R^2=0.33$. IP shumë i gjerë: radio vetëm nuk parashikon mirë.
+  \end{itemize}
+  \vfill\kthehu{h5H1}
+\end{frame}
+
+\begin{frame}[fragile,shrink=5,label=s5H2]{Zgjidhja: Shtëpi 2}
+<<sol-h52, fig.height=2.2, fig.width=6, out.width="0.48\\textwidth">>=
+par(mfrow = c(1, 2))
+f1 <- lm(dist ~ speed, data = cars); f2 <- lm(sqrt(dist) ~ speed, data = cars)
+plot(fitted(f1), residuals(f1), main = "dist"); abline(h = 0, lty = 2)
+plot(fitted(f2), residuals(f2), main = "sqrt(dist)"); abline(h = 0, lty = 2)
+@
+  \begin{itemize}
+    \item Distanca e frenimit rritet afërsisht me katrorin e shpejtësisë (energjia kinetike $\propto v^2$); $\sqrt{\text{dist}}$ është afërsisht lineare në $v$, dhe hinka zbutet.
+  \end{itemize}
+  \vfill\kthehu{h5H1}
+\end{frame}
+
+\begin{frame}[fragile,label=s5H3]{Zgjidhja: Shtëpi 3}
+<<sol-h53>>=
+set.seed(57); x_s <- runif(30, 0, 10)
+inside <- replicate(2000, {
+  y_s <- 2 + 0.5 * x_s + rnorm(30)
+  pi0 <- predict(lm(y_s ~ x_s), data.frame(x_s = 8), interval = "prediction")
+  y0  <- 2 + 0.5 * 8 + rnorm(1)                   # a new observation
+  pi0[2] <= y0 & y0 <= pi0[3]
+})
+mean(inside)
+@
+  \vfill\kthehu{h5H3}
+\end{frame}
+
+\begin{frame}[fragile,label=s5H4]{Zgjidhja: Shtëpi 4}
+<<sol-h54>>=
+library(MASS)
+my_intervals <- function(x, y, x0, level = 0.95) {
+  n <- length(y); Sxx <- sum((x - mean(x))^2)
+  b1 <- sum((x - mean(x)) * (y - mean(y))) / Sxx; b0 <- mean(y) - b1 * mean(x)
+  s <- sqrt(sum((y - b0 - b1 * x)^2) / (n - 2)); tq <- qt(1 - (1 - level) / 2, n - 2)
+  y0 <- b0 + b1 * x0; h <- 1 / n + (x0 - mean(x))^2 / Sxx
+  rbind(confidence = y0 + c(0, -1, 1) * tq * s * sqrt(h),
+        prediction = y0 + c(0, -1, 1) * tq * s * sqrt(1 + h))
+}
+round(my_intervals(Boston$lstat, Boston$medv, 10), 4)
+@
+  \vfill\kthehu{h5H3}
+\end{frame}
+
+\begin{frame}[fragile,label=s5H5]{Zgjidhja: Shtëpi 5}
+<<sol-h55>>=
+fit_rm <- lm(medv ~ rm, data = Boston)
+round(coef(fit_rm), 3); summary(fit_rm)$r.squared
+@
+  \begin{itemize}
+    \item Çdo dhomë mesatare më shumë lidhet me $\approx9.1$ mijë \$ vlerë më të lartë. Prerja ($-34.7$, banesë me 0 dhoma) nuk ka kuptim. $R^2=0.48<0.54$ (\texttt{lstat}).
+  \end{itemize}
+  \vfill\kthehu{h5H5}
+\end{frame}
+
+\begin{frame}[fragile,shrink=5,label=s5H6]{Zgjidhja: Shtëpi 6}
+<<sol-h56, fig.height=1.9, fig.width=8, out.width="0.7\\textwidth">>=
+par(mfrow = c(1, 4))
+for (i in 1:4) {
+  f <- lm(anscombe[[paste0("y", i)]] ~ anscombe[[paste0("x", i)]])
+  plot(fitted(f), residuals(f), main = paste("set", i), pch = 19); abline(h = 0, lty = 2)
+}
+@
+  \begin{itemize}
+    \item Vetëm grupi 1: re pa formë. 2: lakim (parabolë); 3: një pikë ekstreme; 4: një pikë me leverage të plotë.
+  \end{itemize}
+  \vfill\kthehu{h5H5}
+\end{frame}
+
+\begin{frame}[label=zgjCp57]{Përgjigjet: Checkpoint Ora 7}
+  \begin{enumerate}
+    \item $\hat\beta_1$ (me njësi), IB i tij, $p$, $R^2$, RSE (dhe $n$).
+    \item Mbetjet kundrejt vlerave të përshtatura dhe QQ i mbetjeve.
+    \item Sepse përfshin zhurmën $\sigma^2$ të vëzhgimit të ri, që nuk varet nga $n$.
+  \end{enumerate}
+  \vfill\kthehu{cp57}
+\end{frame}
