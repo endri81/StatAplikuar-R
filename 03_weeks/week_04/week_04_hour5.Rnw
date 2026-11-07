@@ -1,0 +1,344 @@
+% ============================================================
+%  Java 4 · Ora 5 — Laborator II: rrjedha e plotë e ANOVA-s
+%  Rezultatet: S4, S3, C1
+%  Material plotësues (car, emmeans, effectsize)
+% ============================================================
+
+\section{Laborator II}
+
+\begin{frame}{Ora 5: Laborator II --- rrjedha e plotë}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rrjedha e punës te \texttt{Auto}}
+% ------------------------------------------------------------
+
+\begin{frame}{Gjashtë hapa \LO{S4} \LO{C1}}
+  \centering
+  \begin{tikzpicture}[node distance=0.35cm, >=Stealth,
+      s/.style={rectangle,rounded corners=2pt,draw=uptblue,fill=uptlight,minimum width=1.75cm,minimum height=0.9cm,align=center,font=\scriptsize}]
+    \node[s] (a) {1. Lexo,\\\texttt{factor()}};
+    \node[s,right=of a] (b) {2. Grafikë};
+    \node[s,right=of b] (c) {3. \texttt{aov()}};
+    \node[s,right=of c] (d) {4. Diagnostiko};
+    \node[s,right=of d] (e) {5. Krahaso\\çiftet};
+    \node[s,right=of e,fill=orange!10,draw=accent] (f) {6. Raporto};
+    \foreach \u/\v in {a/b,b/c,c/d,d/e,e/f} \draw[->,thick,uptmid] (\u) -- (\v);
+    \draw[->,thick,warnred,dashed] (d.south) to[bend left=25] node[below,font=\tiny]{nëse supozimet shkelen: Welch / KW} (c.south);
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 1: lexo dhe përmblidh}
+<<w1-read>>=
+library(car); library(emmeans); library(effectsize); library(ggplot2)
+auto <- read.csv(file.path(W04DATA, "Auto.csv"), na.strings = "?")
+auto$origin <- factor(auto$origin, levels = 1:3, labels = c("USA", "Europe", "Japan"))
+stats <- aggregate(mpg ~ origin, data = auto,
+                   FUN = function(x) c(n = length(x), mean = mean(x), sd = sd(x)))
+do.call(data.frame, stats)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 2: grafiku}
+<<w2-plot, fig.height=2.5, fig.width=5.5, out.width="0.6\\textwidth">>=
+ggplot(auto, aes(origin, mpg, fill = origin)) +
+  geom_violin(alpha = 0.3, colour = NA) +
+  geom_boxplot(width = 0.2, outlier.size = 0.6) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 2.5, fill = "white") +
+  guides(fill = "none") + theme_minimal(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> SHBA: shpërndarje e anuar djathtas; shumë makina të mëdha me \texttt{mpg} të ulët.
+    \item<2-> Evropa dhe Japonia: mesatare më të larta, të afërta me njëra-tjetrën.
+    \item<3-> Gjerësitë janë të ngjashme: $s_i\approx6$--$7$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 3: modeli}
+<<w3-fit>>=
+fit <- aov(mpg ~ origin, data = auto)
+summary(fit)
+@
+  \begin{itemize}
+    \item $F(2,394)=98.4$, $p<0.001$: të paktën një origjinë ndryshon.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 4: diagnostikimi}
+<<w4-diag, fig.height=2.5, fig.width=7, out.width="0.8\\textwidth">>=
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+plot(fit, which = 1)      # residuals vs fitted (= group means)
+plot(fit, which = 2)      # normal QQ of standardised residuals
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Majtas: tre ``kolona'', një për çdo grup. Gjerësitë e ngjashme: varianca e njëjtë duket e arsyeshme.
+    \item<2-> Djathtas: bishti i djathtë largohet pak nga vija: anshmëri e lehtë, kryesisht te SHBA.
+    \item<3-> R emërton vëzhgimet më ekstreme: kontrollo nëse janë gabime të dhënash.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Shapiro--Wilk me $N=397$}
+<<w4-shapiro>>=
+shapiro.test(residuals(fit))$p.value
+@
+  \begin{itemize}
+    \item<2-> $p$ shumë i vogël, por QQ tregon vetëm devijim të moderuar.
+    \item<3-> Me $N$ të madh, testi ``gjen'' çdo devijim; dhe me $N$ të madh testi $F$ është i qëndrueshëm.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Të braktisësh ANOVA-n vetëm sepse Shapiro jep $p<0.05$ me qindra vëzhgime. Shiko grafikun dhe madhësinë e grupeve.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[label=pyetjeLog]{Parashiko!}
+  \begin{Parashiko}
+    Konsumi shpesh analizohet në shkallë logaritmike. Nëse modelojmë \texttt{log(mpg) \textasciitilde{} origin}:
+    \begin{enumerate}
+      \item A pret që mbetjet të jenë më afër normales?
+      \item A pret që përfundimi i testit $F$ të ndryshojë?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjLog}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Varianca e njëjtë}
+<<w4-levene>>=
+leveneTest(mpg ~ origin, data = auto)
+s_i <- tapply(auto$mpg, auto$origin, sd)
+max(s_i) / min(s_i)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 4b: kontrolli i qëndrueshmërisë}
+<<w4-robust>>=
+c(F_classic = summary(fit)[[1]]$`Pr(>F)`[1],
+  Welch     = oneway.test(mpg ~ origin, data = auto)$p.value,
+  Kruskal   = kruskal.test(mpg ~ origin, data = auto)$p.value)
+@
+  \begin{itemize}
+    \item<2-> Të tre testet pajtohen. Raportojmë $F$ klasik dhe përmendim që Welch dhe Kruskal--Wallis japin të njëjtin përfundim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Levene: $p=\Sexpr{fmt(leveneTest(mpg ~ origin, data = auto)[1, 3], 2)}$, raporti i $s$ $=\Sexpr{fmt(max(s_i) / min(s_i), 2)}$: pa problem me variancën.
+    \item<2-> Normaliteti: devijim i moderuar; $n_i\ge70$ $\Rightarrow$ $F$ i qëndrueshëm.
+    \item<3-> Kur testet alternative pajtohen, përfundimi është i fortë. Kur nuk pajtohen, raporto të dyja dhe shpjego pse.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hapi 5: Tukey HSD}
+<<w5-tukey>>=
+tk <- TukeyHSD(fit, conf.level = 0.95)
+tk
+@
+\end{frame}
+
+\begin{frame}[fragile]{Grafiku i intervaleve Tukey}
+<<w5-tukey-plot, fig.height=2.4, fig.width=5.5, out.width="0.62\\textwidth">>=
+par(mar = c(4, 8, 2, 1))
+plot(tk, las = 1, cex.axis = 0.8)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Evropa dhe Japonia kanë \texttt{mpg} dukshëm më të lartë se SHBA: $+7.8$ dhe $+10.4$.
+    \item<2-> Japonia--Evropa: $+2.6$, me interval $[0.09,\ 5.03]$ dhe $p=0.041$: dallim i vogël, në kufi.
+    \item<3-> Intervali i Japonia--Evropa është më i gjerë: dy grupet e vogla.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Krahasim: Holm me teste $t$}
+<<w5-holm>>=
+pairwise.t.test(auto$mpg, auto$origin, p.adjust.method = "holm")
+@
+  \begin{itemize}
+    \item Përfundimi është i njëjtë; vlerat $p$ ndryshojnë pak sepse metodat janë të ndryshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{emmeans}: mesataret me intervale}
+<<w5-emmeans>>=
+em <- emmeans(fit, ~ origin)
+em
+pairs(em, adjust = "tukey")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{emmean}: mesatarja e grupit; \texttt{SE} $=\sqrt{\text{MSW}/n_i}$: më i vogël për SHBA ($n=248$).
+    \item<2-> \texttt{pairs()}: të njëjtat diferenca dhe $p$ si \texttt{TukeyHSD()}.
+    \item<3-> Avantazhi: e njëjta sintaksë funksionon për modele dyfaktoriale (Ora 6) dhe regresion (Java 6).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Madhësia e efektit me \texttt{effectsize}}
+<<w5-effect>>=
+omega_squared(fit, alternative = "two.sided")
+@
+  \begin{itemize}
+    \item Përputhet me llogaritjen tonë në Orën 2 ($\omega^2=0.329$), me interval besimi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushHp]{Radha jote!}
+  \begin{Ushtrim}[(10 minuta)]
+    Përsërit rrjedhën me \texttt{horsepower \textasciitilde{} origin}.
+    \begin{enumerate}
+      \item Sa vëzhgime humbasin për shkak të \texttt{NA}?
+      \item Krahaso $s_i$ dhe testin e Levene-s. Çfarë vëren?
+      \item Cili test është i duhuri? Cilat çifte ndryshojnë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjHp}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulim: kur shkelen supozimet}
+% ------------------------------------------------------------
+
+\begin{frame}{Dizajni i simulimit}
+  \begin{itemize}
+    \item<1-> 3 grupe, \textbf{mesataret e vërteta të barabarta}: çdo refuzim është gabim i tipit I.
+    \item<2-> Matim \termi{madhësinë reale}{actual size}: pjesën e $p<0.05$ në 2000 përsëritje.
+    \item<3-> Katër skenarë:
+      \begin{enumerate}
+        \item $n=(20,20,20)$, $\sigma=(1,1,1)$;
+        \item $n=(20,20,20)$, $\sigma=(1,1,3)$;
+        \item $n=(10,10,40)$, $\sigma=(3,1,1)$: grupi i vogël, variancë e madhe;
+        \item $n=(10,10,40)$, $\sigma=(1,1,3)$: grupi i madh, variancë e madhe.
+      \end{enumerate}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeSim]{Parashiko!}
+  \begin{Parashiko}
+    Në skenarin 3 (grupi i vogël ka variancën e madhe), a do ta refuzojë $F$ klasik $H_0$ më shumë, më pak, apo rreth 5\% të rasteve? Po në skenarin 4?
+  \end{Parashiko}
+  \shkoTe{zgjSim}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kodi}
+<<sim-size-fun>>=
+sim_size <- function(n, s, reps = 2000) {
+  g <- factor(rep(seq_along(n), n))
+  r <- replicate(reps, {
+    y <- rnorm(sum(n), mean = 0, sd = rep(s, n))     # H0 true: all means 0
+    c(F     = summary(aov(y ~ g))[[1]][1, 5],
+      Welch = oneway.test(y ~ g)$p.value,
+      KW    = kruskal.test(y ~ g)$p.value) < 0.05
+  })
+  rowMeans(r)
+}
+@
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike; mesataret e vërteta $=0$ në të gjithë skenarët.}
+\end{frame}
+
+\begin{frame}[fragile]{Rezultatet}
+<<sim-size-run>>=
+set.seed(505)
+size_tab <- rbind(
+  equal       = sim_size(c(20, 20, 20), c(1, 1, 1)),
+  het_balance = sim_size(c(20, 20, 20), c(1, 1, 3)),
+  small_big   = sim_size(c(10, 10, 40), c(3, 1, 1)),
+  big_big     = sim_size(c(10, 10, 40), c(1, 1, 3)))
+size_tab
+@
+\end{frame}
+
+\begin{frame}[fragile]{Pamja}
+<<sim-size-plot, fig.height=2.5, fig.width=6, out.width="0.66\\textwidth">>=
+barplot(t(size_tab), beside = TRUE, ylim = c(0, 0.25), las = 1,
+        col = c("grey40", "#2C5AA0", "#D97706"), ylab = "actual size",
+        legend.text = TRUE, args.legend = list(x = "topleft", bty = "n"))
+abline(h = 0.05, lty = 2, col = "#B91C1C")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Skenari 1: të tre testet $\approx5\%$. \ Skenari 2: $F$ pak mbi 5\%.
+    \item<2-> Skenari 3: $F$ refuzon në \Sexpr{fmt(100 * size_tab["small_big", "F"], 0)}\% të rasteve: \textbf{katërfish} më shumë se sa premton.
+    \item<3-> Skenari 4: $F$ refuzon vetëm \Sexpr{fmt(100 * size_tab["big_big", "F"], 1)}\%: tepër konservativ, humb fuqi.
+    \item<4-> Welch qëndron afër 5\% në çdo skenar. Kruskal--Wallis gjithashtu devijon: nuk është zgjidhje për variancën e ndryshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pse ndodh?}
+  \begin{itemize}
+    \item<1-> MSW $=\sum(n_i-1)s_i^2/(N-k)$: dominohet nga grupi i madh.
+    \item<2-> Skenari 3: grupi i madh ka $\sigma=1$ $\Rightarrow$ MSW i vogël, por mesatarja e grupit të vogël luhatet shumë $\Rightarrow$ MSB i madh $\Rightarrow$ $F$ i fryrë.
+    \item<3-> Skenari 4: e kundërta, MSW i fryrë $\Rightarrow$ $F$ i vogël.
+    \item<4-> Welch përdor $s_i^2/n_i$ të çdo grupi: nuk ``përzien'' variancat.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushSim]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(6 minuta)]
+    \begin{enumerate}
+      \item Provo \texttt{sim\_size(c(10, 10, 40), c(2, 1, 1))}. A mjafton raporti 2:1 për ta prishur $F$-në?
+      \item Provo \texttt{sim\_size(c(40, 40, 40), c(3, 1, 1))}. Çfarë ndryshon kur grupet janë të balancuara dhe të mëdha?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSimPar}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Mësimi i simulimit}
+  \begin{Keshille}Me grupe të pabalancuara, përdor Welch-in si parazgjedhje. Me grupe të balancuara dhe variancë të ngjashme, $F$ klasik dhe Welch japin pothuajse të njëjtin rezultat.\end{Keshille}
+  \pause
+  \begin{Gabim}``Levene nuk doli i rëndësishëm, pra variancat janë të barabarta.'' Me grupe të vogla Levene nuk ka fuqi; skenari 3 me $n_i=10$ shpesh kalon pa u vënë re.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Raporti}
+% ------------------------------------------------------------
+
+\begin{frame}{Si raportohet një ANOVA}
+  \small
+  \begin{itemize}
+    \item<1-> \textbf{Të dhënat:} ``397 makina (\texttt{Auto}); SHBA $n=248$, Evropa $n=70$, Japonia $n=79$.''
+    \item<2-> \textbf{Testi:} ``ANOVA njëfaktoriale: $F(2,394)=\Sexpr{fmt(summary(fit)[[1]]$`F value`[1], 1)}$, $p<0.001$, $\omega^2=0.33$. Welch dhe Kruskal--Wallis japin të njëjtin përfundim.''
+    \item<3-> \textbf{Krahasimet:} ``Tukey HSD: Evropa (+7.8, 95\% IB [5.8, 9.9]) dhe Japonia (+10.4 [8.4, 12.3]) kundrejt SHBA; Japonia--Evropa +2.6 [0.1, 5.0], $p=0.04$.''
+    \item<4-> \textbf{Kufizimi:} ``Studim vëzhgues: origjina lidhet me peshën dhe motorin; dallimi nuk është efekt shkakësor i origjinës.''
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGabRep]{Gjej gabimin!}
+  \begin{Ushtrim}[(Gjej gabimin)]
+    \small
+    ``ANOVA tregoi që të tria origjinat ndryshojnë ($F(2,397)=98.4$, $p=0.000$). Meqë $p$ është kaq i vogël, efekti i origjinës është shumë i madh. Shapiro--Wilk ($p<0.001$) tregon që të dhënat nuk janë normale, ndaj rezultati nuk vlen.''\\[3pt]
+    \normalsize Gjej të paktën katër gabime.
+  \end{Ushtrim}
+  \shkoTe{zgjGabRep}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp45]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Cilët dy grafikë kontrollon pas \texttt{aov()}?
+    \item Në cilin skenar $F$ klasik refuzon shumë shpesh?
+    \item Çfarë i shton \texttt{emmeans} krahasuar me \texttt{TukeyHSD}?
+  \end{enumerate}
+  \shkoTe{zgjCp45}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item Rrjedha: \Rkey{factor()} $\to$ grafikë $\to$ \Rkey{aov()} $\to$ \Rkey{plot(fit)} + \Rkey{leveneTest()} $\to$ \Rkey{TukeyHSD()} / \Rkey{emmeans()} $\to$ raport.
+    \item Kontrolli i qëndrueshmërisë: $F$, Welch, Kruskal--Wallis.
+    \item Simulimi: variancë e madhe te grupi i vogël $\Rightarrow$ $F$ refuzon $\approx4\times$ më shumë; Welch mbetet afër 5\%.
+    \item Raporti: $F(df_1,df_2)$, $p$, $\omega^2$, Tukey me IB, kufizimet.
+  \end{itemize}
+  \begin{Keshille}Ora 6: dy faktorë njëherësh, ndërveprimet (\texttt{ToothGrowth}) dhe dizajnet e pabalancuara (\texttt{Carseats}).\end{Keshille}
+\end{frame}

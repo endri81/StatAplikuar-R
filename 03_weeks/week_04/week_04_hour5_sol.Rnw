@@ -1,0 +1,80 @@
+% ============================================================
+%  Java 4 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjLog]{Zgjidhja: Parashiko (\texttt{log(mpg)})}
+<<sol-log>>=
+auto <- read.csv(file.path(W04DATA, "Auto.csv"), na.strings = "?")
+auto$origin <- factor(auto$origin, labels = c("USA", "Europe", "Japan"))
+fit_log <- aov(log(mpg) ~ origin, data = auto)
+c(shapiro_p = shapiro.test(residuals(fit_log))$p.value,
+  F = summary(fit_log)[[1]]$`F value`[1])
+@
+  \begin{enumerate}
+    \item Po: logaritmi zvogëlon bishtin e djathtë; Shapiro kalon nga $p\approx10^{-8}$ në $p\approx0.05$.
+    \item Jo: dallimet midis grupeve janë aq të mëdha sa përfundimi mbetet i njëjtë.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeLog}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjHp]{Zgjidhja: Radha jote! (\texttt{horsepower})}
+<<sol-hp>>=
+library(car)
+hp <- na.omit(auto[, c("horsepower", "origin")]); nrow(auto) - nrow(hp)
+round(tapply(hp$horsepower, hp$origin, sd), 1)
+leveneTest(horsepower ~ origin, data = hp)[1, 3]
+@
+  \vfill\kthehu{ushHp}
+\end{frame}
+
+\begin{frame}[fragile]{Zgjidhja: Radha jote! (\texttt{horsepower}, vazhdim)}
+<<sol-hp2>>=
+oneway.test(horsepower ~ origin, data = hp)$p.value
+pairwise.t.test(hp$horsepower, hp$origin, pool.sd = FALSE, p.adjust.method = "holm")$p.value
+@
+  \begin{itemize}
+    \item 5 \texttt{NA}. SHBA ka $s$ dyfish më të madh dhe $n$ më të madh; Levene $p<0.001$. Përdor Welch dhe teste $t$ të Welch-it me Holm: SHBA ndryshon nga të dy; Evropa--Japonia jo.
+  \end{itemize}
+  \vfill\kthehu{ushHp}
+\end{frame}
+
+\begin{frame}[label=zgjSim]{Zgjidhja: Parashiko (simulimi)}
+  \begin{itemize}
+    \item Skenari 3: \textbf{më shumë} (rreth 20\%). MSW mbizotërohet nga grupi i madh me $\sigma=1$ dhe nënvlerëson zhurmën e grupit të vogël.
+    \item Skenari 4: \textbf{më pak} (nën 1\%). MSW fryhet nga grupi i madh me $\sigma=3$.
+  \end{itemize}
+  \vfill\kthehu{pyetjeSim}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjSimPar]{Zgjidhja: Ndrysho parametrin (simulimi)}
+<<sol-simpar>>=
+set.seed(506)
+rbind(small_2to1 = sim_size(c(10, 10, 40), c(2, 1, 1)),
+      balanced40 = sim_size(c(40, 40, 40), c(3, 1, 1)))
+@
+  \begin{enumerate}
+    \item Edhe raporti 2:1 e çon $F$ dukshëm mbi 5\% kur grupi i vogël ka variancën e madhe.
+    \item Me grupe të balancuara dhe të mëdha, $F$ është shumë më afër 5\%: balancimi e mbron testin.
+  \end{enumerate}
+  \vfill\kthehu{ushSim}
+\end{frame}
+
+\begin{frame}[label=zgjGabRep]{Zgjidhja: Gjej gabimin (raporti)}
+  \begin{enumerate}
+    \item ``Të tria ndryshojnë'': $F$ tregon vetëm \emph{të paktën një}; Japonia--Evropa del në kufi vetëm me Tukey.
+    \item $df_2=N-k=394$, jo 397.
+    \item ``$p=0.000$'': shkruaj $p<0.001$.
+    \item $p$ i vogël $\neq$ efekt i madh: raporto $\omega^2=0.33$.
+    \item Shapiro me $N=397$: devijimi është i moderuar, $n_i$ të mëdha, dhe Welch/KW pajtohen. Rezultati vlen.
+  \end{enumerate}
+  \vfill\kthehu{gjejGabRep}
+\end{frame}
+
+\begin{frame}[label=zgjCp45]{Përgjigjet: Checkpoint Ora 5}
+  \begin{enumerate}
+    \item Mbetjet kundrejt vlerave të përshtatura (varianca) dhe QQ i mbetjeve (normaliteti).
+    \item Kur grupi i \textbf{vogël} ka variancën e \textbf{madhe}.
+    \item Mesataret e grupeve me SE dhe IB, kontraste të çfarëdoshme, dhe e njëjta sintaksë për modele më të ndërlikuara.
+  \end{enumerate}
+  \vfill\kthehu{cp45}
+\end{frame}
