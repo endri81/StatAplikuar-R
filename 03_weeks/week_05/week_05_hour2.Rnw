@@ -1,0 +1,380 @@
+% ============================================================
+%  Java 5 · Ora 2 — Teoria I: katrorët më të vegjël
+%  Rezultatet: K2, S1
+%  Burimi: ISLR kap. 3.1; Cohen et al. kap. 2
+% ============================================================
+
+\section{Teoria I}
+
+\begin{frame}{Ora 2: Teoria I --- katrorët më të vegjël}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Modeli}
+% ------------------------------------------------------------
+
+\begin{frame}{Modeli i regresit të thjeshtë \LO{S1}}
+  \begin{Definicion}[(Modeli)]
+    \[ y_i=\beta_0+\beta_1x_i+\varepsilon_i,\qquad i=1,\dots,n. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item $\beta_0$: \termi{prerja}{intercept}, vlera e pritur e $y$ kur $x=0$.
+    \pause
+    \item $\beta_1$: \termi{pjerrësia}{slope}, ndryshimi i pritur i $y$ kur $x$ rritet me 1.
+    \pause
+    \item $\varepsilon_i$: gabimi, gjithçka që $x$ nuk shpjegon.
+    \pause
+    \item $\beta_0,\beta_1,\sigma^2$ janë të panjohura; $\hat\beta_0,\hat\beta_1,\hat\sigma^2$ janë vlerësimet nga zgjedhja.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Supozimet: LINE}
+  \begin{enumerate}
+    \item<1-> \textbf{L}inear: $E[y\mid x]=\beta_0+\beta_1x$.
+    \item<2-> \textbf{I}ndependence: gabimet $\varepsilon_i$ janë të pavarura.
+    \item<3-> \textbf{N}ormal: $\varepsilon_i\sim N(0,\sigma^2)$ (vetëm për inferencën).
+    \item<4-> \textbf{E}qual variance: $\operatorname{Var}(\varepsilon_i)=\sigma^2$ për çdo $x$.
+  \end{enumerate}
+  \onslide<5->{\begin{Keshille}Vlerësimi OLS nuk kërkon normalitet. Normaliteti duhet për testet $t$ dhe intervalet me $n$ të vogël (Ora 4).\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Pamja e modelit}
+  \centering
+  \begin{tikzpicture}[x=1.4cm,y=0.55cm,>=Stealth]
+    \draw[->] (0,0) -- (6,0) node[right,font=\scriptsize]{$x$};
+    \draw[->] (0,0) -- (0,7.5) node[above,font=\scriptsize]{$y$};
+    \draw[thick,accent] (0.3,1.2) -- (5.7,6.6) node[right,font=\scriptsize]{$\beta_0+\beta_1x$};
+    \foreach \x in {1.5,3,4.5}{
+      \pgfmathsetmacro{\m}{0.9+\x}
+      \draw[uptmid,thick,domain=-1.6:1.6,samples=40,smooth,variable=\t]
+        plot[variable=\t] ({\x+0.5*exp(-\t*\t/0.5)},{\m+\t});
+      \draw[gray,dashed] (\x,\m-1.6) -- (\x,\m+1.6);
+      \fill[accent] (\x,\m) circle (1.5pt);
+    }
+    \node[font=\scriptsize,uptmid,align=left] at (4.9,1.6) {$N(\beta_0+\beta_1x,\ \sigma^2)$\\e njëjta gjerësi};
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Për çdo $x$: $y$ është normale, me qendër në vijë dhe me të njëjtën $\sigma$.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ekuacionet normale}
+% ------------------------------------------------------------
+
+\begin{frame}{Qëllimi}
+  \[ \text{SSE}(b_0,b_1)=\sum_{i=1}^n\big(y_i-b_0-b_1x_i\big)^2\ \longrightarrow\ \min. \]
+  \pause
+  \begin{itemize}
+    \item Funksion kuadratik i dy ndryshoreve $b_0,b_1$.
+    \pause
+    \item Minimumi: të dy derivatet e pjesshme $=0$.
+    \pause
+    \item Shënim: $e_i=y_i-b_0-b_1x_i$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 1: derivati sipas $b_0$}
+  \[ \frac{\partial\,\text{SSE}}{\partial b_0}=-2\sum_i\big(y_i-b_0-b_1x_i\big)=0 \]
+  \pause
+  \[ \Longrightarrow\ \sum_i y_i=n\,b_0+b_1\sum_i x_i \]
+  \pause
+  \[ \Longrightarrow\ \boxed{\,\hat\beta_0=\bar y-\hat\beta_1\bar x\,} \]
+  \pause
+  \begin{itemize}
+    \item Njëkohësisht: $\sum e_i=0$. Mbetjet mblidhen në zero.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 2: derivati sipas $b_1$}
+  \[ \frac{\partial\,\text{SSE}}{\partial b_1}=-2\sum_i x_i\big(y_i-b_0-b_1x_i\big)=0 \]
+  \pause
+  \begin{itemize}
+    \item Pra $\sum x_ie_i=0$: mbetjet janë ``pingule'' me $x$.
+    \pause
+    \item Zëvendëso $b_0=\bar y-b_1\bar x$:
+      \[ \sum_i x_i\big[(y_i-\bar y)-b_1(x_i-\bar x)\big]=0. \]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 3: zgjidhja për $b_1$}
+  \begin{itemize}
+    \item<1-> Meqë $\sum(y_i-\bar y)=0$ dhe $\sum(x_i-\bar x)=0$, mund të zëvendësojmë $x_i$ me $x_i-\bar x$:
+      \[ \sum(x_i-\bar x)(y_i-\bar y)=b_1\sum(x_i-\bar x)^2. \]
+    \item<2-> Shënojmë $S_{xy}=\sum(x_i-\bar x)(y_i-\bar y)$, \ $S_{xx}=\sum(x_i-\bar x)^2$.
+  \end{itemize}
+  \onslide<3->{\[ \boxed{\,\hat\beta_1=\frac{S_{xy}}{S_{xx}}\,} \]}
+\end{frame}
+
+\begin{frame}{Teorema e OLS}
+  \begin{Teoreme}[(Vlerësuesit OLS)]
+    Nëse $S_{xx}>0$, SSE ka minimum të vetëm në
+    \[ \hat\beta_1=\frac{S_{xy}}{S_{xx}},\qquad \hat\beta_0=\bar y-\hat\beta_1\bar x. \]
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item Minimum, jo maksimum: derivatet e dyta japin matricën $2\begin{pmatrix}n&\sum x_i\\ \sum x_i&\sum x_i^2\end{pmatrix}$, me përcaktor $4nS_{xx}>0$.
+    \pause
+    \item Lidhja me Orën 1: $\dfrac{S_{xy}}{S_{xx}}=\dfrac{S_{xy}}{\sqrt{S_{xx}S_{yy}}}\sqrt{\dfrac{S_{yy}}{S_{xx}}}=r\,\dfrac{s_y}{s_x}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vetitë e vijës OLS}
+  \begin{enumerate}
+    \item<1-> $\sum e_i=0$ (nga Hapi 1).
+    \item<2-> $\sum x_ie_i=0$ (nga Hapi 2).
+    \item<3-> $\sum\hat y_ie_i=\hat\beta_0\sum e_i+\hat\beta_1\sum x_ie_i=0$.
+    \item<4-> Vija kalon nga $(\bar x,\bar y)$: $\hat\beta_0+\hat\beta_1\bar x=\bar y$.
+    \item<5-> $\bar{\hat y}=\bar y$: mesatarja e vlerave të përshtatura = mesatarja e $y$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Interpretimi dhe njësitë}
+  \begin{itemize}
+    \item<1-> $\hat\beta_1$ ka njësitë ``njësi të $y$ për njësi të $x$''.
+    \item<2-> $\hat\beta_0$ ka njësitë e $y$; ka kuptim vetëm nëse $x=0$ është brenda (ose afër) të dhënave.
+    \item<3-> Te \texttt{Advertising}: $x=0$ (pa TV) ekziston në të dhëna (min $=0.7$), pra $\hat\beta_0=7.03$ ka kuptim.
+    \item<4-> Te pesha kundrejt gjatësisë: $\hat\beta_0$ = pesha e një njeriu 0 cm i gjatë. Pa kuptim!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeUnits]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    $y$ = pesha (kg), $x$ = gjatësia (cm), $\hat\beta_1=0.9$. Nëse e masim gjatësinë në \textbf{metra}, sa bëhet $\hat\beta_1$?\\[3pt]
+    \textbf{A)} 0.009 \qquad \textbf{B)} 0.9 \qquad \textbf{C)} 90 \qquad \textbf{D)} varet nga $r$
+  \end{Parashiko}
+  \shkoTe{zgjUnits}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shembull pa ndihmën e PC}
+% ------------------------------------------------------------
+
+\begin{frame}{Pesë pikat}
+  \centering
+  \begin{tabular}{@{}cc|cccc@{}}
+    \toprule
+    $x_i$ & $y_i$ & $x_i-\bar x$ & $y_i-\bar y$ & $(x_i-\bar x)(y_i-\bar y)$ & $(x_i-\bar x)^2$ \\ \midrule
+    1 & 2 & $-2$ & $-2$ & 4 & 4 \\
+    2 & 4 & $-1$ & 0 & 0 & 1 \\
+    3 & 5 & 0 & 1 & 0 & 0 \\
+    4 & 4 & 1 & 0 & 0 & 1 \\
+    5 & 5 & 2 & 1 & 2 & 4 \\ \midrule
+    \multicolumn{2}{c|}{$\bar x=3$, $\bar y=4$} & & & $S_{xy}=6$ & $S_{xx}=10$ \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Vlerësuesit}
+  \begin{enumerate}
+    \item<1-> $\hat\beta_1=S_{xy}/S_{xx}=6/10=0.6$.
+    \item<2-> $\hat\beta_0=\bar y-\hat\beta_1\bar x=4-0.6\times3=2.2$.
+    \item<3-> Vija: $\hat y=2.2+0.6\,x$.
+  \end{enumerate}
+  \onslide<4->{\begin{Keshille}Kontrollo gjithmonë: a kalon vija nga $(\bar x,\bar y)=(3,4)$? $2.2+0.6\times3=4$. \checkmark\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Mbetjet dhe kontrolli i vetive}
+  \centering
+  \begin{tabular}{@{}ccccc@{}}
+    \toprule
+    $x_i$ & $y_i$ & $\hat y_i$ & $e_i$ & $x_ie_i$ \\ \midrule
+    1 & 2 & 2.8 & $-0.8$ & $-0.8$ \\
+    2 & 4 & 3.4 & $0.6$ & $1.2$ \\
+    3 & 5 & 4.0 & $1.0$ & $3.0$ \\
+    4 & 4 & 4.6 & $-0.6$ & $-2.4$ \\
+    5 & 5 & 5.2 & $-0.2$ & $-1.0$ \\ \midrule
+     & & & $\sum=0$ \checkmark & $\sum=0$ \checkmark \\ \bottomrule
+  \end{tabular}
+  \vspace{4pt}
+  \begin{itemize}
+    \item<2-> SSE $=0.64+0.36+1+0.36+0.04=2.4$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushToy4]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta, pa ndihmën e PC)]
+    $x=(0,1,2,3)$, \ $y=(1,3,2,6)$.
+    \begin{enumerate}
+      \item Llogarit $\bar x$, $\bar y$, $S_{xy}$, $S_{xx}$.
+      \item Gjej $\hat\beta_0$ dhe $\hat\beta_1$.
+      \item Llogarit mbetjet dhe kontrollo $\sum e_i=0$.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjToy4}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Zbërthimi SST = SSR + SSE}
+% ------------------------------------------------------------
+
+\begin{frame}{Tre devijime}
+  \[ \underbrace{y_i-\bar y}_{\text{totali}}=\underbrace{(\hat y_i-\bar y)}_{\text{e shpjeguar}}+\underbrace{(y_i-\hat y_i)}_{\text{mbetja } e_i} \]
+  \pause
+  \begin{itemize}
+    \item Ngre në katror dhe mblidh. Termi i kryqëzuar:
+      \[ 2\sum(\hat y_i-\bar y)e_i=2\Big(\sum\hat y_ie_i-\bar y\sum e_i\Big)=0. \]
+    \pause
+    \item Zero për shkak të vetive 1 dhe 3 të OLS.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Teorema e zbërthimit}
+  \begin{Teoreme}[(Zbërthimi)]
+    \[ \underbrace{\sum(y_i-\bar y)^2}_{\text{SST}}=\underbrace{\sum(\hat y_i-\bar y)^2}_{\text{SSR}}+\underbrace{\sum(y_i-\hat y_i)^2}_{\text{SSE}} \]
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item E njëjta strukturë si SST = SSB + SSW i Javës 4.
+    \pause
+    \item SSR $=\hat\beta_1^2S_{xx}$, sepse $\hat y_i-\bar y=\hat\beta_1(x_i-\bar x)$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Koeficienti i përcaktimit $R^2$}
+  \begin{Definicion}[($R^2$)]
+    \[ R^2=\frac{\text{SSR}}{\text{SST}}=1-\frac{\text{SSE}}{\text{SST}}\in[0,1]. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Në regresin e thjeshtë: $R^2=\dfrac{\hat\beta_1^2S_{xx}}{S_{yy}}=\dfrac{S_{xy}^2}{S_{xx}S_{yy}}=r^2$.
+    \pause
+    \item Pesë pikat: SST $=4+0+1+0+1=6$, SSR $=0.36\times10=3.6$, SSE $=2.4$.
+    \pause
+    \item $R^2=3.6/6=0.6$; \ $r=6/\sqrt{10\times6}\approx0.775$, $r^2=0.6$. \checkmark
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë thotë dhe çfarë nuk thotë $R^2$}
+  \begin{itemize}
+    \item<1-> Thotë: pjesa e ndryshueshmërisë së $y$ që shpjegohet linearisht nga $x$.
+    \item<2-> Nuk thotë: nëse modeli është i saktë (Anscombe: katër grupe me $R^2=0.67$).
+    \item<3-> Nuk thotë: nëse parashikimet janë mjaft të sakta për qëllimin. Për këtë: RSE.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}``$R^2=0.3$, pra modeli është i padobishëm.'' Në shumë fusha (shkencat sociale, statistika zyrtare), $R^2$ i ulët me $\hat\beta_1$ të qëndrueshëm është rezultat i vlefshëm.\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Tabela ANOVA e regresionit}
+  \centering
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Burimi & df & SS & MS & $F$ \\ \midrule
+    Regresioni & 1 & SSR & SSR/1 & MSR/MSE \\
+    Mbetjet & $n-2$ & SSE & SSE$/(n-2)$ & \\ \midrule
+    Totali & $n-1$ & SST & & \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> Pesë pikat: MSR $=3.6$, MSE $=2.4/3=0.8$, $F=4.5$, $df=(1,3)$.
+    \item<3-> $F_{0.95;\,1,3}=10.13$: nuk ka evidencë të mjaftueshme me vetëm 5 pika.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Vlerësimi i $\sigma^2$}
+% ------------------------------------------------------------
+
+\begin{frame}{Pse $n-2$?}
+  \begin{itemize}
+    \item<1-> $n$ mbetje, por me 2 kufizime: $\sum e_i=0$ dhe $\sum x_ie_i=0$.
+    \item<2-> Vetëm $n-2$ mbetje janë ``të lira'': $df=n-2$.
+    \item<3-> Teoremë: $E[\text{SSE}]=(n-2)\sigma^2$.
+  \end{itemize}
+  \onslide<4->{
+  \[ \hat\sigma^2=\text{MSE}=\frac{\text{SSE}}{n-2},\qquad \text{RSE}=\hat\sigma=\sqrt{\frac{\text{SSE}}{n-2}}. \]}
+\end{frame}
+
+\begin{frame}{RSE: gabimi tipik i parashikimit}
+  \begin{itemize}
+    \item<1-> \termi{RSE}{residual standard error}: sa larg vijës janë pikat ``zakonisht'', në njësitë e $y$.
+    \item<2-> Pesë pikat: $\hat\sigma^2=0.8$, RSE $\approx0.89$.
+    \item<3-> \texttt{Advertising}: RSE $=3.26$ mijë njësi, me mesatare shitjesh 14.0: gabim tipik rreth 23\%.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}$R^2$ është relativ (pa njësi); RSE është absolut (në njësitë e $y$). Raporto të dyja.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=pyetjeScale]{Parashiko!}
+  \begin{Parashiko}
+    Shumëzojmë të gjitha $y_i$ me 10 (p.sh.\ shitjet në qindra në vend të mijëra). Çfarë ndodh me:
+    \begin{enumerate}
+      \item $\hat\beta_0$ dhe $\hat\beta_1$?
+      \item $R^2$?
+      \item RSE?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjScale}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\Zgjerim Forma matricore dhe sipërfaqja e SSE}
+% ------------------------------------------------------------
+
+\begin{frame}{\Zgjerim Forma matricore}
+  \[ \bm y=\bm X\bm\beta+\bm\varepsilon,\qquad \bm X=\begin{pmatrix}1&x_1\\ \vdots&\vdots\\ 1&x_n\end{pmatrix},\qquad \bm\beta=\begin{pmatrix}\beta_0\\ \beta_1\end{pmatrix}. \]
+  \pause
+  \begin{itemize}
+    \item SSE $=(\bm y-\bm X\bm b)^\top(\bm y-\bm X\bm b)$; gradienti $=-2\bm X^\top(\bm y-\bm X\bm b)=\bm0$.
+    \pause
+    \item Ekuacionet normale: $\bm X^\top\bm X\,\hat{\bm\beta}=\bm X^\top\bm y$ \ $\Rightarrow$ \ $\hat{\bm\beta}=(\bm X^\top\bm X)^{-1}\bm X^\top\bm y$.
+    \pause
+    \item E njëjta formulë për regresin e shumëfishtë (Java 6).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\Zgjerim Matricat për pesë pikat}
+  \[ \bm X^\top\bm X=\begin{pmatrix}5&15\\15&55\end{pmatrix},\qquad \bm X^\top\bm y=\begin{pmatrix}\sum y_i\\ \sum x_iy_i\end{pmatrix}=\begin{pmatrix}20\\66\end{pmatrix}. \]
+  \pause
+  \[ (\bm X^\top\bm X)^{-1}=\frac{1}{275-225}\begin{pmatrix}55&-15\\-15&5\end{pmatrix}=\frac1{50}\begin{pmatrix}55&-15\\-15&5\end{pmatrix}. \]
+  \pause
+  \[ \hat{\bm\beta}=\frac1{50}\begin{pmatrix}55\cdot20-15\cdot66\\-15\cdot20+5\cdot66\end{pmatrix}=\frac1{50}\begin{pmatrix}110\\30\end{pmatrix}=\begin{pmatrix}2.2\\0.6\end{pmatrix}. \ \checkmark \]
+\end{frame}
+
+\begin{frame}{\Zgjerim Sipërfaqja SSE$(b_0,b_1)$}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=7.2cm,height=5.2cm,view={35}{35},
+        xlabel={$b_0$},ylabel={$b_1$},zlabel={SSE},
+        xlabel style={font=\scriptsize},ylabel style={font=\scriptsize},zlabel style={font=\scriptsize},
+        tick label style={font=\tiny},colormap/cool]
+      \addplot3[surf,domain=0.2:4.2,y domain=-0.2:1.4,samples=21,samples y=21,opacity=0.85]
+        {5*x^2+55*y^2+30*x*y-40*x-132*y+86};
+      \addplot3[only marks,mark=*,mark size=2pt,color=accent] coordinates {(2.2,0.6,2.4)};
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item SSE $=5b_0^2+55b_1^2+30b_0b_1-40b_0-132b_1+86$: një ``tas'' me minimum te $(2.2,\,0.6)$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\Zgjerim Kur nuk ka zgjidhje të vetme}
+  \begin{itemize}
+    \item<1-> Nëse të gjitha $x_i$ janë të barabarta: $S_{xx}=0$, $\bm X^\top\bm X$ singulare.
+    \item<2-> Tasi bëhet ``hulli'': pafundësi vijash me të njëjtin SSE minimal.
+    \item<3-> R jep \texttt{NA} për pjerrësinë.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Të mbledhësh të dhëna vetëm për një vlerë të $x$ (p.sh.\ vetëm një nivel buxheti). Për të vlerësuar pjerrësinë, $x$ duhet të ndryshojë, dhe sa më shumë, aq më mirë (Ora 4).\end{Gabim}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp52]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 2}
+  \begin{enumerate}
+    \item Cilat dy veti të mbetjeve dalin nga ekuacionet normale?
+    \item Pse $R^2=r^2$ në regresin e thjeshtë?
+    \item Pse pjesëtojmë SSE me $n-2$?
+  \end{enumerate}
+  \shkoTe{zgjCp52}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 2}
+  \begin{itemize}
+    \item Modeli $y=\beta_0+\beta_1x+\varepsilon$; supozimet LINE.
+    \item OLS: $\hat\beta_1=S_{xy}/S_{xx}$, $\hat\beta_0=\bar y-\hat\beta_1\bar x$; $\sum e_i=\sum x_ie_i=0$.
+    \item SST = SSR + SSE; $R^2=r^2$; $\hat\sigma^2=\text{SSE}/(n-2)$.
+    \item \Zgjerim $\hat{\bm\beta}=(\bm X^\top\bm X)^{-1}\bm X^\top\bm y$; SSE është një tas.
+  \end{itemize}
+  \begin{Keshille}Ora 3: e ndërtojmë OLS nga zero në R, me formula dhe me matrica, dhe e krahasojmë me \texttt{lm()}.\end{Keshille}
+\end{frame}
