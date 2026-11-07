@@ -1,0 +1,267 @@
+% ============================================================
+%  Java 6 · Ora 1 — Motivimi: shumë shpjegues njëherësh
+%  Rezultatet: K2, S1, S2
+%  Burimi: ISLR kap. 3.2; repo DS612 (Advertising, CrossValidation_Review: Auto)
+% ============================================================
+
+\section{Motivimi}
+
+\begin{frame}{Ora 1: Motivimi --- shumë shpjegues njëherësh}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi motivues}
+% ------------------------------------------------------------
+
+\begin{frame}{Pyetja e ditës \LO{K2}}
+  \begin{itemize}
+    \item<1-> Firma shpenzon në \textbf{tre} kanale: TV, radio, gazeta.
+    \item<2-> Java 5: tre regresione të thjeshta, një për çdo kanal.
+    \item<3-> Menaxheri pyet: \textbf{nëse e mbaj TV-në dhe radion të njëjta, a ia vlen të shpenzoj më shumë në gazeta?}
+    \item<4-> Kjo pyetje kërkon një model me të tre kanalet njëherësh.
+  \end{itemize}
+  \onslide<5->{\footnotesize\textcolor{gray}{Të dhëna: reale, \texttt{Advertising.csv} (ISLR, kap.~3, nëpërmjet repo-s DS612); 200 tregje, buxhetet në mijë \$, shitjet në mijë njësi.}}
+\end{frame}
+
+\begin{frame}[fragile]{Tre regresione të thjeshta}
+<<adv-simple>>=
+adv <- read.csv(file.path(W06DATA, "Advertising.csv"))[, -1]
+simple <- t(sapply(c("TV", "radio", "newspaper"), function(v) {
+  s <- summary(lm(adv$sales ~ adv[[v]]))
+  c(slope = s$coefficients[2, 1], se = s$coefficients[2, 2],
+    p = s$coefficients[2, 4], R2 = s$r.squared)
+}))
+signif(simple, 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të tre kanalet lidhen pozitivisht dhe në mënyrë të rëndësishme me shitjet.
+    \item<2-> Gazetat: 1000 \$ më shumë $\leftrightarrow$ $\approx55$ njësi më shumë ($p=0.001$).
+    \item<3-> Por çdo model \emph{injoron} dy kanalet e tjera.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeNews]{Parashiko!}
+  \begin{Parashiko}
+    Tani përshtatim \texttt{sales \textasciitilde{} TV + radio + newspaper}. Çfarë pret për koeficientin e \texttt{newspaper}?\\[3pt]
+    \textbf{A)} Afërsisht si më parë ($\approx0.055$, i rëndësishëm).\\
+    \textbf{B)} Më i madh, sepse modeli është më i mirë.\\
+    \textbf{C)} Afër zeros dhe jo i rëndësishëm.\\
+    \textbf{D)} Negativ dhe i rëndësishëm.
+  \end{Parashiko}
+  \shkoTe{zgjNews}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Modeli i shumëfishtë}
+<<adv-full>>=
+fit_all <- lm(sales ~ TV + radio + newspaper, data = adv)
+round(summary(fit_all)$coefficients, 4)
+c(R2 = summary(fit_all)$r.squared, RSE = sigma(fit_all))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> TV dhe radio: të rëndësishme, me koeficientë afër atyre të thjeshtë.
+    \item<2-> Gazetat: koeficienti $\approx\Sexpr{fmt(coef(fit_all)["newspaper"], 4)}$, $p=\Sexpr{fmt(summary(fit_all)$coefficients["newspaper", 4], 2)}$. Lidhja \textbf{u zhduk}!
+    \item<3-> $R^2$ kalon nga 0.61 (vetëm TV) në $\Sexpr{fmt(summary(fit_all)$r.squared, 3)}$; RSE nga 3.26 në $\Sexpr{fmt(sigma(fit_all), 2)}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pse? Korrelacionet midis kanaleve}
+<<adv-cor>>=
+round(cor(adv), 3)
+@
+  \begin{itemize}
+    \item<2-> $r(\texttt{radio},\texttt{newspaper})=0.35$: tregjet që shpenzojnë shumë në radio shpenzojnë edhe në gazeta.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Regresi i thjeshtë i gazetave ``merr kredi'' për efektin e radios.
+    \item<2-> Kur radio është në model, gazetat nuk shtojnë informacion të ri.
+    \item<3-> ISLR e krahason me lidhjen midis shitjes së akullores dhe sulmeve të peshkaqenëve: të dyja rriten në verë.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Java 3, Simpson-i dhe korrelacioni i pjesshëm: e njëjta ide, tani në gjuhën e regresionit.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{``Duke mbajtur të tjerat konstante''}
+  \begin{itemize}
+    \item<1-> Në modelin $y=\beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_3+\varepsilon$:
+    \item<2-> $\beta_3$ = ndryshimi i pritur i $y$ kur $x_3$ rritet me 1 \textbf{dhe} $x_1,x_2$ mbeten të njëjta.
+    \item<3-> Quhet \termi{koeficient i pjesshëm}{partial regression coefficient}.
+    \item<4-> Regresi i thjeshtë jep efektin \textbf{total} (bashkë me çdo gjë që lëviz me $x_3$).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Një parapamje: regresi i mbetjeve}
+<<adv-fwl>>=
+e_news  <- residuals(lm(newspaper ~ TV + radio, data = adv))   # news not explained by TV, radio
+e_sales <- residuals(lm(sales ~ TV + radio, data = adv))       # sales not explained by TV, radio
+coef(lm(e_sales ~ e_news))[2]
+coef(fit_all)["newspaper"]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Hiqe nga gazetat dhe nga shitjet pjesën që shpjegojnë TV dhe radio.
+    \item<2-> Pjerrësia e mbetjeve = koeficienti i \texttt{newspaper} në modelin e plotë. Saktësisht.
+    \item<3-> Kjo është teorema Frisch--Waugh--Lovell (Ora 2), dhe e njëjta ide si korrelacioni i pjesshëm i Javës 3.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Objektivat}
+% ------------------------------------------------------------
+
+\begin{frame}{Objektivat e ditës}
+  Në fund të ditës do të jesh në gjendje:
+  \begin{enumerate}
+    \item \LO{S1} të shkruash dhe interpretosh modelin $y=\beta_0+\sum\beta_jx_j+\varepsilon$;
+    \item \LO{K2} të testosh koeficientët ($t$), modelin ($F$) dhe grupe koeficientësh ($F$ i pjesshëm);
+    \item \LO{S2} të përfshish parashikues cilësorë dhe ndërveprime;
+    \item \LO{S3} të krahasosh modele me $R^2_{adj}$, AIC/BIC dhe cross-validation;
+    \item \LO{C1} të ndërtosh dhe justifikosh një model në një rast real.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Lidhja me javët e tjera}
+  \begin{itemize}
+    \item<1-> Java 3: korrelacioni i pjesshëm $\to$ sot: koeficienti i pjesshëm.
+    \item<2-> Java 4: ANOVA dhe ndërveprimet $\to$ sot: dummy dhe ndërveprimet në \texttt{lm()}.
+    \item<3-> Java 5: $\hat{\bm\beta}=(\bm X^\top\bm X)^{-1}\bm X^\top\bm y$ $\to$ sot: e njëjta formulë me më shumë kolona.
+    \item<4-> Java 7: diagnostikimi, VIF; Java 9: klasifikimi me të njëjtën strukturë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plani i ditës}
+  \centering
+  \begin{tikzpicture}[x=1.55cm,
+      hr/.style={rectangle,draw=white,thick,minimum width=1.55cm,minimum height=1.25cm,align=center,font=\scriptsize\bfseries,text=white}]
+    \node[hr,fill=uptblue] at (0,0) {Ora 1\\Motivimi};
+    \node[hr,fill=uptmid]  at (1,0) {Ora 2\\Modeli,\\testet};
+    \node[hr,fill=okgreen] at (2,0) {Ora 3\\Nga zero};
+    \node[hr,fill=uptmid]  at (3,0) {Ora 4\\Dummy,\\ndërveprime};
+    \node[hr,fill=okgreen] at (4,0) {Ora 5\\\texttt{Credit}};
+    \node[hr,fill=accent]  at (5,0) {Ora 6\\Përzgjedhja,\\CV};
+    \node[hr,fill=uptblue] at (6,0) {Ora 7\\Konsolidim};
+  \end{tikzpicture}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pse një model i vetëm?}
+% ------------------------------------------------------------
+
+\begin{frame}{Tri arsye}
+  \begin{enumerate}
+    \item<1-> \textbf{Konfuzioni}: regresi i thjeshtë përzien efektin e $x_j$ me efektet e variablave që lëvizin bashkë me të.
+    \item<2-> \textbf{Parashikimi}: informacioni nga të gjithë shpjeguesit bashkë jep parashikime më të sakta.
+    \item<3-> \textbf{Ndërveprimet}: efekti i një kanali mund të varet nga tjetri (Ora 4).
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Saktësia e parashikimit}
+<<adv-compare>>=
+rbind(TV_only = c(R2 = simple["TV", "R2"], RSE = sigma(lm(sales ~ TV, data = adv))),
+      all_three = c(R2 = summary(fit_all)$r.squared, RSE = sigma(fit_all)))
+predict(fit_all, data.frame(TV = 100, radio = 20, newspaper = 10),
+        interval = "prediction")
+@
+  \begin{itemize}
+    \item<2-> RSE bie me rreth gjysmën: IP për një treg të ri ngushtohet ndjeshëm.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushBudget]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    Përdor modelin \texttt{sales \textasciitilde{} TV + radio} (pa gazeta). Një buxhet prej 100 mijë \$:
+    \begin{enumerate}
+      \item Sa shitje parashikon nëse gjithçka shkon në TV?
+      \item Po nëse ndahet 70 TV / 30 radio?
+      \item Pse modeli thotë që radio është ``më fitimprurëse'' për çdo dollar? Çfarë supozon modeli që mund të mos jetë e vërtetë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjBudget}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\texttt{Auto}: konfuzioni në veprim}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Fuqia e motorit, me dhe pa peshën}
+<<auto-conf>>=
+auto <- na.omit(read.csv(file.path(W06DATA, "Auto.csv"), na.strings = "?"))
+rbind(hp_only      = c(coef(lm(mpg ~ horsepower, data = auto)), weight = NA),
+      hp_and_weight = coef(lm(mpg ~ horsepower + weight, data = auto)))
+cor(auto$horsepower, auto$weight)
+@
+  \footnotesize\textcolor{gray}{Të dhëna: reale, \texttt{Auto} (ISLR); si te \texttt{CrossValidation\_Review.R} i repo-s (\texttt{fit1}, \texttt{fit2}).}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vetëm: çdo hp $\leftrightarrow$ $-0.158$ mpg. Me peshën në model: vetëm $-0.047$.
+    \item<2-> Rreth 70\% e ``efektit'' të fuqisë ishte në fakt efekti i peshës.
+    \item<3-> Për dy makina me \textbf{të njëjtën peshë}, 10 hp më shumë lidhen me vetëm $\approx0.5$ mpg më pak.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushYear]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(4 minuta)]
+    Shto \texttt{year} në modelin \texttt{mpg \textasciitilde{} horsepower + weight}.
+    \begin{enumerate}
+      \item Si ndryshon koeficienti i \texttt{horsepower}?
+      \item Interpreto koeficientin e \texttt{year}. Pse ka kuptim teknologjik?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjYear}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pyetjet e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gjashtë pyetje (ISLR, kap.~3)}
+  \begin{enumerate}
+    \item<1-> A ka lidhje midis shpjeguesve dhe $y$? \hfill (testi $F$, Ora 2)
+    \item<2-> Cilët shpjegues kontribuojnë? \hfill (testet $t$, përzgjedhja, Ora 6)
+    \item<3-> Sa i fortë është modeli? \hfill ($R^2$, RSE)
+    \item<4-> Sa i saktë është parashikimi? \hfill (IB, IP, CV)
+    \item<5-> A janë efektet aditive? \hfill (ndërveprimet, Ora 4)
+    \item<6-> A ka lakim ose probleme të tjera? \hfill (Java 7--8)
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Gabime të zakonshme për fillim}
+  \begin{Gabim}``Gazetat nuk funksionojnë.'' Modeli thotë: \emph{duke mbajtur TV dhe radio konstante}, gazetat nuk shtojnë lidhje të dukshme në këto të dhëna. Nuk është eksperiment.\end{Gabim}
+  \pause
+  \begin{Gabim}Krahasimi i madhësisë së koeficientëve me njësi të ndryshme: $0.19$ (radio) $>0.046$ (TV) nuk do të thotë që radio ``është më e rëndësishme''. Krahaso $t$, ose standardizo.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp61]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 1}
+  \begin{enumerate}
+    \item Pse koeficienti i \texttt{newspaper} ndryshon nga modeli i thjeshtë te ai i shumëfishtë?
+    \item Çfarë do të thotë ``duke mbajtur të tjerat konstante''?
+    \item Si e merr koeficientin e pjesshëm me dy regresione mbetjesh?
+  \end{enumerate}
+  \shkoTe{zgjCp61}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 1}
+  \begin{itemize}
+    \item Tre regresione të thjeshta $\neq$ një model me tre shpjegues.
+    \item \texttt{newspaper}: i rëndësishëm vetëm ($r$ me radio $=0.35$), jo i rëndësishëm me të tjerët.
+    \item Koeficienti i pjesshëm = efekti kur të tjerët mbeten konstantë = pjerrësia e mbetjeve.
+    \item \texttt{Auto}: $-0.158\to-0.047$ mpg/hp kur shtohet pesha.
+  \end{itemize}
+  \begin{Keshille}Ora 2: modeli në formë matricore, testet $t$ dhe $F$, $R^2_{adj}$, shembull me 5 pika pa ndihmën e PC.\end{Keshille}
+\end{frame}

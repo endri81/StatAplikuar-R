@@ -1,0 +1,46 @@
+% ============================================================
+%  Java 6 · Ora 1 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjNews]{Zgjidhja: Parashiko (\texttt{newspaper})}
+  \begin{itemize}
+    \item \textbf{C}. Koeficienti bie në $\approx-0.001$, $p=0.86$.
+    \item Lidhja e thjeshtë vinte nga korrelacioni me radion; kur radio mbahet konstante, gazetat nuk shtojnë asgjë të dukshme.
+  \end{itemize}
+  \vfill\kthehu{pyetjeNews}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjBudget]{Zgjidhja: Radha jote! (buxheti)}
+<<sol-budget>>=
+adv <- read.csv(file.path(W06DATA, "Advertising.csv"))[, -1]
+fit_tr <- lm(sales ~ TV + radio, data = adv)
+coef(fit_tr)
+predict(fit_tr, data.frame(TV = c(100, 70), radio = c(0, 30)))
+@
+  \begin{enumerate}
+    \item Gjithçka në TV: $\approx7.5$ mijë njësi. 70/30: $\approx11.8$ mijë njësi.
+    \item Modeli supozon që çdo 1000 \$ në radio sjell gjithmonë $\approx188$ njësi, \textbf{pavarësisht} nga TV, dhe që vija vazhdon (radio në të dhëna shkon vetëm deri në 49.6). Ndërveprimi TV$\times$radio (Ora 5) e ndryshon pamjen.
+  \end{enumerate}
+  \vfill\kthehu{ushBudget}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjYear]{Zgjidhja: Ndrysho parametrin (\texttt{year})}
+<<sol-year>>=
+auto <- na.omit(read.csv(file.path(W06DATA, "Auto.csv"), na.strings = "?"))
+round(coef(lm(mpg ~ horsepower + weight + year, data = auto)), 4)
+@
+  \begin{enumerate}
+    \item Koeficienti i \texttt{horsepower} bie edhe më: $\approx-0.005$, praktikisht zero.
+    \item Për të njëjtën fuqi dhe peshë, çdo vit modeli më i ri $\leftrightarrow$ $\approx0.75$ mpg më shumë: përmirësimi i teknologjisë (injektimi, standardet e konsumit pas krizës së naftës 1973).
+  \end{enumerate}
+  \vfill\kthehu{ushYear}
+\end{frame}
+
+\begin{frame}[label=zgjCp61]{Përgjigjet: Checkpoint Ora 1}
+  \begin{enumerate}
+    \item Sepse \texttt{newspaper} lidhet me \texttt{radio}: vetëm, merr kredi për efektin e radios; me radion në model, kjo pjesë i atribuohet radios.
+    \item Ndryshimi i pritur i $y$ kur $x_j$ rritet me 1 dhe të gjithë shpjeguesit e tjerë mbeten të njëjtë.
+    \item Hiq nga $x_j$ dhe nga $y$ pjesën e shpjeguar nga shpjeguesit e tjerë; pjerrësia e mbetjeve të $y$ mbi mbetjet e $x_j$.
+  \end{enumerate}
+  \vfill\kthehu{cp61}
+\end{frame}
