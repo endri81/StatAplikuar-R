@@ -1,0 +1,369 @@
+% ============================================================
+%  Java 4 · Ora 7 — Konsolidimi
+%  Rezultatet: K1, S1, S3, S4, C1
+% ============================================================
+
+\section{Konsolidimi}
+
+\begin{frame}{Ora 7: Konsolidimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuizi në stilin e provimit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuizi: si funksionon}
+  \begin{itemize}
+    \item<1-> Si në provim: \textbf{25\% teori, 75\% ushtrime}; 3 pyetje teorike (25 pikë) + 7 ushtrime (75 pikë).
+    \item<2-> Koha: 45 minuta. Ushtrimet 1--5 dhe 7 bëhen pa ndihmën e PC.
+    \item<3-> Vlerat kritike jepen në çdo ushtrim.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Ndërto gjithmonë tabelën e plotë: df, SS, MS, $F$. Pikët jepen për çdo kolonë.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=q4T1]{Teori 1 (8 pikë)}
+  \begin{Ushtrim}[(Teori 1)]
+    \begin{enumerate}
+      \item Shkruani modelin e ANOVA-s njëfaktoriale dhe hipotezat.
+      \item Përkufizoni SSB dhe SSW. Pse SSW ka $N-k$ shkallë lirie?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s4T1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q4T2]{Teori 2 (8 pikë)}
+  \begin{Ushtrim}[(Teori 2)]
+    \begin{enumerate}
+      \item Renditni supozimet e ANOVA-s sipas rëndësisë dhe tregoni si kontrollohet secili.
+      \item Kur preferohet ANOVA e Welch-it? Kur Kruskal--Wallis?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s4T2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q4T3]{Teori 3 (9 pikë)}
+  \begin{Ushtrim}[(Teori 3)]
+    \begin{enumerate}
+      \item Çfarë është ndërveprimi në një ANOVA dyfaktoriale? Si duket në grafik?
+      \item Pse Tukey HSD dhe jo $\binom k2$ teste $t$ të zakonshme?
+      \item Pse në një dizajn të pabalancuar SS e tipit I varet nga rendi i faktorëve?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s4T3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q4E1]{Ushtrimi 1 (10 pikë): tabela ANOVA}
+  \begin{Ushtrim}[(Ushtrimi 1, pa ndihmën e PC)]
+    A $=(2,4,6)$, \ B $=(5,6,7)$, \ C $=(6,8,10)$.
+    \begin{enumerate}
+      \item Llogaritni mesataret, SSB, SSW dhe kontrolloni me SST.
+      \item Plotësoni tabelën ANOVA.
+      \item Vendimi në $\alpha=0.05$? ($F_{0.95;\,2,6}=5.14$.)
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s4E1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q4E2]{Ushtrimi 2 (10 pikë): nga tabelat e përmbledhura}
+  \begin{Ushtrim}[(Ushtrimi 2, pa ndihmën e PC)]
+    Tre linja prodhimi; rezistenca (MPa):
+    \begin{center}
+      \begin{tabular}{@{}lccc@{}}
+        \toprule
+        Linja & $n_i$ & $\bar y_i$ & $s_i$ \\ \midrule
+        A & 10 & 50 & 4 \\ B & 12 & 54 & 5 \\ C & 8 & 47 & 6 \\ \bottomrule
+      \end{tabular}
+    \end{center}
+    Llogaritni $\bar y_{\cdot\cdot}$, SSB, SSW, $F$ dhe $\eta^2$. ($F_{0.95;\,2,27}=3.35$.)
+  \end{Ushtrim}
+  \shkoTe{s4E2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q4E3]{Ushtrimi 3 (10 pikë): Tukey--Kramer}
+  \begin{Ushtrim}[(Ushtrimi 3, pa ndihmën e PC)]
+    Me të dhënat e Ushtrimit 2 (MSW $=24.85$) dhe $q_{0.95;\,3,27}=3.51$:
+    \begin{enumerate}
+      \item Llogaritni $\sqrt{\frac{\text{MSW}}{2}\big(\frac1{n_i}+\frac1{n_j}\big)}$ për çdo çift.
+      \item Llogaritni kufirin për çdo çift dhe krahasoni me diferencat.
+      \item Cilat linja ndryshojnë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s4E3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q4E4]{Ushtrimi 4 (10 pikë): Kruskal--Wallis}
+  \begin{Ushtrim}[(Ushtrimi 4, pa ndihmën e PC)]
+    A $=(1,3,5)$, \ B $=(2,8,9)$, \ C $=(4,6,7)$ (pa barazime).
+    \begin{enumerate}
+      \item Llogaritni shumat e rangjeve $R_i$.
+      \item Llogaritni $H$.
+      \item Vendimi në $\alpha=0.05$? ($\chi^2_{0.95;\,2}=5.99$.)
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s4E4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q4E5]{Ushtrimi 5 (10 pikë): tabela dyfaktoriale}
+  \begin{Ushtrim}[(Ushtrimi 5, pa ndihmën e PC)]
+    Dizajn i balancuar, $a=2$, $b=3$, $n=4$. Plotësoni tabelën:
+    \begin{center}\small
+      \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        Burimi & df & SS & MS & $F$ \\ \midrule
+        A & ? & 30 & ? & ? \\ B & ? & ? & ? & ? \\ A$\times$B & ? & 12 & ? & ? \\
+        Brenda & ? & 54 & ? & \\ \midrule Totali & ? & 200 & & \\ \bottomrule
+      \end{tabular}
+    \end{center}
+    Vendimet? ($F_{0.95;\,1,18}=4.41$, \ $F_{0.95;\,2,18}=3.55$.)
+  \end{Ushtrim}
+  \shkoTe{s4E5}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[fragile,label=q4E6]{Ushtrimi 6 (10 pikë): lexo output-in}
+<<quiz-warp, echo=FALSE>>=
+summary(aov(breaks ~ wool * tension, data = warpbreaks))
+@
+  \small
+  \texttt{warpbreaks}: këputjet e fijeve në tezgjah, 2 lloje leshi $\times$ 3 tensione, $n=9$ (reale, R bazë).
+  Sa vëzhgime ka gjithsej? Cili efekt interpretohet i pari? Çfarë hapi bën më pas? \hfill\shkoTe{s4E6}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q4E7]{Ushtrimi 7 (15 pikë): ndërveprimi $2\times2$}
+  \begin{Ushtrim}[(Ushtrimi 7, pa ndihmën e PC)]
+    Mesataret e qelizave ($n=5$, MSW $=4$, $df=16$): \ A1B1 $=10$, A1B2 $=14$, A2B1 $=12$, A2B2 $=24$.
+    \begin{enumerate}
+      \item Llogaritni efektin e thjeshtë të B në A1 dhe në A2.
+      \item Ndërveprimi $=$ diferenca e tyre. Llogaritni $SE=\sqrt{\text{MSW}\cdot4/n}$ dhe $t$ ($t_{0.975;\,16}=2.12$).
+      \item Interpretoni me një fjali. A ka kuptim ``efekti kryesor i B''?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s4E7}{Zgjidhja}
+\end{frame}
+
+\begin{frame}{Tabela e pikëve}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Pjesa & Pyetjet & Pikët \\ \midrule
+    Teori (25\%) & T1, T2, T3 & 8 + 8 + 9 = 25 \\
+    Ushtrime (75\%) & U1--U6 & $6\times10=60$ \\
+     & U7 & 15 \\ \midrule
+    Gjithsej & 10 & 100 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Nën 50 pikë: përsëritni Orët 2, 4 dhe 6.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ushtrime për shtëpi}
+% ------------------------------------------------------------
+
+\begin{frame}[label=h4H1]{Ushtrime për shtëpi 1--2}
+  \begin{Ushtrim}[(Shtëpi 1: \texttt{Carseats})]
+    \texttt{Sales \textasciitilde{} ShelveLoc}: rrjedha e plotë e Orës 5 (grafikë, \texttt{aov}, diagnostikim, Tukey, $\omega^2$, raport).
+  \end{Ushtrim}
+  \shkoTe{s4H1}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 2: \texttt{Auto}, cilindrat)]
+    \texttt{mpg \textasciitilde{} factor(cylinders)}. Shiko \texttt{table(cylinders)}: çfarë problemi ka? Krahaso $F$ klasik me Welch-in. Çfarë do të bëje me grupet shumë të vogla?
+  \end{Ushtrim}
+  \shkoTe{s4H2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=h4H3]{Ushtrime për shtëpi 3--4}
+  \begin{Ushtrim}[(Shtëpi 3: kostoja e Welch-it)]
+    Me variancë të njëjtë, $n_i=10$, mesatare $(0,0.5,1)$, $\sigma=1$: krahaso fuqinë e $F$ klasik dhe të Welch-it në 2000 përsëritje.
+  \end{Ushtrim}
+  \shkoTe{s4H3}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 4: dyfaktoriale nga zero)]
+    Shkruaj \texttt{my\_anova2(y, A, B)} për dizajne të balancuara. Kontrolloje me shembullin e Orës 6 dhe me \texttt{ToothGrowth}.
+  \end{Ushtrim}
+  \shkoTe{s4H4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=h4H5]{Ushtrime për shtëpi 5--6}
+  \begin{Ushtrim}[(Shtëpi 5: \texttt{lm} dhe qelizat)]
+    Përshtat \texttt{lm(len \textasciitilde{} supp * dose)} te \texttt{ToothGrowth} (doza si faktor). Rindërto 6 mesataret e qelizave nga koeficientët.
+  \end{Ushtrim}
+  \shkoTe{s4H5}{Zgjidhja}
+  \begin{Ushtrim}[(Shtëpi 6: \texttt{InsectSprays})]
+    \texttt{count \textasciitilde{} spray}: kontrollo variancat; provo \texttt{sqrt(count)}; krahaso $F$, Welch dhe Kruskal--Wallis.
+  \end{Ushtrim}
+  \shkoTe{s4H6}{Zgjidhja}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gabimet e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet e zakonshme: interpretimi}
+  \begin{itemize}
+    \item<1-> $F$ i rëndësishëm $\Rightarrow$ ``të gjitha mesataret ndryshojnë''. Jo: \emph{të paktën një}.
+    \item<2-> $p$ i vogël $\Rightarrow$ ``efekt i madh''. Raporto $\eta^2$ ose $\omega^2$.
+    \item<3-> Efektet kryesore të interpretuara kur ndërveprimi është i rëndësishëm.
+    \item<4-> ``A $\ne$ C, A $=$ B'' nga mungesa e rëndësisë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: llogaritja}
+  \begin{itemize}
+    \item<1-> Faktori i ruajtur si numër: $df=1$ në vend të $k-1$.
+    \item<2-> SSB pa peshat $n_i$.
+    \item<3-> $df$ e gabimit $N-1$ në vend të $N-k$.
+    \item<4-> Tipi III me \texttt{contr.treatment}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: supozimet}
+  \begin{itemize}
+    \item<1-> Normaliteti i testuar te $y$, jo te mbetjet.
+    \item<2-> Shapiro me $N$ të madh si arsye për të braktisur ANOVA-n.
+    \item<3-> ``Levene nuk doli i rëndësishëm, pra variancat janë të barabarta'' me $n_i$ të vogla.
+    \item<4-> Kruskal--Wallis si ``ANOVA për mesataret'' kur variancat ndryshojnë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit e një analize ANOVA}
+  \begin{enumerate}
+    \item Faktorët si \texttt{factor()}; numëro $n_i$ për çdo grup/qelizë.
+    \item Grafikë: kutitë; grafiku i ndërveprimit për dy faktorë.
+    \item Modeli; me dy faktorë, lexo ndërveprimin të parin.
+    \item Diagnostikimi: mbetjet, QQ, raporti i $s_i$; Welch nëse duhet.
+    \item Krahasimet: Tukey ose efekte të thjeshta me \texttt{emmeans}.
+    \item Raporti: $F(df_1,df_2)$, $p$, madhësia e efektit, IB, kufizimet.
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fletë-kujtesa}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë-kujtesa 1: formulat}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Madhësia & Formula \\ \midrule
+    SSB, SSW & $\sum n_i(\bar y_{i\cdot}-\bar y_{\cdot\cdot})^2$, \ $\sum(n_i-1)s_i^2$ \\
+    $F$ & $\dfrac{\text{SSB}/(k-1)}{\text{SSW}/(N-k)}$ \\
+    $E[\text{MSB}]$ & $\sigma^2+\sum n_i\alpha_i^2/(k-1)$ \\
+    $\eta^2$, $\omega^2$ & SSB/SST, \ $\dfrac{\text{SSB}-(k-1)\text{MSW}}{\text{SST}+\text{MSW}}$ \\
+    Tukey HSD & $q_{1-\alpha;\,k,N-k}\sqrt{\text{MSW}/n}$ \\
+    Kruskal--Wallis & $H=\frac{12}{N(N+1)}\sum R_i^2/n_i-3(N+1)$ \\
+    Dyfaktoriale & SST = SSA + SSB + SSAB + SSW; \ $df_{AB}=(a-1)(b-1)$ \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 2: funksionet R}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    ANOVA & \texttt{aov(y \textasciitilde{} g)}, \texttt{summary()}, \texttt{anova(lm())} \\
+    Supozimet & \texttt{plot(fit, which = 1:2)}, \texttt{car::leveneTest()} \\
+    Alternativat & \texttt{oneway.test()}, \texttt{kruskal.test()} \\
+    Çiftet & \texttt{TukeyHSD()}, \texttt{pairwise.t.test(p.adjust.method = )} \\
+    Mesataret, efektet e thjeshta & \texttt{emmeans(fit, \textasciitilde{} A | B)}, \texttt{pairs()} \\
+    Madhësia e efektit & \texttt{effectsize::omega\_squared()}, \texttt{eta\_squared()} \\
+    Fuqia & \texttt{power.anova.test()}, \texttt{pf(..., ncp = )} \\
+    Pabalancuar & \texttt{car::Anova(fit, type = 2)} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 3: grafikët}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Grafiku & Funksioni \\ \midrule
+    Kutitë + pikat & \texttt{geom\_boxplot()} + \texttt{geom\_jitter()} \\
+    Violin & \texttt{geom\_violin()} \\
+    Mesataret & \texttt{stat\_summary(fun = mean, geom = "point")} \\
+    Ndërveprimi & \texttt{stat\_summary(fun = mean, geom = "line")}, \texttt{interaction.plot()} \\
+    Intervalet Tukey & \texttt{plot(TukeyHSD(fit))} \\
+    Diagnostikimi & \texttt{plot(fit, which = 1:2)} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ura drejt regresionit}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{ANOVA = regresion me variabla dummy}
+<<bridge-mm>>=
+auto <- read.csv(file.path(W04DATA, "Auto.csv"), na.strings = "?")
+auto$origin <- factor(auto$origin, labels = c("USA", "Europe", "Japan"))
+head(model.matrix(~ origin, data = auto)[c(1, 15, 20), ], 3)
+auto$origin[c(1, 15, 20)]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Faktori me 3 nivele bëhet 2 kolona 0/1 (+ konstantja): \texttt{originEurope}, \texttt{originJapan}.
+    \item<2-> SHBA është \textbf{niveli bazë}: konstantja $=\bar y_{\text{USA}}$.
+    \item<3-> Koeficientët = dallimet nga baza (Ora 3: +7.82, +10.38).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{$R^2$ i regresionit $=\eta^2$}
+<<bridge-r2>>=
+fit_lm <- lm(mpg ~ origin, data = auto)
+c(R2 = summary(fit_lm)$r.squared,
+  eta2 = 8081.1 / (8081.1 + 16171.2))
+summary(fit_lm)$fstatistic
+@
+\end{frame}
+
+\begin{frame}{Java 5: regresi i thjeshtë linear \LO{K2} \LO{S2}}
+  \begin{itemize}
+    \item<1-> Sot: $x$ kategorik $\Rightarrow$ mesatare grupesh. Java 5: $x$ sasior $\Rightarrow$ vijë e drejtë.
+    \item<2-> Të njëjtat ide: SST = SSR + SSE, $F$, $R^2$, mbetjet, supozimet.
+    \item<3-> Katrorët më të vegjël, inferenca për $\beta_0,\beta_1$, parashikimi.
+    \item<4-> Material: repo-ja DS612 (\texttt{Linear\_Regression}) dhe ISLR, kap.~3.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Para Javës 5}
+  \begin{itemize}
+    \item Përsëritni korrelacionin (Java 3): $\hat\beta_1=r\,s_y/s_x$.
+    \item Mbaroni ushtrimet për shtëpi 1--6.
+    \item Lexoni ISLR kap.~3.1 (regresi i thjeshtë).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Burime}
+  \footnotesize
+  \begin{itemize}
+    \item E.~Raço, E.~Llagami, K.~Haxhi, O.~Zaçaj, \emph{Teoria e Probabilitetit dhe Statistika Matematike me ilustrime në gjuhën R}, Kotti, 2021 (testi $t$, shpërndarja $F$, ANOVA).
+    \item J.~Cohen, P.~Cohen, S.~G.~West, L.~S.~Aiken, \emph{Applied Multiple Regression/Correlation Analysis for the Behavioral Sciences}, LEA, 2003 (variablat kategorike, kodimi, ndërveprimet).
+    \item G.~James, D.~Witten, T.~Hastie, R.~Tibshirani, \emph{An Introduction to Statistical Learning}, Springer; \url{https://www.statlearning.com} (të dhënat \texttt{Auto}, \texttt{Carseats}).
+    \item N.~Lo, \emph{DS612 Data Mining with Business Applications (R)}, \url{https://github.com/NormanLo4319/DS612_Data_Mining_with_Business_Applications_R} (licencë MIT); \texttt{anova()} për modele të mbivendosura nga \texttt{DS612\_R-Code\_Lecture\_7.1.R}.
+    \item J.~W.~Tukey (1949), Comparing individual means in the analysis of variance, \emph{Biometrics} 5(2); B.~L.~Welch (1951), \emph{Biometrika} 38(3/4); W.~H.~Kruskal, W.~A.~Wallis (1952), \emph{JASA} 47(260).
+    \item E.~W.~Crampton (1947), \emph{The Journal of Nutrition} 33(5) (\texttt{ToothGrowth}).
+    \item Paketat: \texttt{car}, \texttt{emmeans}, \texttt{effectsize}, \texttt{ggplot2}. Të dhënat e R bazë: \texttt{ToothGrowth}, \texttt{warpbreaks}, \texttt{InsectSprays}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp47]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 7}
+  \begin{enumerate}
+    \item Cilat katër gjëra raporton për një ANOVA?
+    \item Kur dizajni është i pabalancuar dhe variancat ndryshojnë, çfarë përdor?
+    \item Si lidhet $\eta^2$ me $R^2$ e regresionit?
+  \end{enumerate}
+  \shkoTe{zgjCp47}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje e Javës 4}
+  \begin{itemize}
+    \item ANOVA: një test $F$ = midis / brenda grupeve; SST = SSB + SSW.
+    \item Supozimet: pavarësia, varianca e njëjtë, normaliteti i mbetjeve; Welch dhe Kruskal--Wallis.
+    \item Krahasimet: Tukey HSD, Holm, \texttt{emmeans}; \Zgjerim kontrastet.
+    \item Dy faktorë: ndërveprimi i pari; efektet e thjeshta; \Zgjerim tipet e SS.
+    \item ANOVA = regresion me dummy: ura drejt Javës 5.
+  \end{itemize}
+\end{frame}

@@ -1,0 +1,207 @@
+% ============================================================
+%  Java 4 · Ora 7 — Zgjidhjet e kuizit dhe të ushtrimeve
+% ============================================================
+
+\begin{frame}[label=s4T1]{Zgjidhja: Teori 1}
+  \begin{enumerate}
+    \item $y_{ij}=\mu+\alpha_i+\varepsilon_{ij}$, $\varepsilon_{ij}\sim N(0,\sigma^2)$ iid, $\sum n_i\alpha_i=0$; \ $H_0:\alpha_1=\dots=\alpha_k=0$, $H_1$: të paktën një $\alpha_i\ne0$. (4 pikë)
+    \item SSB $=\sum n_i(\bar y_{i\cdot}-\bar y_{\cdot\cdot})^2$, SSW $=\sum\sum(y_{ij}-\bar y_{i\cdot})^2$. $N$ devijime me $k$ kufizime (një për grup: $\sum_j e_{ij}=0$) $\Rightarrow N-k$. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q4T1}
+\end{frame}
+
+\begin{frame}[label=s4T2]{Zgjidhja: Teori 2}
+  \begin{enumerate}
+    \item Pavarësia (nga dizajni); varianca e njëjtë (mbetjet sipas grupit, raporti i $s_i$, Levene); normaliteti i mbetjeve (QQ, Shapiro me kujdes). (4 pikë)
+    \item Welch: variancat ndryshojnë, sidomos me $n_i$ të ndryshme. Kruskal--Wallis: të dhëna rendore, vlera ekstreme, shpërndarje shumë jo-normale me $n_i$ të vogla. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q4T2}
+\end{frame}
+
+\begin{frame}[label=s4T3]{Zgjidhja: Teori 3}
+  \begin{enumerate}
+    \item Efekti i një faktori varet nga niveli i tjetrit; vija jo paralele të mesatareve. (3 pikë)
+    \item $\binom k2$ teste me $\alpha=0.05$ e rritin gabimin familjar; Tukey e mban atë $=\alpha$ duke përdorur shpërndarjen e diferencës më të madhe. (3 pikë)
+    \item Faktorët janë të korreluar: pjesa e përbashkët e SS i jepet termit që hyn i pari. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q4T3}
+\end{frame}
+
+\begin{frame}[fragile,label=s4E1]{Zgjidhja: Ushtrimi 1}
+  \begin{enumerate}
+    \item $\bar y=(4,6,8)$, $\bar y_{\cdot\cdot}=6$. SSB $=3(4+0+4)=24$; SSW $=8+2+8=18$; SST $=16+4+0+1+0+1+0+4+16=42$. \checkmark\ (4 pikë)
+    \item MSB $=12$, MSW $=3$, $F=4.0$, $df=(2,6)$. (4 pikë)
+    \item $4.0<5.14$: nuk e hedhim poshtë $H_0$. (2 pikë)
+  \end{enumerate}
+<<sol-q4e1>>=
+y <- c(2, 4, 6, 5, 6, 7, 6, 8, 10); g <- gl(3, 3)
+summary(aov(y ~ g))[[1]][, 1:5]
+@
+  \vfill\kthehu{q4E1}
+\end{frame}
+
+\begin{frame}[label=s4E2]{Zgjidhja: Ushtrimi 2}
+  \begin{enumerate}
+    \item $\bar y_{\cdot\cdot}=(500+648+376)/30=50.8$. (2 pikë)
+    \item SSB $=10(0.8)^2+12(3.2)^2+8(3.8)^2=6.4+122.88+115.52=244.8$. (3 pikë)
+    \item SSW $=9\cdot16+11\cdot25+7\cdot36=671$; MSW $=671/27=24.85$. (2 pikë)
+    \item $F=122.4/24.85=4.93>3.35$: hedhim poshtë $H_0$ ($p\approx0.015$). $\eta^2=244.8/915.8=0.27$. (3 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q4E2}
+\end{frame}
+
+\begin{frame}[label=s4E3]{Zgjidhja: Ushtrimi 3}
+  \small
+  \centering
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Çifti & $|\bar y_i-\bar y_j|$ & $\sqrt{\frac{24.85}{2}(\frac1{n_i}+\frac1{n_j})}$ & Kufiri ($\times3.51$) & Ndryshon? \\ \midrule
+    B--A & 4 & $\sqrt{12.43\times0.183}=1.51$ & 5.30 & jo \\
+    A--C & 3 & $\sqrt{12.43\times0.225}=1.67$ & 5.87 & jo \\
+    B--C & 7 & $\sqrt{12.43\times0.208}=1.61$ & 5.65 & \textbf{po} \\ \bottomrule
+  \end{tabular}
+  \normalsize
+  \begin{itemize}
+    \item Vetëm linjat B dhe C ndryshojnë. (Pikët: 4 + 4 + 2.)
+  \end{itemize}
+  \vfill\kthehu{q4E3}
+\end{frame}
+
+\begin{frame}[fragile,label=s4E4]{Zgjidhja: Ushtrimi 4}
+  \begin{enumerate}
+    \item Vlerat janë vetë rangjet 1--9: $R_A=9$, $R_B=19$, $R_C=17$. (3 pikë)
+    \item $H=\frac{12}{90}\cdot\frac{81+361+289}{3}-30=\frac{12}{90}\cdot243.67-30\approx2.49$. (5 pikë)
+    \item $2.49<5.99$: nuk e hedhim poshtë $H_0$. (2 pikë)
+  \end{enumerate}
+<<sol-q4e4>>=
+kruskal.test(c(1, 3, 5, 2, 8, 9, 4, 6, 7) ~ gl(3, 3))$statistic
+@
+  \vfill\kthehu{q4E4}
+\end{frame}
+
+\begin{frame}[label=s4E5]{Zgjidhja: Ushtrimi 5}
+  \centering
+  \begin{tabular}{@{}lccccc@{}}
+    \toprule
+    Burimi & df & SS & MS & $F$ & Vendimi \\ \midrule
+    A & 1 & 30 & 30 & 10.0 & $>4.41$: po \\
+    B & 2 & 104 & 52 & 17.3 & $>3.55$: po \\
+    A$\times$B & 2 & 12 & 6 & 2.0 & $<3.55$: jo \\
+    Brenda & 18 & 54 & 3 & & \\ \midrule
+    Totali & 23 & 200 & & & \\ \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item SSB $=200-30-12-54=104$; $df_W=ab(n-1)=18$. Pa ndërveprim: efektet kryesore interpretohen drejtpërdrejt.
+  \end{itemize}
+  \vfill\kthehu{q4E5}
+\end{frame}
+
+\begin{frame}[label=s4E6]{Zgjidhja: Ushtrimi 6}
+  \begin{enumerate}
+    \item $N-1=1+2+2+48=53\Rightarrow N=54$ ($2\times3\times9$). (3 pikë)
+    \item Së pari ndërveprimi: $F(2,48)=4.19$, $p=0.021$: i rëndësishëm. (3 pikë)
+    \item Efekti i \texttt{wool} nuk interpretohet më vete ($p=0.058$ nuk ka kuptim të vetëm). Hapi: efektet e thjeshta, p.sh.\ \texttt{emmeans(fit, \textasciitilde{} wool | tension)}, dhe grafiku i ndërveprimit. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q4E6}
+\end{frame}
+
+\begin{frame}[label=s4E7]{Zgjidhja: Ushtrimi 7}
+  \begin{enumerate}
+    \item B në A1: $14-10=4$; B në A2: $24-12=12$. (4 pikë)
+    \item Ndërveprimi: $12-4=8$; $SE=\sqrt{4\cdot4/5}=1.79$; $t=4.47>2.12$: i rëndësishëm. (7 pikë)
+    \item B rrit përgjigjen më shumë te A2 (trefish më shumë se te A1). ``Efekti kryesor'' i B ($+8$, mesatarja) nuk përshkruan asnjërin nivel të A. (4 pikë)
+  \end{enumerate}
+  \vfill\kthehu{q4E7}
+\end{frame}
+
+\begin{frame}[fragile,shrink=6,label=s4H1]{Zgjidhja: Shtëpi 1}
+<<sol-h41>>=
+library(effectsize)
+cs <- read.csv(file.path(W04DATA, "Carseats.csv"))
+cs$ShelveLoc <- factor(cs$ShelveLoc, levels = c("Bad", "Medium", "Good"))
+fit_cs <- aov(Sales ~ ShelveLoc, data = cs)
+summary(fit_cs)[[1]][1, 4:5]; car::leveneTest(Sales ~ ShelveLoc, data = cs)[1, 3]
+round(TukeyHSD(fit_cs)$ShelveLoc, 3); omega_squared(fit_cs)$Omega2
+@
+  \vfill\kthehu{h4H1}
+\end{frame}
+
+\begin{frame}[fragile,label=s4H2]{Zgjidhja: Shtëpi 2}
+<<sol-h42>>=
+auto <- read.csv(file.path(W04DATA, "Auto.csv"), na.strings = "?")
+table(auto$cylinders)
+c(F = summary(aov(mpg ~ factor(cylinders), data = auto))[[1]]$`Pr(>F)`[1],
+  Welch = oneway.test(mpg ~ factor(cylinders), data = auto)$p.value)
+@
+  \begin{itemize}
+    \item 3 dhe 5 cilindra kanë vetëm 4 dhe 3 makina: variancat e tyre nuk vlerësohen mirë. Opsione: bashkoji me grupe fqinje (p.sh.\ ``$\le4$'', ``5--6'') ose përjashtoji dhe thuaje në raport.
+  \end{itemize}
+  \vfill\kthehu{h4H1}
+\end{frame}
+
+\begin{frame}[fragile,label=s4H3]{Zgjidhja: Shtëpi 3}
+<<sol-h43>>=
+set.seed(43); g <- gl(3, 10)
+pw <- replicate(2000, {
+  y <- rep(c(0, 0.5, 1), each = 10) + rnorm(30)
+  c(F = summary(aov(y ~ g))[[1]][1, 5], Welch = oneway.test(y ~ g)$p.value) < 0.05
+})
+rowMeans(pw)
+@
+  \begin{itemize}
+    \item Kur variancat janë vërtet të barabarta, Welch humb shumë pak fuqi. Kjo është arsyeja pse shumë e rekomandojnë si parazgjedhje.
+  \end{itemize}
+  \vfill\kthehu{h4H3}
+\end{frame}
+
+\begin{frame}[fragile,shrink=6,label=s4H4]{Zgjidhja: Shtëpi 4}
+<<sol-h44>>=
+my_anova2 <- function(y, A, B) {
+  A <- factor(A); B <- factor(B); a <- nlevels(A); b <- nlevels(B); n <- length(y) / (a * b)
+  m <- mean(y); mA <- tapply(y, A, mean); mB <- tapply(y, B, mean); mAB <- tapply(y, list(A, B), mean)
+  ss <- c(A = b * n * sum((mA - m)^2), B = a * n * sum((mB - m)^2),
+          AB = n * sum((mAB - outer(mA, mB, "+") + m)^2), W = sum((y - mAB[cbind(A, B)])^2))
+  df <- c(a - 1, b - 1, (a - 1) * (b - 1), a * b * (n - 1)); ms <- ss / df
+  data.frame(df, SS = ss, MS = ms, F = c(ms[1:3] / ms[4], NA))
+}
+tg <- ToothGrowth; tg$dose <- factor(tg$dose)
+round(my_anova2(tg$len, tg$supp, tg$dose), 3)
+@
+  \vfill\kthehu{h4H3}
+\end{frame}
+
+\begin{frame}[fragile,label=s4H5]{Zgjidhja: Shtëpi 5}
+<<sol-h45>>=
+b <- coef(lm(len ~ supp * dose, data = tg))
+round(b, 2)
+cells <- c(OJ_0.5 = b[1], VC_0.5 = b[1] + b[2], OJ_1 = b[1] + b[3],
+           VC_1 = b[1] + b[2] + b[3] + b[5], OJ_2 = b[1] + b[4],
+           VC_2 = b[1] + b[2] + b[4] + b[6])
+round(unname(cells), 2)
+@
+  \vfill\kthehu{h4H5}
+\end{frame}
+
+\begin{frame}[fragile,label=s4H6]{Zgjidhja: Shtëpi 6}
+<<sol-h46>>=
+round(tapply(InsectSprays$count, InsectSprays$spray, sd), 2)
+c(levene_raw = car::leveneTest(count ~ spray, data = InsectSprays)[1, 3],
+  levene_sqrt = car::leveneTest(sqrt(count) ~ spray, data = InsectSprays)[1, 3])
+c(F = summary(aov(sqrt(count) ~ spray, data = InsectSprays))[[1]]$`Pr(>F)`[1],
+  Welch = oneway.test(count ~ spray, data = InsectSprays)$p.value,
+  KW = kruskal.test(count ~ spray, data = InsectSprays)$p.value)
+@
+  \begin{itemize}
+    \item Numërimet kanë variancë që rritet me mesataren; $\sqrt{\cdot}$ e stabilizon. Të gjitha testet pajtohen.
+  \end{itemize}
+  \vfill\kthehu{h4H5}
+\end{frame}
+
+\begin{frame}[label=zgjCp47]{Përgjigjet: Checkpoint Ora 7}
+  \begin{enumerate}
+    \item $F(df_1,df_2)$ dhe $p$; madhësinë e efektit ($\omega^2$ ose $\eta^2_p$); krahasimet me IB; kontrollin e supozimeve.
+    \item ANOVA e Welch-it dhe krahasime me teste $t$ të Welch-it (\texttt{pool.sd = FALSE}) me Holm.
+    \item Janë e njëjta gjë: SSB/SST $=$ SSR/SST te regresioni me variabla dummy.
+  \end{enumerate}
+  \vfill\kthehu{cp47}
+\end{frame}
