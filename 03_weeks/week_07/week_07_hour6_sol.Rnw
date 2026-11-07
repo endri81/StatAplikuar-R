@@ -1,0 +1,40 @@
+% ============================================================
+%  Java 7 · Ora 6 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjBos]{Zgjidhja: Parashiko (\texttt{Boston})}
+  \begin{enumerate}
+    \item Jolinearitet (formë U, nga \texttt{lstat}) dhe bisht i djathtë i rëndë / heteroskedasticitet.
+    \item Te zonat me \texttt{medv} $=50$: modeli linear nuk ``arrin'' dot vlerat e kufizuara lart, kështu që mbetjet e tyre janë shumë pozitive.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeBos}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjBosLog]{Zgjidhja: Radha jote! (\texttt{plot(fit\_log)})}
+<<sol-boslog, fig.height=3, fig.width=7, out.width="0.62\\textwidth">>=
+bos6 <- MASS::Boston[, setdiff(names(MASS::Boston), "black")]
+fit_log6 <- lm(log(medv) ~ crim + zn + chas + nox + rm + dis + rad +
+                 tax + ptratio + log(lstat), data = bos6)
+par(mfrow = c(2, 2), mar = c(3.4, 3.4, 1.6, 0.8), cex = 0.6); plot(fit_log6)
+@
+  \small Forma U zbutet shumë; Q-Q më afër vijës. Mbeten zonat 372 dhe 373 (\texttt{medv} $=50$), pak hinkë, dhe zona 381 me leverage të lartë ($h\approx0.29$).
+  \vfill\kthehu{ushBosLog}
+\end{frame}
+
+\begin{frame}[label=zgjGab76]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item 0.035 është MSE në shkallën e $\log(\texttt{medv})$; 23.9 në shkallën e \texttt{medv} (mijë \$ në katror).
+    \item Njësi të ndryshme: krahasimi nuk ka kuptim.
+    \item Duhet: parashiko $\log y$, kthe me \texttt{exp()}, pastaj llogarit MSE në \texttt{medv}: 18.6 kundrejt 23.9, rreth 22\% më mirë, jo 700 herë.
+  \end{itemize}
+  \vfill\kthehu{gjejGab76}
+\end{frame}
+
+\begin{frame}[label=zgjCp76]{Përgjigjet: Checkpoint Ora 6}
+  \begin{enumerate}
+    \item Nuk janë gabime: janë zonat më të shtrenjta, me vlerë të cunguar në kufirin e regjistrimit. Heqja e tyre ndryshon popullatën; bëjmë analizë ndjeshmërie.
+    \item Që gabimi të jetë në të njëjtën shkallë (mijë \$) me modelet e tjera.
+    \item Elasticitet: kur \texttt{lstat} rritet 1\%, \texttt{medv} mediane ulet rreth 0.39\%, me të tjerat konstante.
+  \end{enumerate}
+  \vfill\kthehu{cp76}
+\end{frame}

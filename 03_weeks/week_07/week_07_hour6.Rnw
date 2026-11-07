@@ -1,0 +1,362 @@
+% ============================================================
+%  Java 7 · Ora 6 — Rast studimi: Boston, nga diagnostikimi te raporti
+%  Rezultatet: S2, S3, C1, S4
+%  Burimi: Harrison & Rubinfeld (1978) përmes MASS::Boston; ISLR kap. 3.6;
+%          modeli BIC i Javës 6
+% ============================================================
+
+\section{Rast studimi: \texttt{Boston}}
+
+\begin{frame}{Ora 6: Rast studimi --- \texttt{Boston}}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi dhe modeli fillestar}
+% ------------------------------------------------------------
+
+\begin{frame}{Problemi \LO{S2} \LO{S3} \LO{C1}}
+  \begin{itemize}
+    \item<1-> 506 zona të Bostonit (1970); $y$ = \texttt{medv}, vlera mediane e banesave (në 1000\$).
+    \item<2-> Të dhëna: \texttt{MASS::Boston}, \textbf{reale} (Harrison \& Rubinfeld, 1978).
+    \item<3-> Kolona e racës (\texttt{black}) \textbf{nuk përdoret} në këtë kurs.
+    \item<4-> Pyetja: cilat faktorë lidhen me çmimin, dhe a mund t'i besojmë SE dhe parashikimeve?
+    \item<5-> Rast tipik për statistikën zyrtare: çmimet e banesave sipas zonave (si indekset e INSTAT).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Rrjedha e punës}
+  \centering
+  \begin{tikzpicture}[node distance=0.35cm,
+      st/.style={draw,rounded corners,fill=uptlight,minimum width=1.75cm,minimum height=0.9cm,align=center,font=\scriptsize}]
+    \node[st] (a) {Modeli\\BIC (J6)};
+    \node[st,right=of a] (b) {Diagnostikim\\(Orët 2--5)};
+    \node[st,right=of b,fill=orange!15] (c) {Korrigjim\\log, HC3};
+    \node[st,right=of c] (d) {Validim\\10-fold CV};
+    \node[st,right=of d,fill=green!12] (e) {Raport};
+    \draw[->,thick] (a) -- (b); \draw[->,thick] (b) -- (c); \draw[->,thick] (c) -- (d); \draw[->,thick] (d) -- (e);
+    \draw[->,thick,dashed,accent] (c.north) to[bend right=35] node[above,font=\tiny] {rikontrollo} (b.north);
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile]{Modeli BIC i Javës 6}
+<<h6-bic>>=
+library(MASS)
+bos <- Boston[, setdiff(names(Boston), "black")]   # race column excluded
+fit_bic <- step(lm(medv ~ ., data = bos), trace = 0, k = log(nrow(bos)))
+attr(terms(fit_bic), "term.labels")
+c(R2 = summary(fit_bic)$r.squared, sigma = sigma(fit_bic),
+  n = nrow(bos), k = length(coef(fit_bic)))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> BIC mban 10 nga 12 parashikues; heq \texttt{indus} dhe \texttt{age}.
+    \item<2-> $R^2=0.734$, $\hat\sigma=4.79$ (mijë \$).
+    \item<3-> Java 6 ndaloi këtu. Sot: \textbf{a është ky model i besueshëm?}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeBos]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Nga Javët 2--5 dimë: \texttt{medv} është i anuar djathtas dhe i kufizuar në 50; lidhja \texttt{medv}--\texttt{lstat} është e lakuar.
+    \begin{enumerate}
+      \item Cilat dy probleme pret te \texttt{plot(fit\_bic)}?
+      \item Ku pret të jenë mbetjet më të mëdha?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjBos}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Diagnostikimi}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{plot(fit\_bic)}}
+<<h6-plot, fig.height=3.2, fig.width=7, out.width="0.72\\textwidth">>=
+par(mfrow = c(2, 2), mar = c(3.4, 3.4, 1.6, 0.8), cex = 0.6)
+plot(fit_bic)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \textbf{Residuals vs Fitted}: formë U e qartë $\Rightarrow$ jolinearitet.
+    \item<2-> \textbf{Q-Q}: bishti i djathtë shumë i rëndë.
+    \item<3-> \textbf{Scale-Location}: varianca nuk është konstante.
+    \item<4-> \textbf{Residuals vs Leverage}: pikat 369, 372, 373 dallohen; asnjë $D>0.5$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Diagnostikimi numerik}
+<<h6-num>>=
+library(lmtest); library(car)
+data.frame(BP_p = signif(bptest(fit_bic)$p.value, 3),
+  shapiro_W = round(unname(shapiro.test(rstandard(fit_bic))$statistic), 3),
+  n_t3 = sum(abs(rstudent(fit_bic)) > 3),
+  max_D = round(max(cooks.distance(fit_bic)), 3), row.names = "")
+outlierTest(fit_bic)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> BP refuzon ($p\approx4\times10^{-9}$): heteroskedasticitet.
+    \item<2-> Shapiro $W=0.91$: largim i fortë nga normaliteti.
+    \item<3-> 7 pika me $|t|>3$; tri vlera ekstreme të rëndësishme me Bonferroni.
+    \item<4-> $D_{\max}=0.17$: asnjë pikë e vetme nuk e drejton modelin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kush janë vlerat ekstreme?}
+<<h6-cens>>=
+table(capped = bos$medv == 50)
+round(rstudent(fit_bic)[bos$medv == 50], 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 16 zona kanë \texttt{medv} $=50$ saktësisht: vlera është \termi{e cunguar}{censored}, kufiri i regjistrimit.
+    \item<2-> Të tri vlerat ekstreme (369, 372, 373) janë ndër to.
+    \item<3-> Vlera e vërtetë është $\ge50$; modeli parashikon shumë më pak.
+  \end{itemize}
+  \begin{Gabim}Heqja e këtyre 16 zonave si ``gabime''. Ato nuk janë gabime: janë zonat më të shtrenjta. Analizë ndjeshmërie: me dhe pa to.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Grafikët CR për \texttt{lstat} dhe \texttt{rm}}
+<<h6-cr, fig.height=2.8, fig.width=7, out.width="0.8\\textwidth">>=
+crPlots(fit_bic, terms = ~ lstat + rm, layout = c(1, 2),
+        grid = FALSE, main = "")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{lstat}: lakim i fortë konveks; efekti është i madh për \texttt{lstat} të ulët, i vogël për \texttt{lstat} të lartë.
+    \item<2-> Kjo formë sugjeron $\log(\texttt{lstat})$.
+    \item<3-> \texttt{rm}: lakim konveks; çmimi rritet shpejt për banesa me shumë dhoma.
+    \item<4-> Hapi i parë: zëvendëso \texttt{lstat} me $\log(\texttt{lstat})$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Multikolineariteti}
+<<h6-vif>>=
+round(vif(fit_bic), 2)
+round(cor(bos$rad, bos$tax), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{tax} (7.3) dhe \texttt{rad} (6.8): mbi 5, nën 10; korrelacion 0.91.
+    \item<2-> SE e tyre janë rreth $\sqrt{7}\approx2.6$ herë më të mëdha.
+    \item<3-> Të dy mbeten të rëndësishëm, kështu që i mbajmë; por koeficientët individualë interpretohen me kujdes.
+    \item<4-> Për parashikim, kolineariteti i moderuar nuk dëmton.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Korrigjimi}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Hapi 1 dhe 2: $\log(\texttt{lstat})$, pastaj $\log(\texttt{medv})$}
+<<h6-fix>>=
+fit_ll <- update(fit_bic, . ~ . - lstat + log(lstat))
+fit_log <- lm(log(medv) ~ crim + zn + chas + nox + rm + dis + rad +
+                tax + ptratio + log(lstat), data = bos)
+diag_row <- function(m) data.frame(R2 = round(summary(m)$r.squared, 3),
+  BP_p = signif(bptest(m)$p.value, 2), n_t3 = sum(abs(rstudent(m)) > 3),
+  W = round(unname(shapiro.test(rstandard(m))$statistic), 3))
+rbind(bic = diag_row(fit_bic), log_lstat = diag_row(fit_ll),
+      log_both = diag_row(fit_log))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $\log(\texttt{lstat})$: $R^2$ $0.734\to0.786$; forma përmirësohet.
+    \item<2-> $\log(\texttt{medv})$: $R^2=0.795$ (shkallë tjetër, krahasim i përafërt); $W$ $0.91\to0.96$.
+    \item<3-> Heteroskedasticiteti \textbf{nuk} zhduket (BP refuzon në të tre modelet).
+    \item<4-> $|t|>3$: $7\to9$; në shkallën log dalin edhe disa mbetje të mëdha \textbf{negative} (zona të lira).
+    \item<5-> Pra: forma dhe normaliteti përmirësohen; për variancën përdorim \textbf{SE HC3}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushBosLog]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    \begin{enumerate}
+      \item Ekzekuto \texttt{par(mfrow = c(2, 2)); plot(fit\_log)}.
+      \item Krahaso me \texttt{plot(fit\_bic)}: çfarë përmirësohet, çfarë mbetet?
+      \item Cilat zona dallohen tani? A janë ende me \texttt{medv} $=50$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjBosLog}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile,shrink=6]{SE klasike kundrejt HC3 për \texttt{fit\_log}}
+<<h6-hc3>>=
+library(sandwich)
+V3 <- vcovHC(fit_log, type = "HC3")
+tab <- cbind(est = coef(fit_log), se_classic = sqrt(diag(vcov(fit_log))),
+             se_hc3 = sqrt(diag(V3)))
+tab <- cbind(tab, ratio = tab[, 3] / tab[, 2],
+             p_hc3 = 2 * pt(-abs(tab[, 1] / tab[, 3]), df.residual(fit_log)))
+round(tab, 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> SE HC3 janë deri në $2.3\times$ më të mëdha (\texttt{crim}); për \texttt{rm} $1.6\times$.
+    \item<2-> \texttt{rm} mbetet i rëndësishëm ($p=0.024$), por me shumë më pak siguri se sa dukej.
+    \item<3-> \texttt{zn}: koeficient $\approx0$, $p=0.96$ në modelin me log.
+  \end{itemize}
+  \begin{Gabim}\texttt{zn} u zgjodh nga BIC në modelin për \texttt{medv}. Pas transformimit nuk ka më efekt. Përzgjedhja e variablave varet nga forma e modelit; mos e ``trashëgo'' pa e rikontrolluar.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Validimi}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{10-fold CV në shkallën e \texttt{medv}}
+<<h6-cv>>=
+set.seed(2026)
+K <- 10; fold <- sample(rep(1:K, length.out = nrow(bos)))
+cv_mse <- function(fm, log_y = FALSE) mean(sapply(1:K, function(k) {
+  m <- lm(fm, data = bos[fold != k, ])
+  p <- predict(m, newdata = bos[fold == k, ])
+  if (log_y) p <- exp(p)                       # back to medv scale
+  mean((bos$medv[fold == k] - p)^2) }))
+round(c(bic = cv_mse(formula(fit_bic)), log_lstat = cv_mse(formula(fit_ll)),
+        log_both = cv_mse(formula(fit_log), log_y = TRUE)), 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Gabimi i testit: $23.9\to19.3\to18.6$, rreth 22\% më pak.
+    \item<2-> RMSE: $\sqrt{18.6}\approx4.3$ mijë \$ kundrejt $\sqrt{23.9}\approx4.9$.
+    \item<3-> Diagnostikimi nuk ishte vetëm ``kozmetikë'': \textbf{parashikimet u përmirësuan}.
+    \item<4-> Të gjitha modelet vlerësohen në \textbf{të njëjtat palosje} (\texttt{fold}): krahasim i drejtë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGab76]{Gjej gabimin}
+  \begin{Parashiko}
+    Një student raporton:\\[3pt]
+    {\small\emph{``CV MSE i modelit me $\log(\texttt{medv})$ është 0.035, ndërsa i modelit BIC 23.9. Modeli log është 700 herë më i mirë.''}}\\[3pt]
+    Çfarë ka gabuar?
+  \end{Parashiko}
+  \shkoTe{zgjGab76}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Ndjeshmëria: pa 16 zonat me \texttt{medv} $=50$}
+<<h6-sens>>=
+fit_no50 <- update(fit_log, data = subset(bos, medv < 50))
+round(rbind(all_506 = coef(fit_log), no_cap_490 = coef(fit_no50))[,
+      c("crim", "nox", "rm", "log(lstat)")], 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Koeficientët ndryshojnë pak: \texttt{rm} $0.059\to0.068$, $\log(\texttt{lstat})$ $-0.39\to-0.34$.
+    \item<2-> Përfundimet cilësore nuk ndryshojnë: modeli është \textbf{i qëndrueshëm}.
+    \item<3-> Raportojmë modelin me të gjitha 506 zonat dhe përmendim analizën e ndjeshmërisë.
+    \item<4-> \Zgjerim Model i saktë për të dhëna të cunguara: regresi Tobit (\texttt{AER::tobit}).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim A ka nevojë \texttt{rm} për term kuadratik?}
+<<h6-rm2>>=
+fit_rm2 <- update(fit_log, . ~ . - rm + poly(rm, 2))
+anova(fit_log, fit_rm2)[2, c("Df", "F", "Pr(>F)")]
+round(cv_mse(formula(fit_rm2), log_y = TRUE), 2)
+@
+  \begin{itemize}
+    \item<2-> Testi $F$ dhe CV ($18.6\to17.8$) e mbështesin termin kuadratik. Java 8: forma fleksibile.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Interpretimi dhe raporti}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Efektet në përqindje}
+<<h6-pct>>=
+b <- coef(fit_log)
+round(c(crim_1 = 100 * (exp(unname(b["crim"])) - 1),
+        nox_0.1 = 100 * (exp(0.1 * unname(b["nox"])) - 1),
+        rm_1 = 100 * (exp(unname(b["rm"])) - 1),
+        ptratio_1 = 100 * (exp(unname(b["ptratio"])) - 1),
+        lstat_elasticity = unname(b["log(lstat)"])), 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{crim} +1 (për 100 banorë): $-1.2\%$ \texttt{medv}.
+    \item<2-> \texttt{nox} +0.1 ppm: $-6.8\%$; ndotja ka efekt të madh.
+    \item<3-> Një dhomë më shumë: $+6.1\%$; një nxënës më shumë për mësues: $-3.3\%$.
+    \item<4-> $\log$--$\log$: \texttt{lstat} +1\% $\Rightarrow$ \texttt{medv} $-0.39\%$ (elasticitet).
+    \item<5-> Të gjitha ``duke mbajtur të tjerat konstante''; lidhje, \textbf{jo} shkakësi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Raporti përfundimtar (model për projektin)}
+  \small
+  \begin{enumerate}
+    \item \textbf{Të dhënat}: burimi, $n$, variablat e përjashtuara dhe pse.
+    \item \textbf{Modeli}: $\log(\texttt{medv})\sim\dots+\log(\texttt{lstat})$; si u zgjodh (BIC + diagnostikim).
+    \item \textbf{Diagnostikimi}: çfarë u gjet (U, hinkë, bishta, cungim) dhe çfarë u bë.
+    \item \textbf{Inferenca}: koeficientët me SE HC3 dhe IB 95\%.
+    \item \textbf{Validimi}: 10-fold CV, RMSE $\approx4.3$ mijë \$.
+    \item \textbf{Kufizimet}: cungimi në 50, heteroskedasticiteti i mbetur, të dhëna vrojtuese.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{IB 95\% me HC3 për elasticitetin}
+<<h6-ci>>=
+se_hc3 <- sqrt(V3["log(lstat)", "log(lstat)"])
+t_crit <- qt(0.975, df.residual(fit_log))
+round(rbind(classic = confint(fit_log)["log(lstat)", ],
+            HC3 = b["log(lstat)"] + c(-1, 1) * t_crit * se_hc3), 3)
+@
+  \begin{itemize}
+    \item<2-> IB me HC3 është rreth 45\% më i gjerë, por larg zeros: përfundimi qëndron.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabime të zakonshme në rastin e studimit}
+  \begin{Gabim}Raportimi i modelit të Javës 6 pa diagnostikim: SE e \texttt{rm} ishte 2 herë më e vogël se HC3.\end{Gabim}
+  \pause
+  \begin{Gabim}Krahasimi i CV në shkallë të ndryshme ($\log y$ kundrejt $y$).\end{Gabim}
+  \pause
+  \begin{Gabim}Interpretimi shkakësor: ``ulja e \texttt{nox} me 0.1 do të rrisë çmimet 6.8\%''. Të dhëna vrojtuese: vetëm lidhje.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=cp76]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Pse 16 zonat me \texttt{medv} $=50$ nuk duhen hequr automatikisht?
+    \item Pse CV për modelin me $\log(\texttt{medv})$ llogaritet pas \texttt{exp()}?
+    \item Si interpretohet koeficienti $-0.39$ i $\log(\texttt{lstat})$?
+  \end{enumerate}
+  \shkoTe{zgjCp76}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item Modeli BIC: formë U, hinkë, bishta të rëndë, cungim në 50.
+    \item $\log(\texttt{lstat})$ + $\log(\texttt{medv})$: forma dhe normaliteti më mirë; CV $23.9\to18.6$.
+    \item Heteroskedasticiteti mbetet $\Rightarrow$ SE HC3 (deri $2.3\times$).
+    \item Ndjeshmëria pa zonat e cunguara: përfundimet qëndrojnë.
+    \item Raporti: të dhëna, model, diagnostikim, inferencë robuste, CV, kufizime.
+  \end{itemize}
+  \begin{Keshille}Ora 7: konsolidim --- kuiz 25/75, detyra, gabimet, lista e kontrollit, fletët e funksioneve, Java 8.\end{Keshille}
+\end{frame}
