@@ -1,0 +1,42 @@
+% ============================================================
+%  Java 4 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjViol]{Zgjidhja: Pyetje me zgjedhje (shkeljet)}
+  \begin{itemize}
+    \item \textbf{B}. Varianca të ndryshme \emph{dhe} $n_i$ të ndryshme, me variancën e madhe te grupi i vogël: MSW dominohet nga grupi i madh me variancë të vogël, kështu që zhurma nënvlerësohet dhe testi refuzon shumë shpesh.
+    \item A: me $n_i=40$ të balancuara, testi $F$ është i qëndrueshëm ndaj anshmërisë së lehtë.
+    \item C: raporti $7/5=1.4<2$ me grupe të balancuara: pa problem.
+  \end{itemize}
+  \vfill\kthehu{pyetjeViol}
+\end{frame}
+
+\begin{frame}[label=zgjWelch]{Zgjidhja: Parashiko (Welch)}
+  \begin{itemize}
+    \item Më e madhe: $p=0.13$ kundrejt $0.04$.
+    \item Welch nuk e bashkon variancën: grupi C ($s=3$) ka peshë të vogël, dhe me 3 vëzhgime për grup $\nu\approx3.4$ në vend të 6. Më pak shkallë lirie, më pak fuqi.
+    \item Me grupe kaq të vogla, të dy testet janë të pasigurt; përfundimi duhet raportuar me kujdes.
+  \end{itemize}
+  \vfill\kthehu{pyetjeWelch}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjTukey2]{Zgjidhja: Radha jote! (Tukey)}
+  \begin{enumerate}
+    \item HSD $=4.34\sqrt{1/3}\approx2.51$.
+    \item Diferencat: $B-A=1$, $C-A=5$, $C-B=4$. Ndryshojnë C--A dhe C--B.
+  \end{enumerate}
+<<sol-tukey2>>=
+y2 <- c(1, 2, 3, 2, 3, 4, 6, 7, 8); g2 <- gl(3, 3, labels = c("A", "B", "C"))
+TukeyHSD(aov(y2 ~ g2))$g2
+@
+  \vfill\kthehu{ushTukey2}
+\end{frame}
+
+\begin{frame}[label=zgjCp44]{Përgjigjet: Checkpoint Ora 4}
+  \begin{enumerate}
+    \item Te $e_{ij}=y_{ij}-\bar y_{i\cdot}$: grafiku QQ dhe, me kujdes për $N$, Shapiro--Wilk.
+    \item Kur variancat ndryshojnë dukshëm, sidomos me $n_i$ të ndryshme. Shumë autorë e rekomandojnë si parazgjedhje.
+    \item Bonferroni supozon rastin më të keq për $m$ teste; Tukey përdor shpërndarjen e saktë të diferencës më të madhe midis $k$ mesatareve.
+  \end{enumerate}
+  \vfill\kthehu{cp44}
+\end{frame}

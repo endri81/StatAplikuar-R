@@ -1,0 +1,418 @@
+% ============================================================
+%  Java 4 · Ora 4 — Teoria II: supozimet, alternativat, krahasimet
+%  Rezultatet: K1, S3, C1
+%  Material plotësues (Raço et al.; Cohen et al.)
+% ============================================================
+
+\section{Teoria II}
+
+\begin{frame}{Ora 4: Teoria II --- supozimet dhe krahasimet}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Supozimet}
+% ------------------------------------------------------------
+
+\begin{frame}{Tre supozime \LO{S3}}
+  \begin{enumerate}
+    \item<1-> \textbf{Pavarësia}: vëzhgimet nuk ndikojnë njëri-tjetrin.
+    \item<2-> \textbf{Homoskedasticiteti}: e njëjta $\sigma^2$ në çdo grup.
+    \item<3-> \textbf{Normaliteti}: $\varepsilon_{ij}\sim N(0,\sigma^2)$.
+  \end{enumerate}
+  \onslide<4->{\begin{Keshille}Renditja sipas rëndësisë është pikërisht kjo: pavarësia > varianca e njëjtë > normaliteti.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Normaliteti i \textbf{mbetjeve}}
+  \begin{itemize}
+    \item<1-> Supozimi është për $\varepsilon_{ij}$, jo për $y$ të bashkuar.
+    \item<2-> Vlerësimi: mbetjet $e_{ij}=y_{ij}-\bar y_{i\cdot}$.
+    \item<3-> Nëse mesataret ndryshojnë, $y$ i bashkuar mund të jetë bimodal edhe kur çdo grup është normal.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}\texttt{shapiro.test(auto\$mpg)} për të kontrolluar ANOVA-n. Testo mbetjet, ose çdo grup veç e veç.\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Si kontrollohet normaliteti}
+  \begin{itemize}
+    \item<1-> \textbf{Grafiku QQ} i mbetjeve (\texttt{qqnorm}, \texttt{qqline}): pikat afër vijës.
+    \item<2-> \textbf{Testi Shapiro--Wilk}: $H_0$: mbetjet vijnë nga një normale.
+    \item<3-> Kujdes me $N$: me $N$ të vogël testi nuk ka fuqi; me $N$ të madh refuzon edhe devijime të parëndësishme.
+    \item<4-> Me $N$ të madh, teorema qendrore limite e mbron testin $F$: grafiku vlen më shumë se vlera $p$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mbetjet e shembullit, pa ndihmën e PC}
+  \centering
+  \begin{tabular}{@{}lccc|c@{}}
+    \toprule
+    Grupi & \multicolumn{3}{c|}{$e_{ij}=y_{ij}-\bar y_{i\cdot}$} & $s_i$ \\ \midrule
+    A ($\bar y=5$) & $-2$ & 0 & 2 & 2 \\
+    B ($\bar y=8$) & $-1$ & 0 & 1 & 1 \\
+    C ($\bar y=11$) & $-3$ & 0 & 3 & 3 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> Mbetjet janë simetrike rreth 0.
+    \item<3-> $s_{\max}/s_{\min}=3$: më shumë se rregulli praktik 2. Por me 3 vëzhgime për grup, kjo është shumë e paqëndrueshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Varianca e njëjtë: testi i Levene-s}
+  \begin{itemize}
+    \item<1-> Ideja: nëse variancat janë të barabarta, edhe \textbf{devijimet absolute} kanë mesatare të barabarta.
+    \item<2-> Llogarit $z_{ij}=|y_{ij}-\tilde y_{i}|$, ku $\tilde y_i$ është mediana e grupit (varianti Brown--Forsythe).
+    \item<3-> Bëj një ANOVA të zakonshme mbi $z_{ij}$.
+    \item<4-> Në R: \texttt{car::leveneTest()}; mediana është parazgjedhje.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Levene pa ndihmën e PC}
+  Medianat: $5, 8, 11$. \ $z$: A $=(2,0,2)$, B $=(1,0,1)$, C $=(3,0,3)$.
+  \pause
+  \begin{enumerate}
+    \item $\bar z_i=(4/3,\ 2/3,\ 2)$, \ $\bar z=4/3$.
+    \pause
+    \item SSB $=3\big[0+(2/3)^2+(2/3)^2\big]=8/3\approx2.67$.
+    \pause
+    \item SSW $=\frac{24}{9}+\frac{6}{9}+\frac{54}{9}=\frac{84}{9}\approx9.33$.
+    \pause
+    \item $F=\dfrac{2.67/2}{9.33/6}=\dfrac{1.33}{1.56}\approx0.86$: nuk ka evidencë kundër variancës së njëjtë.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<toy-levene>>=
+library(car)
+y <- c(3, 5, 7,  7, 8, 9,  8, 11, 14)
+g <- factor(rep(c("A", "B", "C"), each = 3))
+leveneTest(y ~ g)                       # center = median by default
+bartlett.test(y ~ g)$p.value
+@
+\end{frame}
+
+\begin{frame}{Bartlett kundrejt Levene}
+  \begin{itemize}
+    \item<1-> \textbf{Bartlett}: më i fuqishëm kur të dhënat janë normale, por shumë i ndjeshëm ndaj jo-normalitetit.
+    \item<2-> \textbf{Levene (mediana)}: më i qëndrueshëm; zgjedhja e parazgjedhur në praktikë.
+    \item<3-> Me 3 vëzhgime për grup, asnjë test nuk ka fuqi: raporti $3:1$ i $s_i$ kalon pa u vënë re.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pavarësia}
+  \begin{itemize}
+    \item<1-> Nuk kontrollohet me një test: varet nga \textbf{mënyra si u mblodhën të dhënat}.
+    \item<2-> Shkelje tipike: matje të përsëritura te i njëjti person; nxënës nga e njëjta klasë; matje në kohë.
+    \item<3-> Pasoja: gabimi standard nënvlerësohet, $p$ del shumë i vogël.
+    \item<4-> Zgjidhja: dizajn i duhur ose modele të tjera (masa të përsëritura, modele të përziera).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Sa i qëndrueshëm është testi $F$?}
+  \begin{itemize}
+    \item<1-> \textbf{Jo-normaliteti}: me grupe të balancuara dhe $n_i\gtrsim15$, efekti i vogël.
+    \item<2-> \textbf{Varianca të ndryshme me $n_i$ të barabarta}: efekt i moderuar.
+    \item<3-> \textbf{Varianca të ndryshme me $n_i$ të ndryshme}: rrezik i madh.
+      \begin{itemize}
+        \item grupi i vogël ka variancën e madhe $\Rightarrow$ shumë refuzime të rreme;
+        \item grupi i madh ka variancën e madhe $\Rightarrow$ testi bëhet konservativ.
+      \end{itemize}
+    \item<4-> Këtë do ta shohim me simulim në Orën 5.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeViol]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Cila situatë e rrezikon më shumë vlefshmërinë e testit $F$?\\[3pt]
+    \textbf{A)} 3 grupe me $n_i=40$, mbetjet pak të anuara.\\
+    \textbf{B)} 3 grupe me $n=(10,10,60)$; grupi me $n=10$ ka $s$ trefish më të madh.\\
+    \textbf{C)} 3 grupe me $n_i=40$, $s_i=(5,6,7)$.
+  \end{Parashiko}
+  \shkoTe{zgjViol}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Alternativat: Welch dhe Kruskal--Wallis}
+% ------------------------------------------------------------
+
+\begin{frame}{ANOVA e Welch-it}
+  \begin{itemize}
+    \item<1-> Nuk supozon $\sigma_1^2=\dots=\sigma_k^2$. Pesha e çdo grupi: $w_i=n_i/s_i^2$.
+    \item<2-> Mesatarja e ponderuar: $\bar y_w=\sum w_i\bar y_{i\cdot}/W$, me $W=\sum w_i$.
+    \item<3-> Statistika:
+      \[ F^*=\frac{\frac{1}{k-1}\sum w_i(\bar y_{i\cdot}-\bar y_w)^2}{1+\frac{2(k-2)}{k^2-1}\Lambda},\qquad \Lambda=\sum_i\frac{(1-w_i/W)^2}{n_i-1}. \]
+    \item<4-> $F^*\approx F_{k-1,\,\nu}$ me $\nu=(k^2-1)/(3\Lambda)$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë do të thotë formula?}
+  \begin{itemize}
+    \item<1-> Grupet me variancë të vogël dhe $n$ të madh marrin më shumë peshë: mesataret e tyre janë më të sakta.
+    \item<2-> Emëruesi dhe $\nu$ korrigjojnë për pasigurinë në $s_i^2$.
+    \item<3-> Për $k=2$ është testi $t$ i Welch-it, parazgjedhja e \texttt{t.test()} në R.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeWelch]{Parashiko!}
+  \begin{Parashiko}
+    Te shembulli ynë (A, B, C), $F$ klasik jep $p=0.040$, dhe $s_i=(2,1,3)$. A pret që vlera $p$ e Welch-it të jetë më e vogël apo më e madhe? Pse?
+  \end{Parashiko}
+  \shkoTe{zgjWelch}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Welch: formula kundrejt \texttt{oneway.test()}}
+<<welch-manual>>=
+n_i <- tapply(y, g, length); m_i <- tapply(y, g, mean); v_i <- tapply(y, g, var)
+k <- 3; w <- n_i / v_i; W <- sum(w); m_w <- sum(w * m_i) / W
+Lambda <- sum((1 - w / W)^2 / (n_i - 1))
+F_star <- (sum(w * (m_i - m_w)^2) / (k - 1)) / (1 + 2 * (k - 2) * Lambda / (k^2 - 1))
+nu <- (k^2 - 1) / (3 * Lambda)
+c(F = F_star, df2 = nu, p = pf(F_star, k - 1, nu, lower.tail = FALSE))
+oneway.test(y ~ g)
+@
+\end{frame}
+
+\begin{frame}{Testi Kruskal--Wallis}
+  \begin{itemize}
+    \item<1-> Zëvendëso vlerat me \textbf{rangjet} e tyre në të gjithë zgjedhjen (si Spearman-i në Javën 3).
+    \item<2-> $R_i$: shuma e rangjeve në grupin $i$.
+    \item<3-> Statistika:
+      \[ H=\frac{12}{N(N+1)}\sum_i\frac{R_i^2}{n_i}-3(N+1)\ \overset{H_0}{\approx}\ \chi^2_{k-1}. \]
+    \item<4-> Me barazime pjesëtohet me $C=1-\sum(t^3-t)/(N^3-N)$, ku $t$ = numri i vlerave të barabarta.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kruskal--Wallis pa ndihmën e PC}
+  Renditja: $3,5,7,7,8,8,9,11,14$ $\to$ rangjet $1,2,3.5,3.5,5.5,5.5,7,8,9$.
+  \pause
+  \begin{enumerate}
+    \item $R_A=1+2+3.5=6.5$, \ $R_B=3.5+5.5+7=16$, \ $R_C=5.5+8+9=22.5$. (Shuma 45 $=N(N+1)/2$ \checkmark)
+    \pause
+    \item $H=\frac{12}{90}\cdot\frac{6.5^2+16^2+22.5^2}{3}-30=\frac{12}{90}\cdot268.17-30\approx5.76$.
+    \pause
+    \item Dy çifte barazimesh ($t=2$): $C=1-\frac{6+6}{720}\approx0.983$ $\Rightarrow$ $H/C\approx5.85$.
+    \pause
+    \item $\chi^2_{0.95;\,2}=5.99$: $5.85<5.99$, nuk e hedhim poshtë $H_0$ (për pak).
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<toy-kw>>=
+kruskal.test(y ~ g)
+qchisq(0.95, 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë teston Kruskal--Wallis?}
+  \begin{itemize}
+    \item<1-> $H_0$: të gjitha grupet kanë të njëjtën shpërndarje.
+    \item<2-> Nëse shpërndarjet kanë të njëjtën formë, kjo është krahasim i \textbf{medianave}.
+    \item<3-> E qëndrueshme ndaj vlerave ekstreme; e përshtatshme për të dhëna rendore (p.sh.\ shkallë 1--5).
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}``Kruskal--Wallis = ANOVA për mesataret kur të dhënat nuk janë normale.'' Jo: teston një hipotezë tjetër, dhe me variancë të ndryshme mund të refuzojë edhe me medianat e barabarta.\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Cilin test të zgjedh?}
+  \centering
+  \begin{tikzpicture}[node distance=0.45cm and 0.7cm, >=Stealth,
+      q/.style={rectangle,rounded corners=2pt,draw=uptblue,fill=uptlight,align=center,font=\scriptsize,minimum height=0.7cm},
+      a/.style={rectangle,rounded corners=2pt,draw=accent,fill=orange!8,align=center,font=\scriptsize\bfseries,minimum height=0.7cm}]
+    \node[q] (s) {Grafikët: kutitë, QQ i mbetjeve};
+    \node[q,below=of s] (v) {Varianca të ngjashme?\\(raporti $s$ < 2, Levene)};
+    \node[q,below left=0.5cm and 0.2cm of v] (n) {Mbetjet afër normales\\ose $n_i$ të mëdha?};
+    \node[a,below right=0.5cm and 0.2cm of v] (w) {Welch\\\texttt{oneway.test()}};
+    \node[a,below left=0.5cm and -0.6cm of n] (f) {$F$ klasik\\\texttt{aov()}};
+    \node[a,below right=0.5cm and -0.6cm of n] (k) {Kruskal--Wallis\\\texttt{kruskal.test()}};
+    \draw[->] (s) -- (v);
+    \draw[->] (v) -- node[left,font=\tiny]{po} (n);
+    \draw[->] (v) -- node[right,font=\tiny]{jo} (w);
+    \draw[->] (n) -- node[left,font=\tiny]{po} (f);
+    \draw[->] (n) -- node[right,font=\tiny]{jo} (k);
+  \end{tikzpicture}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Krahasimet e shumëfishta}
+% ------------------------------------------------------------
+
+\begin{frame}{Pas $F$-së: cilat grupe?}
+  \begin{itemize}
+    \item<1-> $F$ i rëndësishëm: \emph{të paktën një} mesatare ndryshon.
+    \item<2-> Pyetja e radhës: cilat çifte $(\mu_i,\mu_j)$?
+    \item<3-> Duhen $\binom k2$ krahasime, me kontroll të gabimit familjar (Ora 1).
+    \item<4-> Dy rrugë: teste $t$ me korrigjim Bonferroni/Holm (Java 3), ose \termi{Tukey HSD}{honestly significant difference}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Teste $t$ në çifte me korrigjim}
+  \begin{itemize}
+    \item<1-> Për çiftin $(i,j)$: $t_{ij}=\dfrac{\bar y_{i\cdot}-\bar y_{j\cdot}}{\sqrt{\text{MSW}(1/n_i+1/n_j)}}$, $df=N-k$.
+    \item<2-> Përdor MSW nga \textbf{të gjitha} grupet, jo vetëm nga dy.
+    \item<3-> Pastaj \texttt{p.adjust()} me Holm ose Bonferroni.
+    \item<4-> Në R: \texttt{pairwise.t.test(y, g, p.adjust.method = "holm")}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Ideja e Tukey-t: diapazoni i studentizuar}
+  \begin{itemize}
+    \item<1-> Nën $H_0$, merr $k$ mesatare me $n$ vëzhgime secila. Shiko diferencën \textbf{më të madhe}.
+    \item<2-> \termi{Diapazoni i studentizuar}{studentized range}:
+      \[ q=\frac{\max_i\bar y_{i\cdot}-\min_i\bar y_{i\cdot}}{\sqrt{\text{MSW}/n}}\ \sim\ q_{k,\,N-k}. \]
+    \item<3-> Nëse diferenca më e madhe nuk e kalon kufirin, asnjë nuk e kalon: gabimi familjar mbahet saktësisht $\alpha$ (me grupe të balancuara).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Tukey HSD: formula}
+  \begin{Definicion}[(HSD)]
+    \[ \text{HSD}=q_{1-\alpha;\,k,\,N-k}\sqrt{\frac{\text{MSW}}{n}}. \]
+    Çifti $(i,j)$ ndryshon nëse $|\bar y_{i\cdot}-\bar y_{j\cdot}|>\text{HSD}$.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Me $n_i$ të ndryshme (Tukey--Kramer): $\sqrt{\text{MSW}/n}\to\sqrt{\frac{\text{MSW}}{2}\big(\frac1{n_i}+\frac1{n_j}\big)}$.
+    \pause
+    \item Vlera kritike në R: \texttt{qtukey(0.95, nmeans = k, df = N - k)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Tukey pa ndihmën e PC}
+  MSW $=4.67$, $n=3$, $k=3$, $N-k=6$; jepet $q_{0.95;\,3,\,6}=4.34$.
+  \pause
+  \begin{enumerate}
+    \item HSD $=4.34\sqrt{4.67/3}=4.34\times1.247\approx5.41$.
+    \pause
+    \item Diferencat: $B-A=3$, \ $C-A=6$, \ $C-B=3$.
+    \pause
+    \item Vetëm $|C-A|=6>5.41$: C ndryshon nga A.
+    \pause
+    \item B nuk ndryshon dot as nga A as nga C: ``mes'' tyre.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<toy-tukey>>=
+qtukey(0.95, nmeans = 3, df = 6)
+TukeyHSD(aov(y ~ g))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{diff}: $\bar y_j-\bar y_i$. \texttt{lwr}, \texttt{upr}: intervali $\text{diff}\pm\text{HSD}$.
+    \item<2-> Intervali që nuk përmban 0 $\iff$ \texttt{p adj} $<0.05$: vetëm C--A.
+    \item<3-> Gjatësia e gjysmës së intervalit: $6-0.588=5.41=$ HSD. \checkmark
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Tukey kundrejt Bonferroni-t}
+<<tukey-bonf>>=
+k <- 3; df_w <- 6; m <- choose(k, 2)
+c(bonferroni_t = qt(1 - 0.05 / (2 * m), df_w),        # per-pair t critical
+  tukey_t      = qtukey(0.95, k, df_w) / sqrt(2))     # same scale as t
+@
+  \begin{itemize}
+    \item<2-> Tukey ka vlerë kritike më të vogël: intervale më të ngushta, më shumë fuqi për të gjitha çiftet.
+    \item<3-> Bonferroni është më i mirë kur krahasojmë vetëm \textbf{pak} çifte të zgjedhura paraprakisht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTukey2]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta, pa ndihmën e PC)]
+    Të dhënat e ushtrimit të Orës 2: A $=(1,2,3)$, B $=(2,3,4)$, C $=(6,7,8)$, me MSW $=1$.
+    \begin{enumerate}
+      \item Llogarit HSD me $q_{0.95;\,3,\,6}=4.34$.
+      \item Cilat çifte ndryshojnë?
+      \item Kontrollo me \texttt{TukeyHSD()}.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTukey2}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Gabime të zakonshme}
+  \begin{Gabim}Teste $t$ pa korrigjim pas një $F$ të rëndësishëm (``LSD i Fisher-it''). Me $k\ge4$ gabimi familjar nuk kontrollohet.\end{Gabim}
+  \pause
+  \begin{Gabim}``A ndryshon nga C, por jo nga B, pra B = C''. Mungesa e evidencës nuk është provë barazie.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\Zgjerim Kontrastet e planifikuara}
+% ------------------------------------------------------------
+
+\begin{frame}{\Zgjerim Kontrasti}
+  \begin{Definicion}[(Kontrast)]
+    $L=\sum_i c_i\mu_i$ me $\sum_i c_i=0$. Vlerësuesi $\hat L=\sum c_i\bar y_{i\cdot}$,
+    \[ SE(\hat L)=\sqrt{\text{MSW}\sum_i c_i^2/n_i},\qquad t=\hat L/SE,\quad df=N-k. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Shembull: ``a ndryshon C nga mesatarja e A dhe B?'': $c=(-\tfrac12,-\tfrac12,1)$.
+    \pause
+    \item Pyetja përcaktohet \textbf{para} se të shohim të dhënat.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\Zgjerim Kontrasti pa ndihmën e PC}
+  $c=(-\tfrac12,-\tfrac12,1)$, $\bar y=(5,8,11)$, MSW $=4.67$, $n_i=3$.
+  \pause
+  \begin{enumerate}
+    \item $\hat L=11-\tfrac{5+8}{2}=4.5$.
+    \pause
+    \item $\sum c_i^2/n_i=(0.25+0.25+1)/3=0.5$ $\Rightarrow$ $SE=\sqrt{4.67\times0.5}\approx1.53$.
+    \pause
+    \item $t=4.5/1.53\approx2.95$, $df=6$, $p\approx0.026$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{\Zgjerim Kontrastet ortogonale ndajnë SSB}
+  \begin{itemize}
+    \item<1-> $SS_L=\hat L^2\big/\sum(c_i^2/n_i)$, me 1 df.
+    \item<2-> $c^{(1)}=(-\tfrac12,-\tfrac12,1)$: $SS=4.5^2/0.5=40.5$.
+    \item<3-> $c^{(2)}=(-1,1,0)$ (A kundrejt B): $\hat L=3$, $SS=9/(2/3)=13.5$.
+    \item<4-> $\sum c^{(1)}_ic^{(2)}_i/n_i=0$: ortogonale. \ $40.5+13.5=54=$ SSB. \checkmark
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim Kontrolli me R}
+<<contrast>>=
+contrast_test <- function(cc, y, g) {
+  m <- tapply(y, g, mean); n <- tapply(y, g, length)
+  msw <- sum((y - m[as.character(g)])^2) / (length(y) - nlevels(g))
+  L <- sum(cc * m); se <- sqrt(msw * sum(cc^2 / n))
+  c(L = L, SE = se, t = L / se, SS = L^2 / sum(cc^2 / n),
+    p = 2 * pt(-abs(L / se), length(y) - nlevels(g)))
+}
+round(rbind(C_vs_AB = contrast_test(c(-0.5, -0.5, 1), y, g),
+            B_vs_A  = contrast_test(c(-1, 1, 0), y, g)), 4)
+@
+\end{frame}
+
+\begin{frame}{\Zgjerim Të planifikuara apo post-hoc?}
+  \begin{itemize}
+    \item<1-> \textbf{Të planifikuara}: pak kontraste nga teoria; mund të testohen me $\alpha$ të plotë (ose Bonferroni nëse janë disa).
+    \item<2-> \textbf{Post-hoc}: pasi kemi parë mesataret; duhet korrigjim i fortë (Tukey për çiftet, Scheffé për çdo kontrast).
+    \item<3-> Në R: \texttt{emmeans::contrast()} (Ora 5).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp44]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 4}
+  \begin{enumerate}
+    \item Te cilat mbetje kontrollohet normaliteti, dhe si?
+    \item Kur zgjedh Welch-in në vend të $F$-së klasike?
+    \item Pse Tukey është më i fuqishëm se Bonferroni për të gjitha çiftet?
+  \end{enumerate}
+  \shkoTe{zgjCp44}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 4}
+  \begin{itemize}
+    \item Supozimet: pavarësia > varianca e njëjtë > normaliteti i mbetjeve.
+    \item Kontrolli: grafikët; \Rkey{leveneTest()}, \Rkey{shapiro.test()} me kujdes për $N$.
+    \item Alternativat: Welch \Rkey{oneway.test()}; Kruskal--Wallis \Rkey{kruskal.test()}.
+    \item Krahasimet: \Rkey{pairwise.t.test()} me Holm; \Rkey{TukeyHSD()}, HSD $=q\sqrt{\text{MSW}/n}$.
+    \item \Zgjerim Kontrastet: $\hat L$, $SE$, ndarja ortogonale e SSB.
+  \end{itemize}
+  \begin{Keshille}Ora 5: rrjedha e plotë te \texttt{Auto} me diagnostikim, Tukey, \texttt{emmeans} dhe simulimi i shkeljeve.\end{Keshille}
+\end{frame}
