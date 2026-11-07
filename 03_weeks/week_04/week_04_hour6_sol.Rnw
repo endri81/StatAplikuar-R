@@ -1,0 +1,45 @@
+% ============================================================
+%  Java 4 · Ora 6 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjInt]{Zgjidhja: Parashiko (ndërveprimi)}
+  \begin{enumerate}
+    \item OJ$-$VC: $13.2-8.0=5.2$, \ $22.7-16.8=5.9$, \ $26.1-26.1\approx0$.
+    \item Pa ndërveprim, dallimi do të ishte \textbf{i njëjtë} në çdo dozë (vija paralele), afërsisht mesatarja e tyre $\approx3.7$.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeInt}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjPar]{Zgjidhja: Radha jote! (vija paralele)}
+  \begin{enumerate}
+    \item Dy vija paralele: A2 është gjithmonë 2 njësi mbi A1.
+    \item $\bar y_{\cdot\cdot\cdot}=9$; B $=(5,9,13)$. Çdo term ndërveprimi $=0$ $\Rightarrow$ SSAB $=0$. SSA $=9[(8-9)^2+(10-9)^2]=18$.
+  \end{enumerate}
+<<sol-par>>=
+y_p <- unlist(lapply(c(4, 8, 12, 6, 10, 14), function(m) m + c(-1, 0, 1)))
+A <- factor(rep(c("A1", "A2"), each = 9)); B <- factor(rep(rep(1:3, each = 3), 2))
+summary(aov(y_p ~ A * B))[[1]][, 1:3]
+@
+  \vfill\kthehu{ushPar}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjDoseNum]{Zgjidhja: Ndrysho parametrin (doza numerike)}
+<<sol-dosenum>>=
+fit_num <- aov(len ~ supp * dose, data = ToothGrowth)   # dose numeric
+summary(fit_num)[[1]][, 1:3]
+@
+  \begin{enumerate}
+    \item Doza merr $df=1$: modeli supozon vijë të drejtë në 0.5, 1, 2.
+    \item SSW rritet: rritja nga 1 në 2 mg është më e vogël se nga 0.5 në 1 (lakim), dhe vija e drejtë nuk e kap.
+  \end{enumerate}
+  \vfill\kthehu{ushDoseNum}
+\end{frame}
+
+\begin{frame}[label=zgjCp46]{Përgjigjet: Checkpoint Ora 6}
+  \begin{enumerate}
+    \item Vija jo paralele (ose që kryqëzohen) të mesatareve të qelizave.
+    \item Sepse efekti ``mesatar'' i një faktori mund të mos përshkruajë asnjë nivel të faktorit tjetër; duhen efektet e thjeshta.
+    \item \texttt{Carseats} është i pabalancuar (faktorët të korreluar); \texttt{ToothGrowth} ka $n=10$ në çdo qelizë, prandaj faktorët janë ortogonalë.
+  \end{enumerate}
+  \vfill\kthehu{cp46}
+\end{frame}

@@ -1,0 +1,426 @@
+% ============================================================
+%  Java 4 · Ora 6 — ANOVA dyfaktoriale: ToothGrowth, Carseats
+%  Rezultatet: K1, S1, S3, S4, C1
+%  Material plotësues (car, emmeans)
+% ============================================================
+
+\section{Dy faktorë}
+
+\begin{frame}{Ora 6: ANOVA dyfaktoriale --- rast studimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi dhe të dhënat}
+% ------------------------------------------------------------
+
+\begin{frame}{Pse dy faktorë njëherësh? \LO{C1}}
+  \begin{itemize}
+    \item<1-> Shpesh përgjigjja varet nga dy faktorë: furnitori \emph{dhe} temperatura; rajoni \emph{dhe} sektori.
+    \item<2-> Dy ANOVA të veçanta humbasin informacion: zhurma e njërit faktor mbetet te gabimi i tjetrit.
+    \item<3-> Pyetja e re: a varet efekti i njërit faktor nga niveli i tjetrit? Ky është \termi{ndërveprimi}{interaction}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Të dhënat \texttt{ToothGrowth}}
+  \begin{itemize}
+    \item<1-> 60 derra gini; përgjigjja \texttt{len}: gjatësia e qelizave odontoblaste.
+    \item<2-> \texttt{supp}: burimi i vitaminës C, \texttt{OJ} (lëng portokalli) ose \texttt{VC} (acid askorbik).
+    \item<3-> \texttt{dose}: 0.5, 1 ose 2 mg/ditë. Dizajn $2\times3$, 10 kafshë për qelizë: \textbf{i balancuar}.
+  \end{itemize}
+  \onslide<4->{\footnotesize\textcolor{gray}{Të dhëna: reale, \texttt{datasets::ToothGrowth} (Crampton, 1947).}}
+\end{frame}
+
+\begin{frame}[fragile]{Mesataret e qelizave}
+<<tg-means>>=
+library(car); library(emmeans); library(effectsize); library(ggplot2)
+tg <- ToothGrowth
+tg$dose <- factor(tg$dose)                 # dose as a factor, not a number
+table(tg$supp, tg$dose)
+round(with(tg, tapply(len, list(supp, dose), mean)), 2)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Grafiku i ndërveprimit}
+<<tg-int-plot, fig.height=2.5, fig.width=5.5, out.width="0.6\\textwidth">>=
+ggplot(tg, aes(dose, len, colour = supp, group = supp)) +
+  geom_jitter(width = 0.08, alpha = 0.4, size = 0.8) +
+  stat_summary(fun = mean, geom = "line", linewidth = 1) +
+  stat_summary(fun = mean, geom = "point", size = 2.5) +
+  theme_minimal(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Doza rrit gjatësinë për të dy burimet.
+    \item<2-> Në doza të ulëta, OJ është më efektiv se VC.
+    \item<3-> Në dozën 2 mg, dallimi zhduket: vijat \textbf{nuk janë paralele}.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Ndërveprim = vija jo paralele në grafikun e mesatareve.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=pyetjeInt]{Parashiko!}
+  \begin{Parashiko}
+    Mesataret: OJ $=(13.2,\ 22.7,\ 26.1)$, VC $=(8.0,\ 16.8,\ 26.1)$.
+    \begin{enumerate}
+      \item Sa është dallimi OJ$-$VC në çdo dozë?
+      \item Nëse nuk do kishte ndërveprim, si do të ishin këto tre dallime?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjInt}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Modeli dyfaktorial}
+% ------------------------------------------------------------
+
+\begin{frame}{Modeli \LO{S1}}
+  \begin{Definicion}[(ANOVA dyfaktoriale me ndërveprim)]
+    \[ y_{ijk}=\mu+\alpha_i+\beta_j+(\alpha\beta)_{ij}+\varepsilon_{ijk},\qquad \varepsilon_{ijk}\overset{\text{iid}}{\sim}N(0,\sigma^2) \]
+    $i=1,\dots,a$; \ $j=1,\dots,b$; \ $k=1,\dots,n$.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item $\alpha_i$, $\beta_j$: \termi{efektet kryesore}{main effects}; $(\alpha\beta)_{ij}$: ndërveprimi.
+    \pause
+    \item Kufizimet: $\sum_i\alpha_i=\sum_j\beta_j=0$, \ $\sum_i(\alpha\beta)_{ij}=\sum_j(\alpha\beta)_{ij}=0$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pa ndërveprim dhe me ndërveprim}
+  \centering
+  \begin{tikzpicture}[x=1.1cm,y=0.32cm]
+    \begin{scope}
+      \draw[->] (0,0) -- (3.4,0) node[right,font=\tiny]{B};
+      \draw[->] (0,0) -- (0,10) node[above,font=\tiny]{$\bar y$};
+      \draw[thick,uptmid] (0.5,2) -- (1.5,4) -- (2.5,6);
+      \draw[thick,accent] (0.5,5) -- (1.5,7) -- (2.5,9);
+      \node[font=\scriptsize] at (1.7,-1.4) {pa ndërveprim: paralele};
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+      \draw[->] (0,0) -- (3.4,0) node[right,font=\tiny]{B};
+      \draw[->] (0,0) -- (0,10) node[above,font=\tiny]{$\bar y$};
+      \draw[thick,uptmid] (0.5,2) -- (1.5,5) -- (2.5,8.5);
+      \draw[thick,accent] (0.5,6) -- (1.5,6) -- (2.5,6);
+      \node[font=\scriptsize] at (1.7,-1.4) {me ndërveprim: kryqëzohen};
+    \end{scope}
+    \node[font=\tiny,uptmid] at (8.4,9.5) {A1};
+    \node[font=\tiny,accent] at (8.4,6.8) {A2};
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Majtas: A2 është gjithmonë 3 njësi mbi A1. Djathtas: dallimi ndryshon shenjë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Zbërthimi (dizajn i balancuar)}
+  \[ \text{SST}=\text{SSA}+\text{SSB}+\text{SSAB}+\text{SSW} \]
+  \pause
+  \begin{itemize}
+    \item SSA $=bn\sum_i(\bar y_{i\cdot\cdot}-\bar y_{\cdot\cdot\cdot})^2$; \ SSB $=an\sum_j(\bar y_{\cdot j\cdot}-\bar y_{\cdot\cdot\cdot})^2$.
+    \pause
+    \item SSAB $=n\sum_{i,j}(\bar y_{ij\cdot}-\bar y_{i\cdot\cdot}-\bar y_{\cdot j\cdot}+\bar y_{\cdot\cdot\cdot})^2$.
+    \pause
+    \item SSW $=\sum_{i,j,k}(y_{ijk}-\bar y_{ij\cdot})^2$.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Termi i SSAB është ``çfarë mbetet nga mesatarja e qelizës pasi hiqen efektet kryesore''.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Tabela dhe testet}
+  \centering\small
+  \begin{tabular}{@{}lccc@{}}
+    \toprule
+    Burimi & df & MS & $F$ \\ \midrule
+    A & $a-1$ & SSA$/(a-1)$ & MSA/MSW \\
+    B & $b-1$ & SSB$/(b-1)$ & MSB/MSW \\
+    A$\times$B & $(a-1)(b-1)$ & SSAB$/[(a-1)(b-1)]$ & MSAB/MSW \\
+    Brenda & $ab(n-1)$ & SSW$/[ab(n-1)]$ & \\ \bottomrule
+  \end{tabular}
+  \normalsize
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> Tre hipoteza: $H_0^A:$ të gjitha $\alpha_i=0$; \ $H_0^B$; \ $H_0^{AB}:$ të gjitha $(\alpha\beta)_{ij}=0$.
+    \item<3-> Lexohet \textbf{nga poshtë lart}: së pari ndërveprimi.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shembull pa ndihmën e PC}
+% ------------------------------------------------------------
+
+\begin{frame}{Të dhënat: $2\times3$, me $n=3$}
+  \centering
+  \begin{tabular}{@{}l|ccc|c@{}}
+    \toprule
+     & B1 & B2 & B3 & $\bar y_{i\cdot\cdot}$ \\ \midrule
+    A1 & 3, 4, 5 & 7, 8, 9 & 11, 12, 13 & 8 \\
+    A2 & 5, 6, 7 & 5, 6, 7 & 5, 6, 7 & 6 \\ \midrule
+    $\bar y_{\cdot j\cdot}$ & 5 & 7 & 9 & 7 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item<2-> Mesataret e qelizave: A1 $=(4,8,12)$, A2 $=(6,6,6)$.
+    \item<3-> Shembull: rendimenti i dy varieteteve (A) në tri nivele plehërimi (B).
+  \end{itemize}
+  \onslide<3->{\footnotesize\textcolor{gray}{Të dhëna: sintetike, të zgjedhura për llogaritje pa ndihmën e PC.}}
+\end{frame}
+
+\begin{frame}{Hapi 1: efektet kryesore}
+  $a=2$, $b=3$, $n=3$, $\bar y_{\cdot\cdot\cdot}=7$.
+  \pause
+  \begin{itemize}
+    \item SSA $=bn\big[(8-7)^2+(6-7)^2\big]=9\times2=18$, \ $df=1$.
+    \pause
+    \item SSB $=an\big[(5-7)^2+(7-7)^2+(9-7)^2\big]=6\times8=48$, \ $df=2$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 2: ndërveprimi}
+  $\bar y_{ij\cdot}-\bar y_{i\cdot\cdot}-\bar y_{\cdot j\cdot}+7$:
+  \pause
+  \begin{center}
+    \begin{tabular}{@{}l|ccc@{}}
+      \toprule
+       & B1 & B2 & B3 \\ \midrule
+      A1 & $4-8-5+7=-2$ & $8-8-7+7=0$ & $12-8-9+7=2$ \\
+      A2 & $6-6-5+7=2$ & $0$ & $-2$ \\ \bottomrule
+    \end{tabular}
+  \end{center}
+  \pause
+  \begin{itemize}
+    \item Rreshtat dhe kolonat mblidhen në 0. \checkmark
+    \pause
+    \item SSAB $=n\sum(\cdot)^2=3\times(4+0+4+4+0+4)=48$, \ $df=(2-1)(3-1)=2$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hapi 3: gabimi dhe tabela}
+  \begin{itemize}
+    \item<1-> Çdo qelizë: $(-1)^2+0^2+1^2=2$ $\Rightarrow$ SSW $=6\times2=12$, \ $df=ab(n-1)=12$, \ MSW $=1$.
+  \end{itemize}
+  \onslide<2->{
+  \centering
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Burimi & df & SS & MS & $F$ \\ \midrule
+    A & 1 & 18 & 18 & 18 \\
+    B & 2 & 48 & 24 & 24 \\
+    A$\times$B & 2 & 48 & 24 & 24 \\
+    Brenda & 12 & 12 & 1 & \\ \midrule
+    Totali & 17 & 126 & & \\ \bottomrule
+  \end{tabular}}
+  \begin{itemize}
+    \item<3-> Vlerat kritike: $F_{0.95;\,1,12}=4.75$, \ $F_{0.95;\,2,12}=3.89$: të tre efektet të rëndësishme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<toy2-aov>>=
+cell_means <- c(4, 8, 12, 6, 6, 6)
+y <- unlist(lapply(cell_means, function(m) m + c(-1, 0, 1)))
+A <- factor(rep(c("A1", "A2"), each = 9))
+B <- factor(rep(rep(c("B1", "B2", "B3"), each = 3), 2))
+summary(aov(y ~ A * B))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Ndërveprimi është i rëndësishëm: efekti i B varet nga A.
+    \item<2-> Për A1, B rrit rendimentin me 4 për çdo nivel; për A2, B nuk ka asnjë efekt.
+    \item<3-> ``Efekti kryesor i B'' (mesatarja mbi A) $=$ +2 për nivel: nuk përshkruan asnjërin varietet!
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Interpretim i efekteve kryesore kur ndërveprimi është i rëndësishëm. Shiko efektet e thjeshta (\emph{simple effects}): efekti i një faktori brenda çdo niveli të tjetrit.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[label=ushPar]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta, pa ndihmën e PC)]
+    Zëvendëso qelizat e A2 me mesatare $(6,10,14)$, me të njëjtat devijime $-1,0,1$.
+    \begin{enumerate}
+      \item Si duket grafiku i ndërveprimit?
+      \item Sa bëhet SSAB? Po SSA?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjPar}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\texttt{ToothGrowth} hap pas hapi}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Modeli me ndërveprim}
+<<tg-fit>>=
+fit_tg <- aov(len ~ supp * dose, data = tg)     # supp + dose + supp:dose
+summary(fit_tg)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Ndërveprimi: $F(2,54)=4.11$, $p=0.022$: efekti i burimit varet nga doza.
+    \item<2-> Doza ka efektin më të madh ($F=92$); burimi ka efekt mesatar.
+    \item<3-> Meqë ndërveprimi është i rëndësishëm, pyetja e mirë është: \textbf{në cilat doza} ndryshon burimi?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Supozimet}
+<<tg-assump, fig.height=2.1, fig.width=6.5, out.width="0.7\\textwidth">>=
+leveneTest(len ~ supp * dose, data = tg)[1, ]
+par(mfrow = c(1, 2), mar = c(4, 4, 1, 1)); plot(fit_tg, which = 1:2)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Efektet e thjeshta me \texttt{emmeans}}
+<<tg-simple>>=
+em_tg <- emmeans(fit_tg, ~ supp | dose)
+pairs(em_tg)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Në 0.5 dhe 1 mg: OJ jep rreth 5--6 njësi më shumë ($p<0.01$).
+    \item<2-> Në 2 mg: dallimi $\approx0$ ($p=0.96$). Me dozë të lartë, burimi nuk ka rëndësi.
+    \item<3-> SE e njëjtë (1.62) për çdo krahasim: përdor MSW nga i gjithë modeli, me $df=54$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Doza brenda çdo burimi}
+<<tg-dose>>=
+pairs(emmeans(fit_tg, ~ dose | supp), adjust = "tukey")
+@
+\end{frame}
+
+\begin{frame}[fragile]{Madhësia e efektit}
+<<tg-eta>>=
+eta_squared(fit_tg, partial = TRUE, alternative = "two.sided")
+@
+  \begin{itemize}
+    \item $\eta^2_p$ = SS$_{\text{efekt}}$/(SS$_{\text{efekt}}$ + SSW): pjesa e shpjeguar pasi hiqen efektet e tjera.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{A e duam ndërveprimin? Modelet e mbivendosura}
+<<tg-nested>>=
+fit_add <- aov(len ~ supp + dose, data = tg)        # no interaction
+anova(fit_add, fit_tg)
+@
+  \begin{itemize}
+    \item E njëjta logjikë si \texttt{anova(fita, fitb, \dots)} në repo-n DS612 (Lecture 7.1): a e përmirëson modeli më i madh përshtatjen?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushDoseNum]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Rindërto modelin me \texttt{dose} si \textbf{numër} (\texttt{ToothGrowth\$dose}). Sa df merr doza?
+      \item Krahaso SSW me atë të modelit me faktor. Pse ndryshon?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjDoseNum}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\Zgjerim Dizajne të pabalancuara: \texttt{Carseats}}
+% ------------------------------------------------------------
+
+\begin{frame}{\Zgjerim Problemi}
+  \begin{itemize}
+    \item<1-> \texttt{Carseats}: shitjet e ndenjëseve për fëmijë në 400 dyqane.
+    \item<2-> Faktorët: \texttt{ShelveLoc} (Bad/Medium/Good, vendi në raft) dhe \texttt{US} (dyqani në SHBA?).
+    \item<3-> Qelizat kanë $n$ të ndryshme: faktorët janë \textbf{të korreluar}.
+    \item<4-> Pasoja: SST nuk ndahet më në mënyrë unike; SS e një faktori varet nga \textbf{rendi}.
+  \end{itemize}
+  \onslide<5->{\footnotesize\textcolor{gray}{Të dhëna: të simuluara nga autorët e ISLR, të botuara si \texttt{Carseats} (nëpërmjet repo-s DS612).}}
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim Sa vëzhgime për qelizë?}
+<<cs-table>>=
+cs <- read.csv(file.path(W04DATA, "Carseats.csv"))
+cs$ShelveLoc <- factor(cs$ShelveLoc, levels = c("Bad", "Medium", "Good"))
+cs$US <- factor(cs$US)
+table(cs$ShelveLoc, cs$US)
+@
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim SS i tipit I: rendi ka rëndësi}
+<<cs-type1>>=
+anova(lm(Sales ~ US + ShelveLoc, data = cs))[1:2, 1:4]
+anova(lm(Sales ~ ShelveLoc + US, data = cs))[1:2, 1:4]
+@
+\end{frame}
+
+\begin{frame}{\Zgjerim Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> SS e \texttt{US}: 99.8 kur vjen e para, 66.5 kur vjen pas \texttt{ShelveLoc}.
+    \item<2-> Tipi I (sekuencial): çdo term merr ``atë që mbetet'' pas termave para tij.
+    \item<3-> SSW (2106.2) është e njëjtë: ndryshon vetëm ndarja e pjesës së shpjeguar.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim Tipi II me \texttt{car::Anova}}
+<<cs-type2>>=
+Anova(lm(Sales ~ ShelveLoc * US, data = cs), type = 2)
+@
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim Tipi III me \texttt{contr.sum}}
+<<cs-type3>>=
+fit_sum <- lm(Sales ~ ShelveLoc * US, data = cs,
+              contrasts = list(ShelveLoc = contr.sum, US = contr.sum))
+Anova(fit_sum, type = 3)[-1, ]
+@
+\end{frame}
+
+\begin{frame}{\Zgjerim Cilin tip të përdor?}
+  \begin{itemize}
+    \item<1-> \textbf{Tipi II}: çdo efekt kryesor pas tjetrit, pa ndërveprimin. I fuqishëm kur ndërveprimi është i papërfillshëm (këtu $p=0.32$).
+    \item<2-> \textbf{Tipi III}: çdo term pas të gjithë të tjerëve. Kuptimplotë vetëm me kontraste që mblidhen në zero (\texttt{contr.sum}).
+    \item<3-> Me dizajn të balancuar, të tre tipet japin të njëjtin rezultat.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Tipi III me kontrastet e parazgjedhura të R (\texttt{contr.treatment}): efektet ``kryesore'' testohen vetëm në nivelin bazë të faktorit tjetër.\end{Gabim}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Raporti dhe projekti}
+% ------------------------------------------------------------
+
+\begin{frame}{Raporti për \texttt{ToothGrowth}}
+  \small
+  \begin{itemize}
+    \item<1-> ``ANOVA dyfaktoriale ($2\times3$, $n=10$ për qelizë): ndërveprim i rëndësishëm burim $\times$ dozë, $F(2,54)=4.11$, $p=0.022$, $\eta^2_p=0.13$.''
+    \item<2-> ``Efektet e thjeshta: OJ $>$ VC në 0.5 mg (+5.3, $p=0.002$) dhe 1 mg (+5.9, $p<0.001$); asnjë dallim në 2 mg ($p=0.96$).''
+    \item<3-> ``Supozimet: Levene $p=0.15$; QQ pa devijime të mëdha.''
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lidhja me projektin final}
+  \begin{itemize}
+    \item<1-> Dizajnet faktoriale janë të zakonshme në statistikat zyrtare: tregues sipas \textbf{qarkut $\times$ vendbanimit}, \textbf{sektorit $\times$ gjinisë}.
+    \item<2-> Të dhënat e vrojtimeve pothuajse gjithmonë janë të pabalancuara: zgjidh tipin e SS me vetëdije.
+    \item<3-> Në projekt: përshkruaj dizajnin, kontrollo ndërveprimin, raporto efektet e thjeshta kur duhet.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp46]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Si duket ndërveprimi në grafikun e mesatareve?
+    \item Pse nuk interpretojmë efektet kryesore kur ndërveprimi është i rëndësishëm?
+    \item Pse rendi i faktorëve ndryshon SS te \texttt{Carseats}, por jo te \texttt{ToothGrowth}?
+  \end{enumerate}
+  \shkoTe{zgjCp46}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item Modeli: $\mu+\alpha_i+\beta_j+(\alpha\beta)_{ij}$; SST = SSA + SSB + SSAB + SSW (i balancuar).
+    \item Lexo nga poshtë lart: ndërveprimi i pari; nëse ka, shiko efektet e thjeshta (\Rkey{emmeans(fit, \textasciitilde{} A | B)}).
+    \item \texttt{ToothGrowth}: OJ $>$ VC vetëm në doza të ulëta.
+    \item \Zgjerim Pabalancuar: tipi I varet nga rendi; \Rkey{car::Anova(type = 2)} ose tipi III me \texttt{contr.sum}.
+  \end{itemize}
+  \begin{Keshille}Ora 7: kuiz, ushtrime, fletë-kujtesa, dhe ura drejt regresionit (Java 5).\end{Keshille}
+\end{frame}
