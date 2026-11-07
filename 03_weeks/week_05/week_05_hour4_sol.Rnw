@@ -1,0 +1,46 @@
+% ============================================================
+%  Java 5 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjDesign]{Zgjidhja: Pyetje me zgjedhje (plani)}
+  \begin{itemize}
+    \item \textbf{C}. $S_{xx}=10\times50^2=25\,000$, kundrejt $\approx10\,185$ për B dhe $0$ për A.
+    \item A: $S_{xx}=0$, pjerrësia nuk vlerësohet fare.
+    \item Por C nuk lejon të kontrollosh linearitetin: me dy vlera të $x$ nuk shihet lakimi. Në praktikë, një kompromis: shumica në skaje, disa në mes.
+  \end{itemize}
+  \vfill\kthehu{pyetjeDesign}
+\end{frame}
+
+\begin{frame}[label=zgjB005]{Zgjidhja: Radha jote! ($H_0:\beta_1=0.05$)}
+  \begin{enumerate}
+    \item $H_0:\beta_1=0.05$ kundrejt $H_1:\beta_1\ne0.05$; \ $t=(0.04754-0.05)/0.00269\approx-0.92$, $df=198$.
+    \item $|t|<1.97$ ($p\approx0.36$): të dhënat \textbf{nuk} e hedhin poshtë pretendimin. 0.05 është brenda IB $[0.042,0.053]$.
+  \end{enumerate}
+  \vfill\kthehu{ushB005}
+\end{frame}
+
+\begin{frame}[label=zgjNinf]{Zgjidhja: Parashiko ($n\to\infty$)}
+  \begin{enumerate}
+    \item IB: $\frac1n\to0$ dhe $S_{xx}\approx(n-1)s_x^2\to\infty$, prandaj gjerësia $\to0$. Mesatarja njihet gjithnjë e më mirë.
+    \item IP: gjerësia $\to2\times1.96\,\sigma$. Termi ``1'' mbetet: zhurma e një vëzhgimi të ri nuk zhduket.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeNinf}
+\end{frame}
+
+\begin{frame}[label=zgjGabInf]{Zgjidhja: Gjej gabimin (raporti)}
+  \begin{enumerate}
+    \item $p$ i vogël do të thotë që $\beta_1\ne0$, jo që parashikimet janë të sakta. RSE $=3.26$: gabim tipik rreth 23\% i shitjeve mesatare.
+    \item IP është për \emph{një treg të ri}, jo për mesataren. IB për mesataren në TV $=150$ është shumë më i ngushtë: $[13.7,\ 14.6]$.
+    \item Jo: IP ka kufi të poshtëm $\approx\pm1.96\,\sigma$. Vetëm IB ngushtohet pa kufi.
+  \end{enumerate}
+  \vfill\kthehu{gjejGabInf}
+\end{frame}
+
+\begin{frame}[label=zgjCp54]{Përgjigjet: Checkpoint Ora 4}
+  \begin{enumerate}
+    \item $\sigma^2/S_{xx}$. Më shumë vëzhgime, $x$ më i shpërndarë, zhurmë më e vogël.
+    \item Sepse $\sigma$ zëvendësohet me $\hat\sigma$, që ka vetë pasiguri me $n-2$ shkallë lirie.
+    \item IP përfshin edhe variancën $\sigma^2$ të vëzhgimit të ri (termi ``1''), përveç pasigurisë së vijës.
+  \end{enumerate}
+  \vfill\kthehu{cp54}
+\end{frame}

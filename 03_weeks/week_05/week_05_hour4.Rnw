@@ -1,0 +1,367 @@
+% ============================================================
+%  Java 5 · Ora 4 — Teoria II: inferenca në regresin e thjeshtë
+%  Rezultatet: K2, S3
+%  Burimi: ISLR kap. 3.1.2--3.1.3; Cohen et al. kap. 2
+% ============================================================
+
+\section{Teoria II}
+
+\begin{frame}{Ora 4: Teoria II --- inferenca}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Vetitë e vlerësuesve}
+% ------------------------------------------------------------
+
+\begin{frame}{$\hat\beta_1$ si kombinim linear i $y$ \LO{K2}}
+  \begin{itemize}
+    \item<1-> Meqë $\sum(x_i-\bar x)\bar y=0$:
+      \[ \hat\beta_1=\frac{\sum(x_i-\bar x)(y_i-\bar y)}{S_{xx}}=\sum_i k_iy_i,\qquad k_i=\frac{x_i-\bar x}{S_{xx}}. \]
+    \item<2-> Peshat $k_i$ varen vetëm nga $x$ (të fiksuara).
+    \item<3-> Tri veti: \ $\sum k_i=0$, \ $\sum k_ix_i=1$, \ $\sum k_i^2=1/S_{xx}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{$\hat\beta_1$ është i pazhvendosur}
+  \begin{align*}
+    E[\hat\beta_1]&=\sum k_iE[y_i]=\sum k_i(\beta_0+\beta_1x_i) \\
+    \onslide<2->{&=\beta_0\underbrace{\textstyle\sum k_i}_{=0}+\beta_1\underbrace{\textstyle\sum k_ix_i}_{=1}=\beta_1.}
+  \end{align*}
+  \onslide<3->{\begin{itemize}
+    \item Përdorëm vetëm $E[\varepsilon_i]=0$: as normalitet, as variancë të njëjtë.
+  \end{itemize}}
+\end{frame}
+
+\begin{frame}{Varianca e $\hat\beta_1$}
+  \begin{align*}
+    \operatorname{Var}(\hat\beta_1)&=\sum k_i^2\operatorname{Var}(y_i) && \text{(pavarësia)} \\
+    \onslide<2->{&=\sigma^2\sum k_i^2 && \text{(varianca e njëjtë)} \\}
+    \onslide<3->{&=\frac{\sigma^2}{S_{xx}}.}
+  \end{align*}
+  \onslide<4->{\begin{itemize}
+    \item Ngjashëm: $\operatorname{Var}(\hat\beta_0)=\sigma^2\Big(\dfrac1n+\dfrac{\bar x^2}{S_{xx}}\Big)$.
+  \end{itemize}}
+\end{frame}
+
+\begin{frame}{Çfarë e bën $\hat\beta_1$ më të saktë?}
+  \[ SE(\hat\beta_1)=\frac{\sigma}{\sqrt{S_{xx}}}=\frac{\sigma}{s_x\sqrt{n-1}} \]
+  \pause
+  \begin{itemize}
+    \item $\sigma$ më e vogël: më pak zhurmë rreth vijës.
+    \pause
+    \item $n$ më i madh: SE zvogëlohet si $1/\sqrt n$.
+    \pause
+    \item $x$ më i shpërndarë: $s_x$ më i madh. Planifikimi i eksperimentit!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Teorema Gauss--Markov}
+  \begin{Teoreme}[(Gauss--Markov)]
+    Nëse $E[\varepsilon_i]=0$, $\operatorname{Var}(\varepsilon_i)=\sigma^2$ dhe gabimet janë të pakorreluara, atëherë $\hat\beta_0,\hat\beta_1$ kanë variancën më të vogël midis të gjithë vlerësuesve \textbf{linearë} dhe \textbf{të pazhvendosur}.
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item ``BLUE'': \emph{best linear unbiased estimator}.
+    \pause
+    \item Pa normalitet. Por me heteroskedasticitet (Java 7) OLS nuk është më BLUE.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeDesign]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Një inxhinier ka 10 prova për të vlerësuar zgjatjen e një shufre kundrejt ngarkesës (0--100 kN). Me cilin plan $SE(\hat\beta_1)$ është më i vogël (duke supozuar që lidhja është vërtet lineare)?\\[3pt]
+    \textbf{A)} 10 prova në 50 kN.\\
+    \textbf{B)} 10 prova të shpërndara njëtrajtësisht 0--100 kN.\\
+    \textbf{C)} 5 prova në 0 kN dhe 5 në 100 kN.
+  \end{Parashiko}
+  \shkoTe{zgjDesign}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Testi $t$ për $\beta_1$}
+% ------------------------------------------------------------
+
+\begin{frame}{Nga $\sigma$ te $\hat\sigma$}
+  \begin{itemize}
+    \item<1-> $\sigma$ është e panjohur. Zëvendësojmë me $\hat\sigma=\text{RSE}$:
+      \[ SE(\hat\beta_1)=\frac{\hat\sigma}{\sqrt{S_{xx}}},\qquad SE(\hat\beta_0)=\hat\sigma\sqrt{\frac1n+\frac{\bar x^2}{S_{xx}}}. \]
+    \item<2-> Këto janë kolona \texttt{Std. Error} e \texttt{summary(lm)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shpërndarja e statistikës}
+  \begin{Teoreme}[(Shpërndarja $t$)]
+    Nën supozimet LINE (përfshirë normalitetin):
+    \[ T=\frac{\hat\beta_1-\beta_1}{SE(\hat\beta_1)}\sim t_{n-2}. \]
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item Pse $t$ dhe jo $N(0,1)$? Sepse $\hat\sigma$ është e rastit; $(n-2)\hat\sigma^2/\sigma^2\sim\chi^2_{n-2}$, e pavarur nga $\hat\beta_1$.
+    \pause
+    \item Me $n$ të madh, $t_{n-2}\approx N(0,1)$ edhe pa normalitet (TQL).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testi $H_0:\beta_1=0$}
+  \begin{enumerate}
+    \item<1-> $H_0:\beta_1=0$ (asnjë lidhje lineare) kundrejt $H_1:\beta_1\ne0$.
+    \item<2-> Statistika: $t=\hat\beta_1/SE(\hat\beta_1)$.
+    \item<3-> Vlera $p=2P(t_{n-2}>|t|)$; hedhim poshtë nëse $p<\alpha$ ose $|t|>t_{1-\alpha/2;\,n-2}$.
+    \item<4-> E përgjithshme: $H_0:\beta_1=c$ $\Rightarrow$ $t=(\hat\beta_1-c)/SE$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Pesë pikat, pa ndihmën e PC}
+  $\hat\sigma^2=0.8$, $S_{xx}=10$, $\hat\beta_1=0.6$, $n=5$.
+  \pause
+  \begin{enumerate}
+    \item $SE(\hat\beta_1)=\sqrt{0.8/10}=\sqrt{0.08}\approx0.283$.
+    \pause
+    \item $t=0.6/0.283\approx2.12$, \ $df=3$.
+    \pause
+    \item $t_{0.975;\,3}=3.182$: $2.12<3.182$, nuk e hedhim poshtë $H_0$.
+    \pause
+    \item $SE(\hat\beta_0)=\sqrt{0.8\,(1/5+9/10)}=\sqrt{0.88}\approx0.938$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<toy-test>>=
+x <- 1:5; y <- c(2, 4, 5, 4, 5)
+fit_toy <- lm(y ~ x)
+summary(fit_toy)$coefficients
+qt(0.975, df = 3)
+@
+\end{frame}
+
+\begin{frame}{Tre teste, një përgjigje}
+  \begin{itemize}
+    \item<1-> Testi $t$ i $\beta_1$: $t=2.121$.
+    \item<2-> Testi $F$ i ANOVA-s së regresionit (Ora 2): $F=4.5=2.121^2$.
+    \item<3-> Testi i korrelacionit (Java 3): $t=r\sqrt{n-2}/\sqrt{1-r^2}=0.775\sqrt3/\sqrt{0.4}\approx2.121$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Në regresin e \textbf{thjeshtë} të tre testet janë identikë. Në regresin e shumëfishtë (Java 6) ndahen.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=ushB005]{Radha jote!}
+  \begin{Ushtrim}[(4 minuta)]
+    Te \texttt{Advertising}: $\hat\beta_1=0.04754$, $SE=0.00269$, $n=200$.\\
+    Një konsulent pretendon: ``çdo 1000 \$ në TV sjell saktësisht 50 njësi shitje.''
+    \begin{enumerate}
+      \item Shkruaj $H_0$ dhe llogarit $t$.
+      \item A e hedhin poshtë të dhënat pretendimin në $\alpha=0.05$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjB005}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Intervalet e besimit për $\beta$}
+% ------------------------------------------------------------
+
+\begin{frame}{IB për $\beta_1$}
+  \[ \hat\beta_1\pm t_{1-\alpha/2;\,n-2}\cdot SE(\hat\beta_1) \]
+  \pause
+  \begin{itemize}
+    \item Pesë pikat: $0.6\pm3.182\times0.283=0.6\pm0.90=[-0.30,\ 1.50]$.
+    \pause
+    \item Përmban 0 $\iff$ testi nuk hedh poshtë $H_0:\beta_1=0$ në $\alpha=0.05$.
+    \pause
+    \item Interval shumë i gjerë: me 5 pika, nuk dimë as shenjën e pjerrësisë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{Advertising}: \texttt{confint()}}
+<<adv-confint>>=
+adv <- read.csv(file.path(W05DATA, "Advertising.csv"))[, -1]
+fit <- lm(sales ~ TV, data = adv)
+confint(fit)                         # 95%
+confint(fit, level = 0.99)           # 99%, as in the repo
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Me 95\% besim, çdo 1000 \$ në TV lidhet me $\Sexpr{fmt(1000 * confint(fit)[2, 1], 0)}$ deri $\Sexpr{fmt(1000 * confint(fit)[2, 2], 0)}$ njësi shitje më shumë.
+    \item<2-> 99\% është më i gjerë: më shumë besim kërkon interval më të gjerë.
+    \item<3-> Me $n=200$, $t_{0.975;198}=\Sexpr{fmt(qt(0.975, 198), 3)}\approx1.96$.
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}``Ka 95\% probabilitet që $\beta_1$ të jetë në $[0.042,0.053]$.'' $\beta_1$ është fikse; 95\% është për \emph{procedurën}: 95\% e intervaleve të ndërtuara kështu e përmbajnë $\beta_1$ (Ora 5: simulim).\end{Gabim}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mesatarja e parashikuar dhe parashikimi}
+% ------------------------------------------------------------
+
+\begin{frame}{Dy pyetje të ndryshme}
+  Për një vlerë të re $x_0$:
+  \begin{enumerate}
+    \item<1-> \textbf{Mesatarja}: sa janë shitjet \emph{mesatare} në \emph{të gjitha} tregjet me TV $=x_0$? \\ $\mu_0=\beta_0+\beta_1x_0$ $\Rightarrow$ \termi{interval besimi}{confidence interval}.
+    \item<2-> \textbf{Një vëzhgim i ri}: sa do të jenë shitjet në \emph{një} treg të ri me TV $=x_0$? \\ $y_0=\mu_0+\varepsilon_0$ $\Rightarrow$ \termi{interval parashikimi}{prediction interval}.
+  \end{enumerate}
+  \onslide<3->{\begin{Keshille}Vlerësimi pikësor është i njëjti: $\hat y_0=\hat\beta_0+\hat\beta_1x_0$. Ndryshon vetëm pasiguria.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Varianca e $\hat y_0$}
+  \begin{itemize}
+    \item<1-> Shkruaj $\hat y_0=\bar y+\hat\beta_1(x_0-\bar x)$.
+    \item<2-> $\bar y$ dhe $\hat\beta_1$ janë të pakorreluara ($\sum k_i=0$), prandaj
+      \[ \operatorname{Var}(\hat y_0)=\frac{\sigma^2}{n}+(x_0-\bar x)^2\frac{\sigma^2}{S_{xx}}=\sigma^2\Big(\frac1n+\frac{(x_0-\bar x)^2}{S_{xx}}\Big). \]
+    \item<3-> Minimumi te $x_0=\bar x$; rritet kuadratikisht kur largohemi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Varianca e gabimit të parashikimit}
+  \begin{itemize}
+    \item<1-> $y_0-\hat y_0=(\mu_0-\hat y_0)+\varepsilon_0$, me $\varepsilon_0$ të pavarur nga të dhënat.
+    \item<2-> \[ \operatorname{Var}(y_0-\hat y_0)=\sigma^2\Big(1+\frac1n+\frac{(x_0-\bar x)^2}{S_{xx}}\Big). \]
+    \item<3-> ``1'': zhurma e vëzhgimit të ri. Nuk zvogëlohet kurrë, sado të dhëna të kemi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Formulat e intervaleve}
+  \begin{Definicion}[(IB dhe IP në $x_0$)]
+    \[ \text{IB:}\quad \hat y_0\pm t_{1-\alpha/2;\,n-2}\ \hat\sigma\sqrt{\frac1n+\frac{(x_0-\bar x)^2}{S_{xx}}} \]
+    \[ \text{IP:}\quad \hat y_0\pm t_{1-\alpha/2;\,n-2}\ \hat\sigma\sqrt{1+\frac1n+\frac{(x_0-\bar x)^2}{S_{xx}}} \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Në R: \texttt{predict(fit, newdata, interval = "confidence")} ose \texttt{"prediction"}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pesë pikat, pa ndihmën e PC}
+  $\hat\sigma^2=0.8$, $n=5$, $\bar x=3$, $S_{xx}=10$, $t_{0.975;3}=3.182$.
+  \pause
+  \begin{enumerate}
+    \item $x_0=3$: $\hat y_0=4$. IB: $4\pm3.182\sqrt{0.8\cdot0.2}=4\pm1.27=[2.73,\ 5.27]$.
+    \pause
+    \item $x_0=3$: IP: $4\pm3.182\sqrt{0.8\cdot1.2}=4\pm3.12=[0.88,\ 7.12]$.
+    \pause
+    \item $x_0=5$: $\hat y_0=5.2$. IB: $5.2\pm3.182\sqrt{0.8\,(0.2+0.4)}=5.2\pm2.20=[3.00,\ 7.40]$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me R}
+<<toy-predict>>=
+new <- data.frame(x = c(3, 5))
+predict(fit_toy, new, interval = "confidence")
+predict(fit_toy, new, interval = "prediction")
+@
+\end{frame}
+
+\begin{frame}{Pamja: brezat e besimit dhe të parashikimit}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=8cm,height=5cm,xmin=-1,xmax=7,ymin=-3,ymax=11,
+        xlabel={$x$},ylabel={$y$},tick label style={font=\tiny},label style={font=\scriptsize},
+        legend style={font=\tiny,at={(0.02,0.98)},anchor=north west}]
+      \addplot[domain=-1:7,samples=60,thick,color=accent] {2.2+0.6*x};
+      \addlegendentry{OLS}
+      \addplot[domain=-1:7,samples=60,thick,dashed,color=uptmid] {2.2+0.6*x+3.182*sqrt(0.8*(0.2+(x-3)^2/10))};
+      \addlegendentry{IB 95\%}
+      \addplot[domain=-1:7,samples=60,thick,dashed,color=uptmid,forget plot] {2.2+0.6*x-3.182*sqrt(0.8*(0.2+(x-3)^2/10))};
+      \addplot[domain=-1:7,samples=60,thick,dotted,color=warnred] {2.2+0.6*x+3.182*sqrt(0.8*(1.2+(x-3)^2/10))};
+      \addlegendentry{IP 95\%}
+      \addplot[domain=-1:7,samples=60,thick,dotted,color=warnred,forget plot] {2.2+0.6*x-3.182*sqrt(0.8*(1.2+(x-3)^2/10))};
+      \addplot[only marks,mark=*,mark size=1.5pt,color=uptblue] coordinates {(1,2)(2,4)(3,5)(4,4)(5,5)};
+    \end{axis}
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të dy brezat janë më të ngushtët te $\bar x=3$ dhe hapen si ``orë rëre''.
+    \item<2-> Brezi IP është gjithmonë më i gjerë: përfshin zhurmën e vëzhgimit të ri.
+    \item<3-> Jashtë $[1,5]$ (ekstrapolim) brezat hapen shpejt, edhe nëse modeli do ishte i saktë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeNinf]{Parashiko!}
+  \begin{Parashiko}
+    Mbledhim gjithnjë e më shumë të dhëna ($n\to\infty$), me $x$ të shpërndarë si më parë. Çfarë ndodh me gjerësinë e:
+    \begin{enumerate}
+      \item IB për mesataren në $x_0$?
+      \item IP për një vëzhgim të ri në $x_0$?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjNinf}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kurthet}
+% ------------------------------------------------------------
+
+\begin{frame}{Ekstrapolimi}
+  \begin{itemize}
+    \item<1-> Formula e IP e merr parasysh largësinë nga $\bar x$, por \textbf{supozon që modeli vlen} edhe jashtë të dhënave.
+    \item<2-> Shitjet nuk mund të rriten pafundësisht me reklamën: ngopje, konkurrencë.
+    \item<3-> Rregull: parashiko vetëm brenda intervalit të $x$ të vëzhguar, ose argumento pse vija vazhdon.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shkakësia}
+  \begin{itemize}
+    \item<1-> $\hat\beta_1>0$ i rëndësishëm $\neq$ ``$x$ shkakton $y$''.
+    \item<2-> Të dhënat \texttt{Advertising} janë vëzhgimore: tregjet e mëdha mund të kenë edhe buxhet të madh, edhe shitje të mëdha.
+    \item<3-> Shkakësia kërkon eksperiment (buxhet i caktuar rastësisht) ose argumente të tjera.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Anscombe sërish: të njëjtat numra, modele të ndryshme}
+<<anscombe-lm>>=
+a <- datasets::anscombe
+t(sapply(1:4, function(i) {
+  f <- lm(a[[paste0("y", i)]] ~ a[[paste0("x", i)]]); s <- summary(f)
+  round(c(b0 = coef(f)[[1]], b1 = coef(f)[[2]], se_b1 = s$coefficients[2, 2],
+          R2 = s$r.squared, RSE = s$sigma), 3)
+}))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Katër grupe me të njëjtat $\hat\beta$, SE, $R^2$, RSE dhe vlera $p$.
+    \item<2-> Por vetëm grupi 1 i plotëson supozimet (Java 3: grupi 2 lakim, 3 një pikë ekstreme, 4 një pikë me leverage).
+    \item<3-> Inferenca ka vlerë vetëm nëse modeli është i përshtatshëm: grafikët dhe diagnostikimi (Java 7).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGabInf]{Gjej gabimin!}
+  \begin{Ushtrim}[(Gjej gabimin)]
+    \small
+    Një raport thotë:
+    \begin{enumerate}
+      \item ``Meqë $p<0.001$, modeli parashikon shitjet shumë mirë.''
+      \item ``IP 95\% për një treg me TV $=150$ është $[7.7,\ 20.6]$, pra mesatarja e shitjeve është me siguri aty.''
+      \item ``Me më shumë të dhëna, IP do të bëhet aq i ngushtë sa duam.''
+    \end{enumerate}
+    \normalsize Çfarë nuk shkon në secilën?
+  \end{Ushtrim}
+  \shkoTe{zgjGabInf}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp54]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 4}
+  \begin{enumerate}
+    \item Sa vlen $\operatorname{Var}(\hat\beta_1)$, dhe si mund ta zvogëlojmë?
+    \item Pse statistika e testit ka shpërndarje $t_{n-2}$ dhe jo normale?
+    \item Pse IP është më i gjerë se IB?
+  \end{enumerate}
+  \shkoTe{zgjCp54}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 4}
+  \begin{itemize}
+    \item $\hat\beta_1=\sum k_iy_i$: i pazhvendosur, $\operatorname{Var}=\sigma^2/S_{xx}$; BLUE (Gauss--Markov).
+    \item $t=(\hat\beta_1-c)/SE\sim t_{n-2}$; në regresin e thjeshtë $t^2=F$ dhe = testi i $\rho$.
+    \item IB: $\hat\beta_1\pm t\cdot SE$; \Rkey{confint()}.
+    \item Mesatarja kundrejt vëzhgimit të ri: $\frac1n+\frac{(x_0-\bar x)^2}{S_{xx}}$ kundrejt $1+\dots$; \Rkey{predict(interval = )}.
+    \item Kurthet: ekstrapolimi, shkakësia, Anscombe.
+  \end{itemize}
+  \begin{Keshille}Ora 5: simulim i shpërndarjes së $\hat\beta_1$ dhe i mbulimit; brezat te \texttt{Boston}.\end{Keshille}
+\end{frame}
