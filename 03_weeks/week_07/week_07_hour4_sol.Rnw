@@ -1,0 +1,58 @@
+% ============================================================
+%  Java 7 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjHC]{Zgjidhja: Radha jote! (SE klasike, HC0, HC3)}
+  \small
+  \begin{enumerate}
+    \item Klasike: $\sqrt{1.44/50}=\sqrt{0.0288}=0.170$.
+    \item HC0: $\sum(x_i-\bar x)^2e_i^2=9(1.7424)+4(0.0144)+1(2.4336)+0+36(0.1296)=22.84$;\\
+      $\sqrt{22.84/2500}=\sqrt{0.00914}=0.096$.
+    \item HC3: pesha e pikës 5: $0.1296/0.08^2=20.25$, kontributi $36\cdot20.25=729$.\\
+      Gjithsej $\approx40.80+0.11+4.00+0+729=773.9$; $\sqrt{773.9/2500}=0.556$.
+  \end{enumerate}
+  \begin{itemize}
+    \item Pika 5 ($h=0.92$) dominon: HC3 ``kupton'' që mbetja e saj e vogël është mashtruese.
+    \item Kontroll në R: \texttt{sqrt(diag(vcovHC(fit, type = "HC3")))} jep 0.556.
+  \end{itemize}
+  \vfill\kthehu{ushHC}
+\end{frame}
+
+\begin{frame}[label=zgjAss]{Zgjidhja: Pyetje me zgjedhje (çmimet e banesave)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}.
+    \item A: me $n=2000$, TLQ e mbron inferencën për $\hat\beta$; Shapiro refuzon edhe devijime të vogla.
+    \item B: s'ka shenjë heteroskedasticiteti; SE robuste nuk rregullojnë normalitetin.
+    \item D: manipulim i të dhënave.
+    \item Kujdes: intervalet e parashikimit për një banesë të re mund të jenë shumë të ngushta në bishta.
+  \end{itemize}
+  \vfill\kthehu{pyetjeAss}
+\end{frame}
+
+\begin{frame}[label=zgjVIF]{Zgjidhja: Parashiko (VIF)}
+  \begin{enumerate}
+    \item Nuk ndryshon: $R^2$ i \texttt{Income} mbi të tjerët nuk rritet nga një variabël i pakorreluar (në mostër, ndryshim i vogël).
+    \item $\text{VIF}=1/(1-0)=1$.
+    \item $\sqrt4=2$ herë.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeVIF}
+\end{frame}
+
+\begin{frame}[label=zgjTPS4]{Zgjidhja: Think--pair--share (pagat sipas bashkive)}
+  \begin{itemize}
+    \item \textbf{Heteroskedasticitet}: mesataret e bashkive të vogla kanë variancë më të madh (më pak punonjës).
+    \item \textbf{Jolinearitet}: efekti i madhësisë është zakonisht logaritmik (Tirana shumë më e madhe se të tjerat).
+    \item Leverage: Tirana mund të ketë $h_{ii}$ shumë të lartë.
+    \item Provo $\log(\text{madhësia})$; WLS me peshë numrin e punonjësve, ose SE HC3.
+  \end{itemize}
+  \vfill\kthehu{ushTPS4}
+\end{frame}
+
+\begin{frame}[label=zgjCp74]{Përgjigjet: Checkpoint Ora 4}
+  \begin{enumerate}
+    \item Lineariteti ($E[\varepsilon\mid X]=0$). Heteroskedasticiteti, autokorrelacioni dhe kolineariteti prishin SE; normaliteti prek inferencën ekzakte për $n$ të vogël.
+    \item $(X^\top X)^{-1}(\sum\omega_ix_ix_i^\top)(X^\top X)^{-1}$ me $\omega_i=e_i^2/(1-h_{ii})^2$; sepse $\operatorname{Var}(e_i)=\sigma^2(1-h_{ii})$, mbetjet e pikave me leverage janë shumë të vogla.
+    \item $\text{VIF}=1/0.25=4$; SE $\times2$.
+  \end{enumerate}
+  \vfill\kthehu{cp74}
+\end{frame}

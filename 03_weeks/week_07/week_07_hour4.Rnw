@@ -1,0 +1,420 @@
+% ============================================================
+%  Java 7 · Ora 4 — Teoria II: supozimet, testet dhe zgjidhjet
+%  Rezultatet: S3, C1, S1
+%  Burimi: ISLR kap. 3.3.3; Cohen et al. (2003), kapitujt për supozimet dhe transformimet;
+%          dokumentacioni i lmtest, sandwich, car, MASS
+% ============================================================
+
+\section{Teoria II: supozimet}
+
+\begin{frame}{Ora 4: Teoria II --- supozimet, testet, zgjidhjet}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Harta e supozimeve}
+% ------------------------------------------------------------
+
+\begin{frame}{Çfarë prish secili supozim? \LO{S3} \LO{C1}}
+  \centering\small
+  \begin{tabular}{lll}
+    \toprule
+    Supozimi & Nëse shkelet & Çfarë prishet\\ \midrule
+    Linearitet $E[\varepsilon\mid X]=0$ & forma e gabuar & $\hat\beta$ \textbf{i zhvendosur}\\
+    Pavarësi & gabime të korreluara & SE, $p$, IB\\
+    Variancë konstante & heteroskedasticitet & SE, $p$, IB\\
+    Normalitet & bishta të rëndë & $p$ ekzakt për $n$ të vogël\\
+    Pa kolinearitet & VIF i lartë & SE shumë të mëdha\\ \bottomrule
+  \end{tabular}
+  \pause
+  \begin{Keshille}Vetëm linearitetin e shkelur e zhvendos $\hat\beta$. Të tjerat prishin \textbf{pasigurinë}.\end{Keshille}
+\end{frame}
+
+\begin{frame}{Teorema Gauss--Markov: kujtesë}
+  \begin{Teoreme}[Gauss--Markov]
+    Nëse $E[\varepsilon]=0$ dhe $\operatorname{Var}(\varepsilon)=\sigma^2 I$, atëherë OLS është \termi{vlerësuesi më i mirë linear i pazhvendosur}{BLUE}.
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item<2-> Normaliteti \textbf{nuk} kërkohet për BLUE.
+    \item<3-> Normaliteti kërkohet për shpërndarjet ekzakte $t$ dhe $F$.
+    \item<4-> Për $n$ të madh, TLQ (\emph{CLT}) i jep $\hat\beta$ shpërndarje afërsisht normale.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Lineariteti}
+% ------------------------------------------------------------
+
+\begin{frame}{Lineariteti: si e shohim?}
+  \begin{itemize}
+    \item<1-> \textbf{Residuals vs Fitted}: nëse ka formë (U, valë), forma e modelit është e gabuar.
+    \item<2-> Por me shumë parashikues: \textbf{cili} $x_j$ ka problem?
+    \item<3-> \termi{Grafiku komponent + mbetje}{component-plus-residual, CR}:
+      \[ \text{mbetje e pjesshme}_{ij} = e_i + \hat\beta_j x_{ij} \quad\text{kundrejt}\quad x_{ij}. \]
+    \item<4-> Nëse lidhja me $x_j$ është lineare, pikat ndjekin vijën me pjerrësi $\hat\beta_j$.
+    \item<5-> Në R: \texttt{car::crPlots(fit)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pse funksionon grafiku CR?}
+  \begin{itemize}
+    \item<1-> $y_i = \hat\beta_0+\sum_{l\ne j}\hat\beta_l x_{il} + \hat\beta_j x_{ij} + e_i$.
+    \item<2-> Zhvendos të gjitha termat përveç $x_j$:
+      $y_i - \hat\beta_0-\sum_{l\ne j}\hat\beta_l x_{il} = \hat\beta_j x_{ij}+e_i$.
+    \item<3-> Ana e majtë = $y$ ``i pastruar'' nga parashikuesit e tjerë.
+    \item<4-> Nëse në të vërtetë kemi $f(x_j)$ jo-lineare, $e_i$ e mban pjesën që mungon dhe lakimi duket.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Zgjidhjet për jolinearitetin}
+  \begin{enumerate}
+    \item<1-> Transformo $x_j$: $\log x_j$, $\sqrt{x_j}$, $1/x_j$.
+    \item<2-> Shto terma polinomialë: $x_j^2$ (Java 6: \texttt{poly()}).
+    \item<3-> Transformo $y$ (Box--Cox, më poshtë).
+    \item<4-> Modele fleksibile: splines, GAM (Java 8).
+  \end{enumerate}
+  \pause[5]
+  \begin{Gabim}Mos e ``rregullo'' jolinearitetin me SE robuste. SE robuste rregullojnë variancën, jo zhvendosjen e $\hat\beta$.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Heteroskedasticiteti}
+% ------------------------------------------------------------
+
+\begin{frame}{Heteroskedasticiteti}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item<1-> $\operatorname{Var}(\varepsilon_i)=\sigma_i^2$, jo $\sigma^2$.
+        \item<2-> Shpesh: varianca rritet me nivelin e $y$ (të ardhurat, shitjet, përqendrimet).
+        \item<3-> Shenja: \textbf{hinkë} te Residuals vs Fitted; pjerrësi te Scale-Location.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.8]
+        \draw[->] (0,0) -- (4.6,0) node[right,font=\scriptsize] {$\hat y$};
+        \draw[->] (0,-2) -- (0,2.2) node[above,font=\scriptsize] {$e$};
+        \draw[gray] (0,0) -- (4.4,0);
+        \draw[accent,dashed] (0.2,0.2) -- (4.4,1.9); \draw[accent,dashed] (0.2,-0.2) -- (4.4,-1.9);
+        \foreach \x/\y in {0.4/0.1,0.7/-0.2,1.0/0.3,1.3/-0.35,1.6/0.5,1.9/-0.6,2.2/0.2,2.5/-0.9,2.8/1.0,3.1/-0.4,3.4/1.4,3.7/-1.3,4.0/0.7,4.2/-1.7}
+          \fill[uptblue] (\x,\y) circle (1.8pt);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Pasoja: formula e gabuar për $\operatorname{Var}(\hat\beta)$}
+  \begin{itemize}
+    \item<1-> $\hat\beta-\beta=(X^\top X)^{-1}X^\top\varepsilon$, me $\operatorname{Var}(\varepsilon)=\Omega=\operatorname{diag}(\sigma_1^2,\dots,\sigma_n^2)$.
+    \item<2-> Prandaj:
+      \[ \operatorname{Var}(\hat\beta)=(X^\top X)^{-1}\,X^\top\Omega X\,(X^\top X)^{-1}. \]
+    \item<3-> Vetëm nëse $\Omega=\sigma^2 I$ thjeshtohet në $\sigma^2(X^\top X)^{-1}$, formula e \texttt{summary(lm)}.
+    \item<4-> $\hat\beta$ mbetet i pazhvendosur; \textbf{SE} janë të gabuara.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testi Breusch--Pagan}
+  \begin{enumerate}
+    \item<1-> Përshtat modelin dhe merr mbetjet $e_i$.
+    \item<2-> Regresi ndihmës: $e_i^2 = \gamma_0+\gamma_1x_{i1}+\dots+\gamma_px_{ip}+u_i$.
+    \item<3-> $H_0$: $\gamma_1=\dots=\gamma_p=0$ (variancë konstante).
+    \item<4-> Statistika (versioni i studentizuar i Koenker-it): $\text{BP}=n\,R^2_{\text{aux}}\;\sim\;\chi^2_p$.
+    \item<5-> Në R: \texttt{lmtest::bptest(fit)}; parazgjedhja është ky version.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Shembull: \texttt{sales \textasciitilde{} TV} (Ora 1)}
+  \begin{itemize}
+    \item<1-> \texttt{bptest}: $\text{BP}=48.04$, $p=4.2\times10^{-12}$.
+    \item<2-> Me $p=1$: krahaso me $\chi^2_{1;\,0.95}=3.84$.
+    \item<3-> $48.04\gg3.84$: refuzojmë $H_0$; varianca rritet me \texttt{TV}.
+    \item<4-> Kjo përputhet me hinkën që pamë te \texttt{plot(fit)}.
+  \end{itemize}
+  \pause[5]
+  \begin{Gabim}BP teston vetëm varësi \textbf{lineare} të $e^2$ nga $x$. Për forma të tjera: shto $x^2$ në regresin ndihmës (testi i White-it).\end{Gabim}
+\end{frame}
+
+\begin{frame}{SE robuste (sandwich)}
+  \begin{Definicion}[Vlerësuesi HC (\emph{heteroskedasticity-consistent})]
+    \[ \widehat{\operatorname{Var}}_{\text{HC}}(\hat\beta)=(X^\top X)^{-1}\Big(\textstyle\sum_i \omega_i\,x_ix_i^\top\Big)(X^\top X)^{-1} \]
+  \end{Definicion}
+  \pause
+  \centering\small
+  \begin{tabular}{ll}
+    \toprule Lloji & $\omega_i$\\ \midrule
+    HC0 (White) & $e_i^2$\\
+    HC1 & $e_i^2\cdot n/(n-p-1)$\\
+    HC3 (parazgjedhja në \texttt{sandwich}) & $e_i^2/(1-h_{ii})^2$\\ \bottomrule
+  \end{tabular}
+  \pause
+  \begin{itemize}\item HC3 i jep më shumë peshë pikave me leverage të lartë, sepse mbetjet e tyre janë artificialisht të vogla.\end{itemize}
+\end{frame}
+
+\begin{frame}{Regresi i thjeshtë: formula e qartë}
+  Për pjerrësinë $\hat\beta_1$:
+  \[
+    \widehat{\operatorname{Var}}_{\text{HC0}}(\hat\beta_1)=\frac{\sum_i (x_i-\bar x)^2\,e_i^2}{S_{xx}^2},
+    \qquad
+    \widehat{\operatorname{Var}}_{\text{klasike}}(\hat\beta_1)=\frac{\hat\sigma^2}{S_{xx}}.
+  \]
+  \pause
+  \begin{itemize}
+    \item<2-> Klasikja përdor një $\hat\sigma^2$ të përbashkët.
+    \item<3-> HC0 i jep çdo pike mbetjen e vet, të peshuar me $(x_i-\bar x)^2$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushHC]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(8 minuta)]
+    Të dhënat e Orës 2: $x-\bar x=(-3,-2,-1,0,6)$, $e=(-1.32,\,0.12,\,1.56,\,0,\,-0.36)$, $S_{xx}=50$, $\hat\sigma=1.2$, $h=(0.38,0.28,0.22,0.20,0.92)$.
+    \begin{enumerate}
+      \item SE klasike e $\hat\beta_1$.
+      \item SE HC0 e $\hat\beta_1$.
+      \item SE HC3: zëvendëso $e_i^2$ me $e_i^2/(1-h_{ii})^2$. Cila pikë dominon?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjHC}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{\Zgjerim Katrorët më të vegjël të peshuar (WLS)}
+  \begin{itemize}
+    \item<1-> Nëse e njohim formën e variancës, $\sigma_i^2=\sigma^2/w_i$: minimizo $\sum_i w_i\,(y_i-x_i^\top\beta)^2$.
+    \item<2-> Zgjidhja: $\hat\beta_{\text{WLS}}=(X^\top WX)^{-1}X^\top Wy$, $W=\operatorname{diag}(w_i)$.
+    \item<3-> Me peshat e sakta, WLS është BLUE (Gauss--Markov për $W^{1/2}y$).
+    \item<4-> Shembull: $y_i$ është mesatare e $m_i$ vëzhgimeve $\Rightarrow$ $w_i=m_i$.
+    \item<5-> Në R: \texttt{lm(y \textasciitilde{} x, weights = w)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{SE robuste apo WLS?}
+  \begin{itemize}
+    \item<1-> \textbf{SE robuste}: nuk kërkojnë njohjen e $\sigma_i^2$; $\hat\beta$ mbetet OLS; vetëm SE korrigjohen.
+    \item<2-> \textbf{WLS}: më efikas nëse peshat janë të sakta, por i rrezikshëm nëse peshat janë të gabuara.
+    \item<3-> \textbf{Transformimi} i $y$ ($\log$): shpesh zgjidh njëkohësisht heteroskedasticitetin dhe jolinearitetin.
+    \item<4-> Në praktikë: transformim nëse ka kuptim, plus SE robuste si mbrojtje.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Normaliteti dhe pavarësia}
+% ------------------------------------------------------------
+
+\begin{frame}{Normaliteti i gabimeve}
+  \begin{itemize}
+    \item<1-> \textbf{Grafiku Q-Q}: kuantilet e $r_i$ kundrejt kuantileve të $N(0,1)$; pikat në vijë $\Rightarrow$ normalitet.
+    \item<2-> \textbf{Shapiro--Wilk}: $H_0$: mbetjet janë normale; \texttt{shapiro.test(rstandard(fit))}.
+    \item<3-> Formë S: bishta të rëndë. Formë harku: anim (\emph{skewness}).
+    \item<4-> Për $n$ të madh, inferenca për $\hat\beta$ funksionon edhe pa normalitet (TLQ).
+    \item<5-> Por \textbf{intervalet e parashikimit} për një $y$ të ri varen nga forma e shpërndarjes.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabime të zakonshme me normalitetin}
+  \begin{Gabim}Testimi i normalitetit të $y$ në vend të mbetjeve. Modeli supozon normalitet të $\varepsilon\mid X$, jo të $y$.\end{Gabim}
+  \pause
+  \begin{Gabim}Me $n=5000$, Shapiro refuzon edhe devijime të parëndësishme. Shiko grafikun Q-Q, jo vetëm $p$.\end{Gabim}
+  \pause
+  \begin{Gabim}Mbetjet e papërpunuara $e_i$ nuk kanë të njëjtën variancë; për Q-Q përdor $r_i$ ose $t_i$.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Pavarësia: gabimet e korreluara}
+  \begin{itemize}
+    \item<1-> Ndodh te seritë kohore, të dhënat hapësinore, matjet e përsëritura te i njëjti njeri.
+    \item<2-> Me korrelacion pozitiv, $\operatorname{Var}(\hat\beta)$ e vërtetë $>$ $\sigma^2(X^\top X)^{-1}$.
+    \item<3-> SE nënvlerësohen $\Rightarrow$ IB shumë të ngushta, $p$ shumë të vegjël (Ora 1: AR(1)).
+    \item<4-> Kontroll: mbetjet sipas kohës ose vendit; \texttt{acf(resid(fit))}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\Zgjerim Statistika Durbin--Watson}
+  \[ d=\frac{\sum_{t=2}^{n}(e_t-e_{t-1})^2}{\sum_{t=1}^{n}e_t^2}\;\approx\;2(1-\hat\rho) \]
+  \pause
+  \begin{itemize}
+    \item<2-> $d\approx2$: pa autokorrelacion; $d\to0$: korrelacion pozitiv; $d\to4$: negativ.
+    \item<3-> Në R: \texttt{lmtest::dwtest(fit)}; vetëm kur rendi i vëzhgimeve ka kuptim.
+  \end{itemize}
+  \pause[4]
+  \begin{Shembull}[Pa ndihmën e PC]
+    $e=(1,2,1,-1,-2,-1)$. Diferencat: $1,-1,-2,-1,1$; $\sum(\Delta e)^2=8$, $\sum e^2=12$, $d=0.67$.
+    Me $\hat\rho=\sum e_te_{t-1}/\sum e_t^2=7/12=0.58$: $2(1-0.58)=0.83$, afër $d$.
+  \end{Shembull}
+\end{frame}
+
+\begin{frame}[label=pyetjeAss]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Një model për çmimet e banesave në Tiranë ka $n=2000$. Q-Q tregon bishta pak të rëndë, Shapiro $p=0.001$; Residuals vs Fitted nuk ka formë; Scale-Location është e sheshtë. Çfarë bën?
+    \begin{enumerate}[A)]
+      \item Hedh modelin; normaliteti u refuzua.
+      \item Përdor SE robuste HC3 dhe vazhdon.
+      \item Raporton koeficientët dhe IB; me $n=2000$ normaliteti ka pak rëndësi për $\hat\beta$, por kujdes me intervalet e parashikimit.
+      \item Heq pikat në bishta derisa Shapiro të japë $p>0.05$.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjAss}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Multikolineariteti}
+% ------------------------------------------------------------
+
+\begin{frame}{Multikolineariteti}
+  \begin{itemize}
+    \item<1-> Parashikuesit janë pothuajse kombinime lineare të njëri-tjetrit.
+    \item<2-> $X^\top X$ afër singulares $\Rightarrow$ $(X^\top X)^{-1}$ me elemente shumë të mëdha.
+    \item<3-> $\hat\beta$ mbetet i pazhvendosur, por \textbf{SE shpërthejnë}; shenja mund të ndryshojë nga një mostër në tjetrën.
+    \item<4-> Parashikimi $\hat y$ shpesh mbetet i mirë; problemi është interpretimi i $\hat\beta_j$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Faktori i inflacionit të variancës (VIF)}
+  \begin{Teoreme}
+    \[ \operatorname{Var}(\hat\beta_j)=\frac{\sigma^2}{S_{jj}}\cdot\underbrace{\frac{1}{1-R_j^2}}_{\text{VIF}_j}, \qquad S_{jj}=\sum_i(x_{ij}-\bar x_j)^2, \]
+    ku $R_j^2$ është $R^2$ i regresionit të $x_j$ mbi parashikuesit e tjerë.
+  \end{Teoreme}
+  \pause
+  \begin{itemize}
+    \item<2-> $\text{VIF}_j=1$: $x_j$ i pakorreluar me të tjerët.
+    \item<3-> SE shumëzohet me $\sqrt{\text{VIF}_j}$.
+    \item<4-> Rregull praktik: $\text{VIF}>5$ shqetësim, $\text{VIF}>10$ problem serioz.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pa ndihmën e PC: nga $R_j^2$ te SE}
+  \centering
+  \begin{tabular}{cccc}
+    \toprule $R_j^2$ & $\text{VIF}_j$ & $\sqrt{\text{VIF}_j}$ & SE shumëzohet me\\ \midrule
+    0.00 & 1 & 1.00 & 1\\
+    0.50 & 2 & 1.41 & 1.4\\
+    0.80 & 5 & 2.24 & 2.2\\
+    0.90 & 10 & 3.16 & 3.2\\
+    0.99 & 100 & 10.0 & 10\\ \bottomrule
+  \end{tabular}
+  \pause
+  \begin{itemize}
+    \item \texttt{Credit}: \texttt{Age + Rating + Limit} jep VIF 160.7 dhe 160.6 $\Rightarrow$ $R_j^2\approx0.994$, SE $\times12.7$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Zgjidhjet për multikolinearitetin}
+  \begin{enumerate}
+    \item<1-> Hiq një nga variablat e dyfishta (\texttt{Rating} ose \texttt{Limit}).
+    \item<2-> Kombinoji në një indeks (mesatare e standardizuar, komponent kryesor).
+    \item<3-> Mblidh më shumë të dhëna ose me variacion më të madh në $x$.
+    \item<4-> Rregullim: ridge, lasso (ISLR kap.\ 6).
+  \end{enumerate}
+  \pause[5]
+  \begin{Gabim}Korrelacioni çift pas çifti nuk mjafton: tre variabla mund të kenë $|r|<0.6$ çift pas çifti, dhe prapë VIF të lartë.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=pyetjeVIF]{Parashiko}
+  \begin{Parashiko}
+    Në një model, $\text{VIF}_{\text{Income}}=4$. Shtojmë një variabël të ri plotësisht të pakorreluar me të gjithë parashikuesit e tjerë.
+    \begin{enumerate}
+      \item Si ndryshon $\text{VIF}_{\text{Income}}$?
+      \item Sa është VIF-i i variablës së re?
+      \item Sa herë më e madhe është SE e \texttt{Income} se sa do të ishte pa kolinearitet?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjVIF}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Transformimi Box--Cox}
+% ------------------------------------------------------------
+
+\begin{frame}{Transformimi Box--Cox}
+  \begin{Definicion}[Box--Cox, për $y>0$]
+    \[ y^{(\lambda)}=\begin{cases}\dfrac{y^\lambda-1}{\lambda}, & \lambda\ne0\\[6pt] \log y, & \lambda=0\end{cases} \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item<2-> $\lambda=1$: pa transformim (vetëm zhvendosje); $\lambda=0.5$: rrënjë; $\lambda=0$: log; $\lambda=-1$: inversi.
+    \item<3-> \textbf{Pse $-1$ dhe $/\lambda$?} Që $y^{(\lambda)}\to\log y$ kur $\lambda\to0$ (vazhdueshmëri).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Fotografia: familja Box--Cox}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=0.72\textwidth,height=0.52\textwidth,xmin=0.2,xmax=4,ymin=-3,ymax=3.2,
+        xlabel={$y$},ylabel={$y^{(\lambda)}$},legend pos=south east,legend style={font=\tiny},
+        tick label style={font=\scriptsize},label style={font=\scriptsize}]
+      \addplot[domain=0.2:4,samples=60,thick,uptblue] {x-1}; \addlegendentry{$\lambda=1$}
+      \addplot[domain=0.2:4,samples=60,thick,okgreen] {(sqrt(x)-1)/0.5}; \addlegendentry{$\lambda=0.5$}
+      \addplot[domain=0.2:4,samples=60,thick,accent] {ln(x)}; \addlegendentry{$\lambda=0$}
+      \addplot[domain=0.2:4,samples=60,thick,gray] {(1/x-1)/(-1)}; \addlegendentry{$\lambda=-1$}
+    \end{axis}
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Si zgjidhet $\lambda$?}
+  \begin{itemize}
+    \item<1-> Për çdo $\lambda$: përshtat $y^{(\lambda)}\sim X$ dhe llogarit log-përgjasinë e profilit (me Jakobianin $(\lambda-1)\sum\log y_i$).
+    \item<2-> $\hat\lambda$ = maksimumi; IB 95\%: $\lambda$ me log-përgjasi brenda $\tfrac12\chi^2_{1;0.95}=1.92$ nga maksimumi.
+    \item<3-> Zgjidh një vlerë ``të rrumbullakët'' brenda IB (0, 0.5, $-1$): më e lehtë për interpretim.
+    \item<4-> Në R: \texttt{MASS::boxcox(fit)} ose \texttt{car::powerTransform(fit)}.
+  \end{itemize}
+  \pause[5]
+  \begin{Gabim}Box--Cox kërkon $y>0$. Me zero: $\log(y+c)$ ose familja Yeo--Johnson.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Interpretimi pas $\log y$}
+  \begin{itemize}
+    \item<1-> $\log y=\beta_0+\beta_1x+\varepsilon$ $\Rightarrow$ $y=e^{\beta_0}e^{\beta_1x}e^{\varepsilon}$.
+    \item<2-> $x$ rritet me 1 $\Rightarrow$ $y$ shumëzohet me $e^{\beta_1}$.
+    \item<3-> Për $|\beta_1|$ të vogël: rreth $100\beta_1\%$ ndryshim. Pa ndihmën e PC: $\beta_1=0.05$ $\Rightarrow$ $e^{0.05}\approx1.051$, +5.1\%.
+    \item<4-> Efekti bëhet \textbf{shumëzues}: përshtatet për pagat, çmimet, përqendrimet.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Fleta e diagnostikimit}
+  \centering\scriptsize
+  \begin{tabular}{llll}
+    \toprule
+    Problemi & Grafiku & Testi & Zgjidhja\\ \midrule
+    Jolinearitet & Res.\ vs Fitted, \texttt{crPlots} & --- & transformim, polinom\\
+    Heteroskedasticitet & Scale-Location & \texttt{bptest} & SE HC3, log, WLS\\
+    Jo-normalitet & Q-Q & \texttt{shapiro.test} & $n$ i madh; Box--Cox\\
+    Autokorrelacion & $e$ sipas kohës, \texttt{acf} & \texttt{dwtest} & modele për seri\\
+    Vlera ekstreme & \texttt{rstudent} & \texttt{outlierTest} & kontrollo burimin\\
+    Ndikim & Res.\ vs Leverage & Cook $D$ & raporto me/pa\\
+    Kolinearitet & --- & \texttt{vif} & hiq/kombino\\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=ushTPS4]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    INSTAT publikon pagat mesatare sipas bashkive. Do të modelosh pagën me madhësinë e bashkisë dhe përqindjen e punonjësve në shërbime.
+    \begin{enumerate}
+      \item Cilat dy supozime pret të shkelen më shumë? Pse?
+      \item Çfarë transformimi do të provoje së pari?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS4}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=cp74]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 4}
+  \begin{enumerate}
+    \item Cili supozim, kur shkelet, e zhvendos $\hat\beta$, dhe cilat prishin vetëm SE?
+    \item Shkruaj formulën sandwich dhe shpjego pse HC3 pjesëton me $(1-h_{ii})^2$.
+    \item $R_j^2=0.75$. Sa është VIF dhe sa herë rritet SE?
+  \end{enumerate}
+  \shkoTe{zgjCp74}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 4}
+  \begin{itemize}
+    \item Jolineariteti zhvendos $\hat\beta$; heteroskedasticiteti dhe autokorrelacioni prishin SE.
+    \item Breusch--Pagan $nR^2_{\text{aux}}\sim\chi^2_p$; sandwich HC0/HC1/HC3.
+    \item Normaliteti: Q-Q, Shapiro; për $n$ të madh ka pak rëndësi për $\hat\beta$.
+    \item $\text{VIF}_j=1/(1-R_j^2)$; SE $\times\sqrt{\text{VIF}_j}$.
+    \item Box--Cox: $\hat\lambda$ nga log-përgjasia e profilit; $\lambda=0$ = log.
+  \end{itemize}
+  \begin{Keshille}Ora 5: të gjitha në R: \texttt{bptest}, \texttt{coeftest(vcovHC)}, \texttt{crPlots}, \texttt{vif}, \texttt{boxcox}, dhe simulime për madhësinë e testit.\end{Keshille}
+\end{frame}
