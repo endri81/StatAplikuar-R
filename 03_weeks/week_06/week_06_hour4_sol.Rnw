@@ -1,0 +1,54 @@
+% ============================================================
+%  Java 6 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjJapan]{Zgjidhja: Pyetje me zgjedhje (\texttt{originJapan})}
+  \begin{itemize}
+    \item \textbf{C}. Niveli bazë është SHBA; koeficienti = $\bar y_{\text{Japan}}-\bar y_{\text{USA}}$.
+    \item A është konstantja $+10.42$ (rreth 30.5 mpg); B kërkon \texttt{relevel(ref = "Europe")}; D ngatërron mesataret me çdo makinë.
+  \end{itemize}
+  \vfill\kthehu{pyetjeJapan}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjSyn]{Zgjidhja: Radha jote! (sinergjia)}
+  \begin{enumerate}
+    \item Efekti i radios $=\hat\beta_2+\hat\beta_3\,\texttt{TV}$: TV $=100$: $0.0289+0.109=0.138$ (138 njësi); TV $=250$: $0.0289+0.272=0.301$ (301 njësi).
+    \item Me ndërveprim, vlera e radios varet nga TV: ndarja e buxhetit ka rëndësi, jo ``gjithçka në një kanal''.
+  \end{enumerate}
+<<sol-syn>>=
+adv <- read.csv(file.path(W06DATA, "Advertising.csv"))[, -1]
+fit_int <- lm(sales ~ TV * radio, data = adv)
+predict(fit_int, data.frame(TV = c(100, 70, 50), radio = c(0, 30, 50)))
+@
+  \vfill\kthehu{ushSyn}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjGabHier]{Zgjidhja: Gjej gabimin (parimi hierarkik)}
+<<sol-hier>>=
+credit <- read.csv(file.path(W06DATA, "Credit.csv"))
+round(coef(lm(Balance ~ Income:Student, data = credit)), 2)
+round(coef(lm(Balance ~ Income * Student, data = credit)), 2)
+@
+  \begin{itemize}
+    \item Pa \texttt{Student} si efekt kryesor, të dy grupet detyrohen të kenë \textbf{të njëjtën prerje}. Studentët kanë borxh më të lartë në çdo nivel të ardhurash; modeli e ``shpjegon'' këtë me një pjerrësi më të pjerrët.
+    \item Me modelin hierarkik (\texttt{Income * Student}) pjerrësitë janë 6.22 dhe 4.22: dallimi ka shenjën e kundërt dhe nuk është i rëndësishëm.
+  \end{itemize}
+  \vfill\kthehu{gjejGabHier}
+\end{frame}
+
+\begin{frame}[label=zgjTps]{Zgjidhja: Think--pair--share (\texttt{origin} si numër)}
+  \begin{enumerate}
+    \item Një vijë e drejtë në kodet: Evropa$-$SHBA $=$ Japonia$-$Evropa $=\hat\beta_1$. Rendi dhe largësia midis kodeve nuk kanë kuptim.
+    \item 2 parametra (prerja, pjerrësia), kundrejt 3 me dummy (një mesatare për çdo origjinë). Modeli numerik është rast i veçantë, i kufizuar, i modelit me dummy.
+  \end{enumerate}
+  \vfill\kthehu{ushTps}
+\end{frame}
+
+\begin{frame}[label=zgjCp64]{Përgjigjet: Checkpoint Ora 4}
+  \begin{enumerate}
+    \item 4. Me 5 dummy plus konstanten, kolonat do ishin linearisht të varura (kurthi i dummy-ve).
+    \item Diferencën e pjerrësisë së $x$ midis grupit $d=1$ dhe grupit bazë.
+    \item Që efektet kryesore të interpretohen te vlerat mesatare dhe të ulet korrelacioni midis $x_j$ dhe $x_1x_2$.
+  \end{enumerate}
+  \vfill\kthehu{cp64}
+\end{frame}

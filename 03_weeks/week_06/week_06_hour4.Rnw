@@ -1,0 +1,298 @@
+% ============================================================
+%  Java 6 · Ora 4 — Teoria II: parashikuesit cilësorë dhe ndërveprimet
+%  Rezultatet: K2, S1, S2
+%  Burimi: ISLR kap. 3.3; Cohen et al. kap. 8--9
+% ============================================================
+
+\section{Teoria II}
+
+\begin{frame}{Ora 4: Teoria II --- dummy dhe ndërveprime}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Variablat dummy}
+% ------------------------------------------------------------
+
+\begin{frame}{Një parashikues me dy nivele \LO{S1}}
+  \begin{itemize}
+    \item<1-> \texttt{Student}: ``Yes'' ose ``No''. Nuk mund ta fusim drejtpërdrejt në $\bm X$.
+    \item<2-> \termi{Variabla dummy}{dummy / indicator variable}:
+      \[ d_i=\begin{cases}1 & \text{nëse klienti është student}\\ 0 & \text{përndryshe}\end{cases} \]
+    \item<3-> Modeli: $y_i=\beta_0+\beta_1d_i+\varepsilon_i$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë janë koeficientët?}
+  \begin{itemize}
+    \item<1-> Jo-student ($d=0$): $E[y]=\beta_0$.
+    \item<2-> Student ($d=1$): $E[y]=\beta_0+\beta_1$.
+    \item<3-> Pra $\beta_0$ = mesatarja e grupit bazë; $\beta_1$ = \textbf{diferenca} e mesatareve.
+    \item<4-> OLS jep saktësisht mesataret e zgjedhjes: $\hat\beta_0=\bar y_0$, $\hat\beta_1=\bar y_1-\bar y_0$.
+    \item<5-> Testi $t$ i $\beta_1$ = testi $t$ i dy mesatareve me variancë të përbashkët (Java 4).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli te \texttt{Credit}}
+<<credit-student>>=
+credit <- read.csv(file.path(W06DATA, "Credit.csv"))
+coef(lm(Balance ~ Student, data = credit))
+tapply(credit$Balance, credit$Student, mean)
+@
+  \begin{itemize}
+    \item $480.4$ = mesatarja e jo-studentëve; $480.4+396.5=876.8$ = mesatarja e studentëve.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Faktor me $k$ nivele}
+  \begin{itemize}
+    \item<1-> \texttt{origin}: SHBA, Evropa, Japonia. Krijojmë $k-1=2$ dummy.
+    \item<2-> \termi{Niveli bazë}{reference level}: ai pa dummy (R zgjedh të parin alfabetik ose të parin në \texttt{levels}).
+  \end{itemize}
+  \onslide<3->{
+  \centering\small
+  \begin{tabular}{@{}lccc|c@{}}
+    \toprule
+    Origjina & konstantja & \texttt{originEurope} & \texttt{originJapan} & $E[y]$ \\ \midrule
+    SHBA & 1 & 0 & 0 & $\beta_0$ \\
+    Evropa & 1 & 1 & 0 & $\beta_0+\beta_1$ \\
+    Japonia & 1 & 0 & 1 & $\beta_0+\beta_2$ \\ \bottomrule
+  \end{tabular}}
+  \onslide<4->{\begin{Gabim}$k$ dummy plus konstantja: kolonat mblidhen në kolonën e konstantes, $\bm X$ nuk ka rang të plotë (\emph{dummy variable trap}). R e shmang automatikisht.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[label=pyetjeJapan]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    \texttt{lm(mpg \textasciitilde{} origin)} jep \texttt{originJapan} $=10.42$. Çfarë do të thotë?\\[3pt]
+    \textbf{A)} Makinat japoneze kanë mesatarisht 10.42 mpg.\\
+    \textbf{B)} Makinat japoneze kanë mesatarisht 10.42 mpg më shumë se ato evropiane.\\
+    \textbf{C)} Makinat japoneze kanë mesatarisht 10.42 mpg më shumë se ato amerikane.\\
+    \textbf{D)} Çdo makinë japoneze ka 10.42 mpg më shumë se çdo amerikane.
+  \end{Parashiko}
+  \shkoTe{zgjJapan}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Ndërrimi i bazës dhe testi i faktorit}
+  \begin{itemize}
+    \item<1-> \texttt{relevel(origin, ref = "Japan")}: koeficientët ndryshojnë, \textbf{modeli jo} (të njëjtat $\hat y$, $R^2$, RSE).
+    \item<2-> Pyetja ``a ka rëndësi origjina?'' $\Rightarrow$ $H_0:\beta_1=\beta_2=0$: testi $F$ i pjesshëm me $q=k-1$.
+    \item<3-> Me vetëm faktorin në model, ky është testi $F$ i ANOVA-s njëfaktoriale (Java 4).
+  \end{itemize}
+  \onslide<4->{\begin{Gabim}Të vendosësh për faktorin nga testet $t$ të dummy-ve veç e veç: ato krahasojnë çdo nivel me \emph{bazën}, dhe varen nga zgjedhja e saj. Për faktorin: \texttt{anova()}.\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Një kodim tjetër: $\pm1$}
+  \begin{itemize}
+    \item<1-> \termi{Kodimi me efekte}{effect / sum coding}: $d=+1$ për studentët, $-1$ për të tjerët.
+    \item<2-> Atëherë $\beta_0=(\mu_1+\mu_0)/2$ (mesatarja e mesatareve) dhe $\beta_1=(\mu_1-\mu_0)/2$.
+    \item<3-> Përshtatja ($\hat y$, $R^2$, testi) është \textbf{e njëjta}; ndryshon vetëm kuptimi i koeficientëve.
+    \item<4-> Në R: \texttt{contrasts = list(Student = contr.sum)} (si te Tipi III, Java 4).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTps]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(Think--pair--share, 4 minuta)]
+    Një analist kodon \texttt{origin} si numër: SHBA $=1$, Evropa $=2$, Japonia $=3$, dhe përshtat \texttt{lm(mpg \textasciitilde{} origin)}.
+    \begin{enumerate}
+      \item Çfarë supozon ky model për dallimin Evropa$-$SHBA dhe Japonia$-$Evropa?
+      \item Sa parametra përdor ai, dhe sa modeli me dummy?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTps}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Dummy dhe shpjegues sasior}
+% ------------------------------------------------------------
+
+\begin{frame}{Dy vija paralele}
+  \[ y=\beta_0+\beta_1x+\beta_2d+\varepsilon \]
+  \pause
+  \begin{itemize}
+    \item $d=0$: $E[y]=\beta_0+\beta_1x$. \quad $d=1$: $E[y]=(\beta_0+\beta_2)+\beta_1x$.
+    \pause
+    \item E njëjta pjerrësi, prerje të ndryshme: $\beta_2$ = zhvendosja vertikale \textbf{për të njëjtën} $x$.
+  \end{itemize}
+  \onslide<4->{
+  \centering
+  \begin{tikzpicture}[x=0.9cm,y=0.3cm]
+    \draw[->] (0,0) -- (5,0) node[right,font=\tiny]{$x$};
+    \draw[->] (0,0) -- (0,9) node[above,font=\tiny]{$y$};
+    \draw[thick,uptmid] (0.2,1) -- (4.6,4.3) node[right,font=\tiny]{$d=0$};
+    \draw[thick,accent] (0.2,4) -- (4.6,7.3) node[right,font=\tiny]{$d=1$};
+    \draw[<->,gray] (2.5,2.73) -- (2.5,5.73) node[midway,right,font=\tiny]{$\beta_2$};
+  \end{tikzpicture}}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  Grupi 0 ($d=0$): $x=(1,2,3)$, $y=(2,3,4)$. \quad Grupi 1 ($d=1$): $x=(1,2,3)$, $y=(5,7,9)$.
+  \pause
+  \begin{enumerate}
+    \item Brenda grupeve: $S_{xy}=2$ dhe $4$; $S_{xx}=2$ dhe $2$. Pjerrësia e përbashkët (OLS): $\hat\beta_1=(2+4)/(2+2)=1.5$.
+    \pause
+    \item Meqë $\bar x$ është 2 në të dy grupet: $\hat\beta_2=\bar y_1-\bar y_0=7-3=4$.
+    \pause
+    \item $\hat\beta_0=\bar y_0-\hat\beta_1\bar x_0=3-1.5\times2=0$.
+  \end{enumerate}
+  \pause
+  \begin{itemize}
+    \item Modeli: $\hat y=1.5x+4d$. Por pjerrësitë e vërteta brenda grupeve janë 1 dhe 2\dots
+  \end{itemize}
+  \footnotesize\textcolor{gray}{Të dhëna: sintetike.}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{Credit}: \texttt{Balance \textasciitilde{} Income + Student}}
+<<credit-add>>=
+round(coef(lm(Balance ~ Income + Student, data = credit)), 2)
+@
+  \begin{itemize}
+    \item<2-> Për të njëjtat të ardhura, studentët kanë mesatarisht $\approx383$ \$ borxh më shumë.
+    \item<3-> Për të njëjtin status, 1000 \$ të ardhura më shumë $\leftrightarrow$ $\approx6$ \$ borxh më shumë.
+    \item<4-> Supozim: e njëjta pjerrësi e të ardhurave për studentët dhe jo-studentët. A është e arsyeshme?
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ndërveprimet}
+% ------------------------------------------------------------
+
+\begin{frame}{Pjerrësi të ndryshme}
+  \[ y=\beta_0+\beta_1x+\beta_2d+\beta_3\,(x\cdot d)+\varepsilon \]
+  \pause
+  \begin{itemize}
+    \item $d=0$: $E[y]=\beta_0+\beta_1x$.
+    \item $d=1$: $E[y]=(\beta_0+\beta_2)+(\beta_1+\beta_3)x$.
+    \pause
+    \item $\beta_3$ = \textbf{diferenca e pjerrësive}: \termi{ndërveprimi}{interaction}.
+  \end{itemize}
+  \onslide<4->{
+  \centering
+  \begin{tikzpicture}[x=0.9cm,y=0.3cm]
+    \draw[->] (0,0) -- (5,0) node[right,font=\tiny]{$x$};
+    \draw[->] (0,0) -- (0,9) node[above,font=\tiny]{$y$};
+    \draw[thick,uptmid] (0.2,1.5) -- (4.6,3.5) node[right,font=\tiny]{$d=0$};
+    \draw[thick,accent] (0.2,2.5) -- (4.6,8.3) node[right,font=\tiny]{$d=1$};
+  \end{tikzpicture}}
+\end{frame}
+
+\begin{frame}{Shembulli me ndërveprim}
+  Të njëjtat të dhëna. Me ndërveprim, çdo grup ka vijën e vet:
+  \pause
+  \begin{enumerate}
+    \item Grupi 0: $\hat y=1+1\cdot x$ (pjerrësia $2/2=1$, prerja $3-1\times2=1$).
+    \pause
+    \item Grupi 1: $\hat y=3+2\cdot x$ (pjerrësia $4/2=2$, prerja $7-2\times2=3$).
+    \pause
+    \item Pra $\hat\beta_0=1$, $\hat\beta_1=1$, $\hat\beta_2=3-1=2$, $\hat\beta_3=2-1=1$.
+  \end{enumerate}
+  \pause
+  \begin{itemize}
+    \item Mbetjet janë zero: tre pika në vijë në çdo grup. Modeli aditiv ($1.5x+4d$) i humbi këto.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{Credit}: \texttt{Income * Student}}
+<<credit-int>>=
+round(summary(lm(Balance ~ Income * Student, data = credit))$coefficients, 3)
+@
+  \begin{itemize}
+    \item<2-> Jo-studentët: pjerrësia $6.22$; studentët: $6.22-2.00=4.22$ \$ për 1000 \$.
+    \item<3-> Por $p=0.25$ për ndërveprimin: të dhënat nuk tregojnë qartë që pjerrësitë ndryshojnë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Si testohet ndërveprimi?}
+  \begin{itemize}
+    \item<1-> Me një dummy: $H_0:\beta_3=0$, testi $t$ i \texttt{x:d} (ose $F$ i pjesshëm me $q=1$).
+    \item<2-> Me një faktor me $k$ nivele: $k-1$ terma ndërveprimi; $H_0$: të gjithë $=0$. Testi $F$ i pjesshëm me $q=k-1$:
+      \[ \texttt{anova(lm(y \textasciitilde{} x + f), lm(y \textasciitilde{} x * f))}. \]
+    \item<3-> Dy faktorë cilësorë me ndërveprim: kjo është ANOVA dyfaktoriale e Javës 4, e shkruar si \texttt{lm()}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Dy shpjegues sasiorë: TV $\times$ radio}
+  \[ \texttt{sales}=\beta_0+\beta_1\,\texttt{TV}+\beta_2\,\texttt{radio}+\beta_3\,\texttt{TV}\cdot\texttt{radio}+\varepsilon \]
+  \pause
+  \begin{itemize}
+    \item Efekti i TV: $\dfrac{\partial E[y]}{\partial\,\texttt{TV}}=\beta_1+\beta_3\,\texttt{radio}$: varet nga radio.
+    \pause
+    \item $\beta_3>0$: \termi{sinergji}{synergy}; kanalet përforcojnë njëri-tjetrin (ISLR).
+    \pause
+    \item Te \texttt{Advertising}: $\hat\beta_1=0.0191$, $\hat\beta_2=0.0289$, $\hat\beta_3=0.00109$; $R^2$ nga 0.897 në 0.968.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Efekti i TV sipas buxhetit të radios}
+  \begin{itemize}
+    \item<1-> Radio $=0$: TV jep $0.0191$, pra 19 njësi për 1000 \$.
+    \item<2-> Radio $=20$: $0.0191+0.00109\times20=0.0408$: 41 njësi.
+    \item<3-> Radio $=40$: $0.0191+0.00109\times40=0.0626$: 63 njësi.
+    \item<4-> Mesazhi për menaxherin: TV ia vlen më shumë kur shoqërohet me radio.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushSyn]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta, pa ndihmën e PC)]
+    Me koeficientët e modelit \texttt{TV * radio}:
+    \begin{enumerate}
+      \item Sa është efekti i 1000 \$ më shumë në radio kur TV $=100$? Po kur TV $=250$?
+      \item Rishiko buxhetin e Orës 1: a e ndryshon ndërveprimi idenë ``gjithçka në radio''?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSyn}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Parimi hierarkik}
+  \begin{itemize}
+    \item<1-> Nëse modeli ka $x\cdot d$, duhet të ketë edhe $x$ dhe $d$, edhe kur ato nuk janë ``të rëndësishme''.
+    \item<2-> Pse? Pa $x$, modeli detyron pjerrësinë e grupit bazë të jetë 0; pa $d$, detyron prerjet të jenë të barabarta. Kufizime pa justifikim.
+    \item<3-> Në R: \texttt{y \textasciitilde{} x * d} shton automatikisht \texttt{x + d + x:d}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Qendërzimi me ndërveprime}
+  \begin{itemize}
+    \item<1-> Me ndërveprim, $\beta_1$ = efekti i TV kur radio $=0$: ndoshta një rast i rrallë.
+    \item<2-> Qendërzo: $\texttt{TV}_c=\texttt{TV}-\overline{\texttt{TV}}$, $\texttt{radio}_c=\texttt{radio}-\overline{\texttt{radio}}$.
+    \item<3-> Atëherë $\beta_1$ = efekti i TV te radio \textbf{mesatare}: $0.0444$; dhe $\beta_3$ nuk ndryshon.
+    \item<4-> Bonus: $r(\texttt{TV},\texttt{TV}\cdot\texttt{radio})=0.66$; pas qendërzimit $0.08$. SE më të qëndrueshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabime të zakonshme}
+  \begin{Gabim}``Efekti i TV është 0.019.'' Me ndërveprim, kjo vlen vetëm kur radio $=0$. Raporto efektin për disa vlera të radios, ose qendërzo.\end{Gabim}
+  \pause
+  \begin{Gabim}Interpretimi i $R^2$ si arsye e mjaftueshme për ndërveprimin. Testo $\beta_3$ dhe kontrollo grafikët: ndërveprimi duhet të ketë kuptim në kontekst.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=gjejGabHier]{Gjej gabimin!}
+  \begin{Ushtrim}[(Gjej gabimin)]
+    \small
+    Studenti përshtat \texttt{lm(Balance \textasciitilde{} Income:Student, data = credit)}, merr pjerrësitë 5.53 (jo-studentë) dhe 9.70 (studentë), dhe shkruan: ``Të ardhurat ndikojnë gati dyfish më shumë te studentët.''\\[3pt]
+    \normalsize Çfarë ka bërë gabim? Si duhet shkruar modeli?
+  \end{Ushtrim}
+  \shkoTe{zgjGabHier}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp64]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 4}
+  \begin{enumerate}
+    \item Sa dummy duhen për një faktor me 5 nivele? Pse jo 5?
+    \item Në \texttt{y \textasciitilde{} x * d}, çfarë mat koeficienti i \texttt{x:d}?
+    \item Pse qendërzojmë kur kemi ndërveprime sasior $\times$ sasior?
+  \end{enumerate}
+  \shkoTe{zgjCp64}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 4}
+  \begin{itemize}
+    \item Dummy: $\beta$ = diferenca nga niveli bazë; $k$ nivele $\to$ $k-1$ kolona; faktori testohet me \Rkey{anova()}.
+    \item $x+d$: vija paralele; $x*d$: pjerrësi të ndryshme, $\beta_3$ = diferenca e pjerrësive.
+    \item Sasior $\times$ sasior: efekti i $x_1$ $=\beta_1+\beta_3x_2$ (sinergji).
+    \item Parimi hierarkik; qendërzimi për interpretim dhe qëndrueshmëri.
+  \end{itemize}
+  \begin{Keshille}Ora 5: \texttt{Credit} sipas repo-s, grafikët e vijave, \texttt{model.matrix()}, \texttt{relevel()}, \texttt{TV * radio}.\end{Keshille}
+\end{frame}
