@@ -1,0 +1,138 @@
+% ============================================================
+%  Java 9 · Ora 7 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=s9T1]{Zgjidhja: Teori 1}
+  \small
+  \begin{enumerate}
+    \item $Y\mid x\sim\text{Bernoulli}(p)$, $\log\frac{p}{1-p}=x^\top\beta$. \texttt{lm()}: parashikime jashtë $[0,1]$, formë lineare në vend të S, variancë $p(1-p)$ jo konstante.
+    \item $e^{\beta_j}$: odds shumëzohet me këtë faktor kur $x_j$ rritet 1, me të tjerët fiks. $\partial p/\partial x_j=\beta_jp(1-p)$ varet nga $p$; maksimumi $\beta_j/4$ te $p=0.5$.
+  \end{enumerate}
+  \vfill\kthehu{q9T1}
+\end{frame}
+
+\begin{frame}[label=s9T2]{Zgjidhja: Teori 2}
+  \small
+  \begin{enumerate}
+    \item $U=X^\top(y-p)$, $H=-X^\top WX$. IRLS: me $\beta$ aktual llogarit $p$, $W$, $z=X\beta+W^{-1}(y-p)$; WLS i $z$ mbi $X$; përsërit.
+    \item Wald: $z=\hat\beta_j/\text{SE}$ nga një model i vetëm. LR: krahason dy modele të përfshira, $\Lambda=D_{\text{red}}-D_{\text{plotë}}\sim\chi^2_q$; më i besueshëm me $n$ të vogël. Deviance $=-2\ell(\hat\beta)$ (për 0/1).
+  \end{enumerate}
+  \vfill\kthehu{q9T2}
+\end{frame}
+
+\begin{frame}[label=s9T3]{Zgjidhja: Teori 3}
+  \small
+  \begin{enumerate}
+    \item LDA: $x$ normal, $\Sigma$ e përbashkët (kufi linear). QDA: normal, $\Sigma_k$ të ndryshme (kufi kuadratik, më shumë parametra). KNN: pa supozim parametrik; $K$ dhe shkalla e variablave kanë rëndësi.
+    \item AUC $=P(\hat p_+>\hat p_-)$: renditja, pavarësisht pragut dhe përqindjes së klasave. Me 3\% pozitivë, ``gjithmonë jo'' ka saktësi 97\% dhe sensitivitet 0.
+    \item ``Po'': kosto $C_{FP}(1-p)$; ``Jo'': $C_{FN}p$. ``Po'' kur $p>C_{FP}/(C_{FP}+C_{FN})$.
+  \end{enumerate}
+  \vfill\kthehu{q9T3}
+\end{frame}
+
+\begin{frame}[label=s9E1]{Zgjidhja: Ushtrimi 1}
+  \small
+  \begin{itemize}
+    \item $\text{odds}_0=6/24=0.25$ $\Rightarrow$ $\hat\beta_0=-1.386$; \; $\text{odds}_1=9/9=1$ $\Rightarrow$ OR $=4$, $\hat\beta_1=1.386$.
+    \item SE $=\sqrt{\frac16+\frac1{24}+\frac19+\frac19}=\sqrt{0.431}=0.656$; \; $z=1.386/0.656=2.11>1.96$: refuzohet $H_0$.
+    \item $\hat p(x=0)=0.25/1.25=0.20=6/30$; \; $\hat p(x=1)=0.5=9/18$. \checkmark
+  \end{itemize}
+  \vfill\kthehu{q9E1}
+\end{frame}
+
+\begin{frame}[label=s9E2]{Zgjidhja: Ushtrimi 2}
+  \small
+  \begin{itemize}
+    \item $x=5$: $\eta=0$ $\Rightarrow$ $p=0.5$. \; $x=2.5$: $\eta=-2$ $\Rightarrow$ $p=1/(1+7.389)=0.119$.
+    \item OR për +1: $e^{0.8}=2.23$; për +2: $e^{1.6}=2.23^2=4.95$.
+    \item Ndryshimi maksimal: $0.8/4=0.2$, te $p=0.5$, pra $x=5$.
+  \end{itemize}
+  \vfill\kthehu{q9E2}
+\end{frame}
+
+\begin{frame}[label=s9E3]{Zgjidhja: Ushtrimi 3}
+  \small
+  \begin{itemize}
+    \item Saktësia $=960/1000=96\%$; sensitiviteti $=40/50=80\%$; specifiteti $=920/950=96.8\%$; precizioni $=40/70=57.1\%$.
+    \item ``Asnjë defekt'': saktësi 95\%, sensitivitet 0. Modeli fiton vetëm 1 pikë në saktësi, por kap 80\% të defekteve: shumë i dobishëm.
+    \item Pragu më i ulët: sensitiviteti $\uparrow$, specifiteti $\downarrow$, precizioni zakonisht $\downarrow$; saktësia mund të bjerë.
+  \end{itemize}
+  \vfill\kthehu{q9E3}
+\end{frame}
+
+\begin{frame}[label=s9E4]{Zgjidhja: Ushtrimi 4}
+  \small
+  \begin{itemize}
+    \item Priorë të barabartë: $x^*=(10+16)/2=13$.
+    \item Me priorët: $x^*=13+\dfrac{9\log3}{6}=13+1.5\cdot1.099=14.65$.
+    \item $x=14$: me priorë të barabartë $14>13$ $\Rightarrow$ klasa 2; me priorët $14<14.65$ $\Rightarrow$ klasa 1.
+    \item Priorët ndryshojnë vendimin për pikat afër kufirit.
+  \end{itemize}
+  \vfill\kthehu{q9E4}
+\end{frame}
+
+\begin{frame}[label=s9E5]{Zgjidhja: Ushtrimi 5}
+  \small
+  \begin{itemize}
+    \item 6 çifte: 0.9 kalon 0.6, 0.3, 0.2 (3); 0.4 kalon 0.3, 0.2 (2). AUC $=5/6=0.833$.
+    \item Pragu 0.5: pozitivë mbi: 0.9 $\Rightarrow$ TPR $=1/2$; negativë mbi: 0.6 $\Rightarrow$ FPR $=1/3$.
+    \item $t^*=1/(1+4)=0.2$: ``Po'' për $\hat p>0.2$: 0.9, 0.4, 0.6, 0.3 $\Rightarrow$ TPR $=1$, FPR $=2/3$; vetëm 0.2 ``Jo''.
+  \end{itemize}
+  \vfill\kthehu{q9E5}
+\end{frame}
+
+\begin{frame}[label=s9E6]{Zgjidhja: Ushtrimi 6}
+  \small
+  \begin{itemize}
+    \item \texttt{balance}: +100 \$ $\Rightarrow$ odds $\times1.78$ ($z=24.8$). \texttt{studentYes}: odds $\times0.49$ me balancë fikse.
+    \item LR global: $2920.7-1571.7=1349.0\gg5.99$ ($\chi^2_2$): modeli shpjegon shumë.
+    \item Studentët kanë balancë më të lartë (988 kundrejt 772 \$); pa \texttt{balance}, OR $=1.50$. Me \texttt{balance} fikse, efekti i drejtpërdrejtë është negativ: ngatërrim.
+  \end{itemize}
+  \vfill\kthehu{q9E6}
+\end{frame}
+
+\begin{frame}[label=s9E7]{Zgjidhja: Ushtrimi 7}
+  \small
+  \begin{enumerate}
+    \item Logjistik me $t^*=1/11$: AUC maksimal (të barabartë), kosto më e ulët (0.142), interpretim i qartë dhe kalibrim i mirë.
+    \item Modelet renditin njësoj (AUC $\approx0.949$); pragu ndryshon vendimet për qindra klientë (sensitiviteti 31.5\% $\to$ 75.7\%).
+    \item Kufiri pothuajse linear në \texttt{balance} (modeli i thjeshtë mjafton); RF ka variancë të madhe, mëson zhurmë nga \texttt{income} dhe jep probabilitete të vrazhda.
+  \end{enumerate}
+  \vfill\kthehu{q9E7}
+\end{frame}
+
+\begin{frame}[label=s9H1]{Udhëzime: Shtëpi 1--2}
+  \small
+  \begin{itemize}
+    \item Shtëpi 1: train 2001--2003, test 2004--2005: QDA 46.0\% kundrejt bazës 55.8\%. Fitorja e 2005 \textbf{nuk} mbetet: ishte zhurmë.
+    \item Shtëpi 2 (\texttt{set.seed(2026)}, 10-fold): AUC 0.9490 (linear) kundrejt 0.9476 (\texttt{ns}); forma lineare në logit mjafton.
+  \end{itemize}
+  \vfill\kthehu{h9H1}
+\end{frame}
+
+\begin{frame}[label=s9H3]{Udhëzime: Shtëpi 3--4}
+  \small
+  \begin{itemize}
+    \item Shtëpi 3 (\texttt{set.seed(1)}): precizioni $K=1$: 9/77 = 11.7\%; $K=3$: 5/25 = 20\%; $K=5$: 4/15 = 26.7\%; baza 6\%. Për marketing, precizioni ka rëndësi, jo saktësia.
+    \item Shtëpi 4 (eksponencial, shkallë $\times3$ për $y=1$; 50 përsëritje): logjistik 23.0\%, LDA 23.8\%, QDA 24.3\%. Pa normalitet, logjistiku fiton.
+  \end{itemize}
+  \vfill\kthehu{h9H3}
+\end{frame}
+
+\begin{frame}[label=s9H5]{Udhëzime: Shtëpi 5--6}
+  \small
+  \begin{itemize}
+    \item 5(a): Ora 4; (b): Ora 2, derivati i $\log(1+e^\eta)$; (c) AUC numëron çiftet ku $\hat p_+>\hat p_-$, pra statistika $U$ e Mann--Whitney pjesëtuar me $n_+n_-$.
+    \item Shtëpi 6 (\texttt{set.seed(2)}, 200 train): pema e plotë 21 gjethe, saktësi 77\%; \texttt{cv.tree} (\texttt{set.seed(7)}) sugjeron 9 gjethe, saktësi 77.5\% me pemë shumë më të thjeshtë.
+  \end{itemize}
+  \vfill\kthehu{h9H5}
+\end{frame}
+
+\begin{frame}[label=zgjCp97]{Përgjigjet: Checkpoint Ora 7}
+  \begin{enumerate}
+    \item Përqindjen e klasës (baza), metrikën (AUC, sensitivitet, jo vetëm saktësi), dhe kostot e gabimeve (pragu).
+    \item Të dy kanë log-odds lineare në $x$; ndryshojnë vetëm në mënyrën e vlerësimit.
+    \item Kur kostot e dy gabimeve janë të barabarta dhe probabilitetet janë të kalibruara.
+  \end{enumerate}
+  \vfill\kthehu{cp97}
+\end{frame}
