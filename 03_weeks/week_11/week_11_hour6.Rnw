@@ -1,0 +1,397 @@
+% ============================================================
+%  Java 11 · Ora 6 — Rasti studimor: terreni (DTM) dhe klima
+%  Rezultatet: K2, K3, S1, S2, S3, C1
+%  Burimi: Chang (GIS), kapitulli për DEM dhe analizën e terrenit;
+%          Horn (1981); Hijmans, terra::terrain, shade; Fick & Hijmans (2017), WorldClim 2
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Rasti studimor]{Rasti studimor: terreni dhe klima}
+
+\begin{frame}{Ora 6: Rasti studimor --- terreni dhe klima}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi dhe të dhënat}
+% ------------------------------------------------------------
+
+\begin{frame}{Dy pyetje}
+  \begin{itemize}
+    \item<1-> \textbf{Terreni}: sa i pjerrët është territori Durrës--Tiranë--Dajt? Nga ku bie dielli? Si duket profili nga deti te mali?
+    \item<2-> \textbf{Klima}: sa ftohet korriku për çdo 100 m lartësi në Shqipëri? Çfarë shton gjerësia gjeografike dhe distanca nga deti?
+    \item<3-> E para: \textbf{algjebër fokale} mbi një DTM (Ora 2). E dyta: \textbf{regres} mbi raster-a (Javët 5--8).
+  \end{itemize}
+  \LO{K2, K3, S2}
+\end{frame}
+
+\begin{frame}{Të dhënat e rastit}
+  \begin{itemize}
+    \item<1-> DTM: SRTM 90 m (CGIAR-CSI v4.1), dritarja $19.40^\circ$--$19.98^\circ$L, $41.20^\circ$--$41.48^\circ$V. \textbf{Reale}.
+    \item<2-> Temperatura mesatare e korrikut: WorldClim 2.1, $30''$. \textbf{Reale}, e interpoluar (1970--2000).
+    \item<3-> Lartësia $30''$ (Ora 1) dhe vija bregdetare Natural Earth 1:50m (\texttt{coast\_ne50.gpkg}). \textbf{Reale}.
+    \item<4-> Gjithçka në Albania TM (EPSG:6870): pjerrësia dhe distancat kërkojnë metra.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Modeli dixhital i terrenit}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{SRTM 90 m: leximi dhe projektimi}
+<<h6-srtm>>=
+library(terra); terraOptions(progress = 0)
+srtm <- rast(file.path(W11DATA, "srtm90_tirana.tif"))
+round(res(srtm) * 3600, 1)                          # arc-seconds
+dem  <- project(srtm, "EPSG:6870", res = 90, method = "bilinear")
+dim(dem)
+round(unlist(global(dem, c("min", "max"), na.rm = TRUE)))
+xyFromCell(srtm, which.max(values(srtm)))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $3''$ $\approx$ 90 m; pas projektimit: 347 $\times$ 540 qeliza 90 m $\times$ 90 m.
+    \item<2-> Origjinali: maksimumi 1590 m në $(19.925^\circ, 41.367^\circ)$, Mali i Dajtit (maja: 1613 m). Pas projektimit: 1578 m.
+    \item<3-> Deti është NA në SRTM; disa qeliza bregdetare kanë vlera $\le0$.
+    \item<4-> Bilineari e ul pak majën (Ora 5); për pjerrësi kjo është e pranueshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pjerrësia nga diferencat e fundme}
+  \begin{itemize}
+    \item<1-> Rrjeta $3\times3$ me qelizë $\Delta$; qeliza qendrore $e$, fqinjët L (lindje), P (perëndim), V, J.
+    \item<2-> Derivatet: $\dfrac{\partial z}{\partial x}\approx\dfrac{z_L-z_P}{2\Delta}$, \quad $\dfrac{\partial z}{\partial y}\approx\dfrac{z_V-z_J}{2\Delta}$.
+    \item<3-> Pjerrësia: $\theta=\arctan\sqrt{(\partial z/\partial x)^2+(\partial z/\partial y)^2}$.
+    \item<4-> Horn (1981), parazgjedhja në \texttt{terra}: përdor të 8 fqinjët me pesha 1--2--1.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushSlope116]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    Qeliza 90 m. Vlerat (rreshtat nga veriu në jug):
+    \begin{center}
+      \begin{tabular}{ccc} 100 & 145 & 190 \\ 100 & 145 & 190 \\ 100 & 145 & 190 \end{tabular}
+    \end{center}
+    \begin{enumerate}
+      \item Llogaritni $\partial z/\partial x$, $\partial z/\partial y$ dhe pjerrësinë në gradë.
+      \item Nga cili drejtim ``shikon'' shpati (ekspozicioni)?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSlope116}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kontroll me \texttt{terrain()}}
+<<h6-toy>>=
+p <- rast(nrows = 3, ncols = 3, xmin = 0, xmax = 270, ymin = 0, ymax = 270,
+          crs = "EPSG:6870")
+values(p) <- rep(c(100, 145, 190), 3)
+c(slope  = terrain(p, "slope")[5][1, 1],
+  aspect = terrain(p, "aspect")[5][1, 1])
+@
+  \begin{itemize}
+    \item $\partial z/\partial x=90/180=0.5$; $\arctan0.5=26.57^\circ$; ekspozicioni $270^\circ$ (perëndim).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pjerrësia dhe ekspozicioni i rajonit}
+<<h6-slope>>=
+slope  <- terrain(dem, "slope")                 # degrees
+aspect <- terrain(dem, "aspect")                # degrees, 0 = north, clockwise
+round(unlist(global(slope, c("mean", "max"), na.rm = TRUE)), 1)
+round(100 * global(slope > 30, "mean", na.rm = TRUE)[1, 1], 1)    # % steeper than 30 deg
+a <- na.omit(values(aspect)[, 1])
+round(100 * prop.table(table(cut(a, c(0, 45, 135, 225, 315, 360), include.lowest = TRUE,
+      labels = c("N", "E", "S", "W", "N2")))), 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pjerrësia mesatare $8.1^\circ$; maksimumi $65.4^\circ$ (shkëmbinjtë e Dajtit).
+    \item<2-> Vetëm 2.3\% e qelizave $>30^\circ$: pjesa më e madhe është fushë ose kodër.
+    \item<3-> Ekspozicioni: 34.7\% e qelizave shikojnë nga perëndimi (W); lindja 20.1\%, jugu 22.3\%, veriu $11.0+11.9=22.9\%$.
+    \item<4-> Shpatet e Dajtit shikojnë drejt fushës së Tiranës: nga perëndimi.
+  \end{itemize}
+  \LO{S1}
+\end{frame}
+
+\begin{frame}{Hija e relievit (\emph{hillshade})}
+  \begin{itemize}
+    \item<1-> Dielli me lartësi $\alpha$ (nga horizonti) dhe azimut $\phi$.
+    \item<2-> Ndriçimi i qelizës me pjerrësi $\theta$ dhe ekspozicion $\psi$:
+      \[ H=\sin\alpha\cos\theta+\cos\alpha\sin\theta\cos(\phi-\psi). \]
+    \item<3-> Konvencioni hartografik: dielli nga veriperëndimi ($\phi=315^\circ$), $\alpha=45^\circ$.
+    \item<4-> Shembulli: $\theta=26.57^\circ$, $\psi=270^\circ$: $H=0.7071\cdot0.8944+0.7071\cdot0.4472\cdot\cos45^\circ=0.856$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGabim116,fragile]{Gjej gabimin}
+<<h6-bug>>=
+s_deg <- terrain(p, "slope"); a_deg <- terrain(p, "aspect")
+shade(s_deg, a_deg, angle = 45, direction = 315)[5][1, 1]   # expected 0.856
+@
+  \begin{itemize}
+    \item Pse del 0.672 dhe jo 0.856?
+  \end{itemize}
+  \shkoTe{zgjGabim116}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Hija e relievit e rajonit}
+<<h6-hill, eval=FALSE>>=
+hs <- shade(terrain(dem, "slope", unit = "radians"),
+            terrain(dem, "aspect", unit = "radians"), angle = 45, direction = 315)
+hs <- clamp(hs, lower = 0)                       # self-shadow -> 0
+library(ggplot2)
+d1 <- as.data.frame(c(hs, dem), xy = TRUE, na.rm = TRUE); names(d1)[3:4] <- c("hs", "z")
+ggplot(d1, aes(x, y)) +
+  geom_raster(aes(fill = hs)) + scale_fill_gradient(low = "black", high = "white",
+                                                    guide = "none") +
+  coord_equal() + labs(x = NULL, y = NULL) + theme_bw(base_size = 7)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: relievi Durrës--Tiranë--Dajt}
+<<h6-hill-fig, ref.label="h6-hill", echo=FALSE, fig.height=2.6, fig.width=5.2, out.width="0.72\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Kodrat e Durrësit në perëndim, fusha e Tiranës në mes, masivi i Dajtit në lindje.
+    \item<2-> Luginat dhe shtretërit e lumenjve dallohen si zona më të lëmuara midis kodrave.
+    \item<3-> Hija nuk është ``e vërtetë'': dielli nga veriperëndimi vetëm që syri ta lexojë relievin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeProf116]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Profili në vijë të drejtë nga Durrësi $(19.455^\circ, 41.324^\circ)$ te maja e Dajtit $(19.925^\circ, 41.367^\circ)$.
+    \begin{enumerate}
+      \item Sa km është vija?
+      \item Ku pritet rritja më e shpejtë e lartësisë: në fillim, në mes apo në fund?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjProf116}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Profili i terrenit}
+<<h6-prof, fig.height=2.0, fig.width=5.6, out.width="0.66\\textwidth">>=
+ends <- project(vect(cbind(c(19.455, 19.925), c(41.324, 41.367)), crs = "EPSG:4326"),
+                "EPSG:6870")
+xy <- crds(ends); L <- sqrt(sum(diff(xy)^2))
+n <- 400
+line <- cbind(seq(xy[1, 1], xy[2, 1], length.out = n), seq(xy[1, 2], xy[2, 2], length.out = n))
+prof <- data.frame(km = seq(0, L, length.out = n) / 1000, z = extract(dem, line)[, 1])
+ggplot(prof, aes(km, z)) + geom_area(fill = "grey80") + geom_line() +
+  labs(x = "distance from Durres (km)", y = "m") + theme_bw(base_size = 9)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vija është 39.6 km: 10 km të para pranë nivelit të detit, kodrat ($\approx200$ m) rreth km 16--22, fusha e Tiranës (70--170 m), pastaj ngjitja.
+    \item<2-> Ngjitja e fundit: nga $\approx170$ m (km 34) në $\approx1500$ m (km 39.6): $\approx1330$ m në 5.6 km, pjerrësi mesatare $\approx13^\circ$.
+    \item<3-> \texttt{extract()} me 400 pika: profili është vetëm \textbf{mostër} e raster-it përgjatë vijës.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC116]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Një qelizë ka ekspozicion $180^\circ$ dhe pjerrësi $20^\circ$. Cili pohim është i saktë?
+    \begin{enumerate}[A.]
+      \item Shpati shikon nga veriu; merr më pak diell në Shqipëri.
+      \item Shpati shikon nga jugu; në hijen e relievit me dritë nga $315^\circ$ del relativisht i errët.
+      \item Ekspozicioni nuk ka kuptim kur pjerrësia $<30^\circ$.
+      \item $180^\circ$ do të thotë i rrafshët.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC116}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Modeli i temperaturës}
+% ------------------------------------------------------------
+
+\begin{frame}{Modeli}
+  \begin{itemize}
+    \item<1-> Njësia: qeliza 1 km $\times$ 1 km në Albania TM, brenda Shqipërisë.
+    \item<2-> $T_i=\beta_0+\beta_1\,\text{elev}_i+\beta_2\,\text{north}_i+\beta_3\,\text{dcoast}_i+\varepsilon_i$.
+    \item<3-> \texttt{elev} në m; \texttt{north} $=y$ në km (Albania TM); \texttt{dcoast}: distanca nga vija bregdetare në km.
+    \item<4-> Hipoteza fizike: $\beta_1\approx-0.0065^\circ$C/m; $\beta_2<0$ (më në veri, më ftohtë); $\beta_3$? (kontinentaliteti).
+  \end{itemize}
+  \LO{K2, S2}
+\end{frame}
+
+\begin{frame}[fragile]{Përgatitja e raster-ave}
+<<h6-prep>>=
+library(sf)
+tjul  <- rast(file.path(W11DATA, "alb_tavg_30s.tif"))$Jul
+elev  <- rast(file.path(W11DATA, "alb_elev_30s.tif"))
+coast <- vect(file.path(W11DATA, "coast_ne50.gpkg"))
+t_tm  <- project(tjul, "EPSG:6870", res = 1000, method = "bilinear")
+e_tm  <- project(elev, t_tm, method = "bilinear")
+dcst  <- distance(t_tm, project(coast, "EPSG:6870")) / 1000      # km
+north <- init(t_tm, "y") / 1000                                  # km
+stk <- c(t_tm, e_tm, north, dcst); names(stk) <- c("t", "elev", "north", "dcoast")
+v <- na.omit(as.data.frame(stk, xy = TRUE)); nrow(v)
+round(summary(v$dcoast), 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 28\,281 qeliza me të katër variablat.
+    \item<2-> Distanca nga deti: 0.6--129 km; mediana 47 km.
+    \item<3-> \texttt{init(r, "y")}: raster me koordinatën $y$ të qelizës: kovariat hapësinor ``falas''.
+    \item<4-> \texttt{distance(raster, vektor)}: distanca nga çdo qelizë te vija më e afërt.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Dy modele}
+<<h6-lm>>=
+f1 <- lm(t ~ elev, data = v)
+f2 <- lm(t ~ elev + north + dcoast, data = v)
+round(coef(summary(f2)), 6)
+rbind(f1 = c(r2 = summary(f1)$r.squared, sigma = summary(f1)$sigma, AIC = AIC(f1)),
+      f2 = c(r2 = summary(f2)$r.squared, sigma = summary(f2)$sigma, AIC = AIC(f2)))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Lartësia: $-0.00602^\circ$C/m $=-0.60^\circ$C për 100 m (afër $-0.65$ standard).
+    \item<2-> Veriu: $-0.0038^\circ$C/km $=-0.38^\circ$C për 100 km në drejtimin V--J.
+    \item<3-> Distanca nga deti: $-0.0006^\circ$C/km: $-0.06^\circ$C për 100 km. ``Shumë domethënës'' ($p\approx10^{-8}$), por praktikisht zero.
+    \item<4-> $R^2$: $0.976\to0.985$; $\sigma$: $0.50\to0.39^\circ$C; AIC bie me 14\,000.
+  \end{itemize}
+  \pause[5]
+  \begin{Gabim}Me $n=28\,281$ çdo efekt i vogël del ``domethënës''. Rëndësia statistike $\neq$ rëndësia praktike: lexoni madhësinë e koeficientit me njësi.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Harta e mbetjeve}
+<<h6-res, fig.height=3.6, fig.width=3.2, out.width="0.34\\textwidth">>=
+v$res <- resid(f2)
+ggplot(v, aes(x, y, fill = res)) + geom_raster() +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red", name = "deg C") +
+  coord_equal() + labs(x = NULL, y = NULL) + theme_bw(base_size = 7)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Shumica e mbetjeve janë brenda $\pm1^\circ$C, por \textbf{jo} të shpërndara rastësisht.
+    \item<2-> Zona më e ngrohtë se modeli (e kuqe) në veriperëndim, rreth fushës së Shkodrës; më e ftohtë (vjollcë) në malet e verilindjes.
+    \item<3-> Në shkallë të vogël: ``vija'' sipas luginave dhe kurrizeve, që modeli linear nuk i kap.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeNN116]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Në \texttt{meuse} (Java 10) korrelacioni i mbetjes me fqinjin ishte 0.37. Këtu llogarisim korrelacionin midis mbetjes së qelizës dhe mesatares së 4 fqinjëve (V, J, L, P).
+    Më i madh apo më i vogël? Pse?
+  \end{Parashiko}
+  \shkoTe{zgjNN116}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Autokorrelacioni i mbetjeve}
+<<h6-nn>>=
+r_res <- rast(t_tm)
+r_res[cellFromXY(r_res, as.matrix(v[, c("x", "y")]))] <- v$res
+w4 <- matrix(c(0, 1, 0,  1, 0, 1,  0, 1, 0), 3)               # rook neighbours
+nb <- focal(r_res, w = w4, fun = mean, na.rm = TRUE)
+pairs <- na.omit(cbind(values(r_res), values(nb)))
+round(cor(pairs[, 1], pairs[, 2]), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Korrelacioni $=0.957$: mbetja e një qelize është pothuajse e njëjtë me atë të fqinjëve.
+    \item<2-> Pse kaq i lartë? WorldClim është sipërfaqe e interpoluar (e lëmuar); qelizat 1 km janë shumë afër.
+    \item<3-> Pasojë: $n=28\,281$ nuk janë vëzhgime të pavarura; gabimet standarde dhe vlerat $p$ të \texttt{lm()} janë shumë optimiste.
+    \item<4-> Mundësi: kjo strukturë është ajo që Kriging-u (Java 12) përdor për të parashikuar.
+  \end{itemize}
+  \LO{S3, C1}
+\end{frame}
+
+\begin{frame}[label=ushMod116]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(7 minuta)]
+    \begin{enumerate}
+      \item Hiqni \texttt{elev} nga modeli \texttt{f2}. Si ndryshojnë $R^2$ dhe koeficienti i \texttt{dcoast}? Pse?
+      \item Përdorni janarin në vend të korrikut. A ndryshon gradienti termik?
+      \item Merrni një mostër të rastësishme prej 500 qelizash (\texttt{set.seed(2026)}). Si ndryshojnë gabimet standarde?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjMod116}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Harta për botim}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Hija + lartësia + qytetet}
+<<h6-pub, eval=FALSE>>=
+cities <- st_transform(st_as_sf(read.csv(file.path(W11DATA, "al_cities.csv")),
+                                coords = c("lon", "lat"), crs = 4326), 6870)
+cities <- cities[cities$city %in% c("Tirane", "Durres"), ]
+ggplot() +
+  geom_raster(data = d1, aes(x, y, fill = z)) +                  # colour: elevation
+  scale_fill_viridis_c(option = "turbo", name = "m") +
+  geom_raster(data = d1, aes(x, y, alpha = 1 - hs), fill = "black") + # shade on top
+  scale_alpha(range = c(0, 0.6), guide = "none") +
+  geom_sf(data = cities, colour = "black", size = 1.5) +
+  geom_sf_text(data = cities, aes(label = city), nudge_y = 1500, size = 2.5) +
+  labs(x = NULL, y = NULL, caption = "SRTM 90 m (CGIAR-CSI v4.1). EPSG:6870") +
+  theme_bw(base_size = 7)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati}
+<<h6-pub-fig, ref.label="h6-pub", echo=FALSE, warning=FALSE, fig.height=2.8, fig.width=5.6, out.width="0.76\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Ngjyra jep lartësinë; një shtresë e zezë me transparencë $\propto(1-H)$ shton hijen.
+    \item<2-> \texttt{aes(alpha = 1 - hs)} + \texttt{scale\_alpha()}: hija pa paketa shtesë.
+    \item<3-> Tirana dhe Durrësi: konteksti njerëzor mbi relievin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTPS116]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Për planifikimin e një rruge Tiranë--Dajt, cilat derivate të DTM-së ju duhen?
+      \item Pse modeli \texttt{lm()} i temperaturës mund të jetë i mirë për \textbf{parashikim}, por i keq për \textbf{inferencë}?
+      \item Si do ta validonit modelin pa u mashtruar nga autokorrelacioni? (Java 6: CV.)
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS116}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp116]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Llogaritni pjerrësinë kur $\partial z/\partial x=0.3$ dhe $\partial z/\partial y=0.4$.
+    \item Interpretoni $\hat\beta_{\text{elev}}=-0.00602$ me njësi.
+    \item Pse vlerat $p$ të modelit të temperaturës nuk janë të besueshme?
+  \end{enumerate}
+  \shkoTe{zgjCp116}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item DTM 90 m: \texttt{terrain()} $\to$ pjerrësia (mesatare $8.1^\circ$, max $65.4^\circ$), ekspozicioni, \texttt{shade()} $\to$ hija.
+    \item Profili Durrës--Dajt: 39.6 km, nga deti në $\approx1500$ m.
+    \item Korriku: $-0.60^\circ$C/100 m, $-0.38^\circ$C/100 km në veri; deti $\approx0$; $R^2=0.985$.
+    \item Mbetjet: korrelacion 0.957 me fqinjët $\Rightarrow$ inferenca e \texttt{lm()} nuk vlen; ka strukturë për Kriging.
+    \item Statistikisht domethënës $\neq$ praktikisht i rëndësishëm.
+  \end{itemize}
+  \begin{Keshille}Ora 7: konsolidimi --- kuiz, ushtrime, gabime të zakonshme, fletë-kujtesa \texttt{terra}.\end{Keshille}
+\end{frame}

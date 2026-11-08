@@ -1,0 +1,76 @@
+% ============================================================
+%  Java 11 · Ora 6 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjSlope116]{Zgjidhja: Radha jote! (pjerrësia)}
+  \begin{enumerate}
+    \item $\partial z/\partial x=(190-100)/(2\cdot90)=0.5$; $\partial z/\partial y=(145-145)/180=0$.\\
+      $\theta=\arctan\sqrt{0.5^2+0}=\arctan0.5=26.57^\circ$.
+    \item Toka ngrihet drejt lindjes $\Rightarrow$ shpati ``shikon'' (bie) drejt perëndimit: ekspozicioni $270^\circ$.
+  \end{enumerate}
+  \vfill\kthehu{ushSlope116}
+\end{frame}
+
+\begin{frame}[label=zgjGabim116]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item \texttt{shade()} pret pjerrësinë dhe ekspozicionin në \textbf{radianë}.
+    \item \texttt{terrain()} i kthen në gradë si parazgjedhje: 26.57 dhe 270 lexohen si radianë.
+    \item Rregullimi: \texttt{terrain(p, "slope", unit = "radians")} dhe njësoj për \texttt{"aspect"} $\Rightarrow$ 0.856.
+    \item Kujtesë nga Java 10: gradë në \texttt{sin()}/\texttt{cos()}, i njëjti gabim në formë tjetër.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim116}
+\end{frame}
+
+\begin{frame}[label=zgjProf116]{Zgjidhja: Parashiko (profili)}
+  \begin{enumerate}
+    \item Në 6870: $\approx39$ km (kryesisht L--P; $0.47^\circ\cdot83.7$ km $\approx39$ km, plus pak V--J).
+    \item Në fund: fusha e Tiranës është afër nivelit 100--200 m; ngjitja e Dajtit është e shkurtër dhe e pjerrët.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeProf116}
+\end{frame}
+
+\begin{frame}[label=zgjMC116]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item Ekspozicioni matet nga veriu në drejtim të akrepave: $180^\circ$ $=$ jug.
+    \item Me dritë nga $315^\circ$, $\cos(315^\circ-180^\circ)=\cos135^\circ<0$: shpati jugor del më i errët në hijen hartografike, edhe pse në realitet merr më shumë diell.
+    \item D: zonat e rrafshëta zakonisht marrin NA ose $90^\circ$ sipas konvencionit, jo $180^\circ$.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC116}
+\end{frame}
+
+\begin{frame}[label=zgjNN116]{Zgjidhja: Parashiko (autokorrelacioni)}
+  \begin{itemize}
+    \item Shumë më i madh: 0.957.
+    \item (i) WorldClim është sipërfaqe e lëmuar e interpoluar, jo matje të pavarura; (ii) fqinjët janë 1 km larg, jo $\approx100$ m si te \texttt{meuse} por me një fushë shumë më të lëmuar; (iii) mesatarja e 4 fqinjëve zvogëlon zhurmën e fqinjëve.
+  \end{itemize}
+  \vfill\kthehu{pyetjeNN116}
+\end{frame}
+
+\begin{frame}[label=zgjMod116]{Zgjidhja: Ndrysho parametrin}
+  \small
+  \begin{enumerate}
+    \item Pa \texttt{elev}: $R^2=0.401$; koeficienti i \texttt{dcoast} bëhet $-0.070^\circ$C/km ($-7^\circ$C për 100 km!). \textbf{Paragjykim nga variabli i harruar}: larg detit $=$ më lart.
+    \item Janari: $-0.47^\circ$C/100 m; veriu $-0.94^\circ$C/100 km; deti $-2.9^\circ$C/100 km. Në dimër deti ngroh bregdetin: kontinentaliteti duket.
+    \item Me 500 qeliza: gabimet standarde $\approx7.5$ herë më të mëdha ($\sqrt{28\,281/500}\approx7.5$); \texttt{dcoast} nuk është më domethënës ($p=0.27$). Por edhe kjo nënvlerëson pasigurinë nëse mostra nuk është e shpërndarë.
+  \end{enumerate}
+  \vfill\kthehu{ushMod116}
+\end{frame}
+
+\begin{frame}[label=zgjTPS116]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Pjerrësia (kufij teknikë për rrugët, p.sh.\ $\le8$--10\%), ekspozicioni (akulli në shpatet veriore), profilet gjatësore, rrjedha e ujit.
+    \item Parashikimi kërkon $\hat T$ të mirë: $R^2=0.985$. Inferenca kërkon gabime standarde të sakta: autokorrelacioni i bën ato shumë të vogla.
+    \item CV hapësinor: ndani territorin në blloqe (p.sh.\ 20 km) dhe lini jashtë blloqe të tëra, jo qeliza të rastësishme (fqinjët ``rrjedhin'' informacion).
+  \end{enumerate}
+  \vfill\kthehu{ushTPS116}
+\end{frame}
+
+\begin{frame}[label=zgjCp116]{Përgjigjet: Checkpoint Ora 6}
+  \begin{enumerate}
+    \item $\sqrt{0.09+0.16}=0.5$; $\theta=\arctan0.5=26.57^\circ$.
+    \item Duke mbajtur fiks veriun dhe distancën nga deti, çdo 1 m lartësi ul temperaturën mesatare të korrikut me $0.006^\circ$C, pra $0.60^\circ$C për 100 m.
+    \item Mbetjet janë fort të korreluara hapësinor (0.957): vëzhgimet nuk janë të pavarura, gabimet standarde nënvlerësohen.
+  \end{enumerate}
+  \vfill\kthehu{cp116}
+\end{frame}
