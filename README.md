@@ -32,7 +32,7 @@ Titullari: Prof. Asoc. Dr. Endri Raço (eraco@fimif.edu.al)
 | 09 | Regresi logjistik dhe klasifikimi (+ Zgjerim: pemët, RF) | K2, S3, C1 | ✅ Gati (177 slide + 41 zgjidhje) |
 | 10 | Sistemet koordinative, projeksionet, datumet (`sf`, `s2`, `ggspatial`) | K3 | ✅ Gati (261 slide + 58 zgjidhje) |
 | 11 | Raster dhe vektor, shapefile, DTM (`terra`, `sf`, `geodata`) | K3, S4, S1, S3 | ✅ Gati (241 slide + 58 zgjidhje) |
-| 12 | Interpolimi hapësinor: Thiessen, polinom global, IDW, variogram, Kriging (`gstat`, `sf`, `terra`) + projekti final | K3, C1, S2, S3 | 🔄 Orët 1–3 gati (113 slide + 23 zgjidhje) |
+| 12 | Interpolimi hapësinor: Thiessen, polinom global, IDW, variogram, Kriging (`gstat`, `sf`, `terra`) + projekti final | K3, C1, S2, S3 | 🔄 Orët 1–4 gati (153 slide + 29 zgjidhje) |
 
 ## Kompilimi i një jave
 

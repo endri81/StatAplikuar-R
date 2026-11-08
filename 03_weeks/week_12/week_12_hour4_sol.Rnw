@@ -1,0 +1,61 @@
+% ============================================================
+%  Java 12 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjG3124]{Zgjidhja: Radha jote! ($\hat\gamma(3)$)}
+  \begin{enumerate}
+    \item $h=3$: çiftet $(2,5)$ dhe $(4,6)$, pra 2 çifte; katrorët $9,4$.\\
+      $\hat\gamma(3)=\dfrac{13}{2\cdot2}=3.25$.
+    \item $1.25\to1.83\to3.25$: rritet, pa prag. Pikat afër janë më të ngjashme; por rritja pa kufi tregon edhe një \textbf{trend} ($z$ rritet nga 2 në 6). Me trend, variogrami duhet llogaritur mbi mbetjet (UK).
+  \end{enumerate}
+  \vfill\kthehu{pyetjeG3124}
+\end{frame}
+
+\begin{frame}[label=zgjMC124a]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item Variogram i sheshtë që nga fillimi $=$ nugget i pastër: $\gamma_{ij}$ i njëjtë për çdo çift.
+    \item Atëherë peshat e OK janë të barabarta, $\lambda_i=1/n$, kudo përveç mbi vetë mostrat: harta $\approx$ mesatarja, me ``pika'' te mostrat.
+    \item Hapësira nuk sjell informacion; nuk ka çfarë të interpolohet.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC124a}
+\end{frame}
+
+\begin{frame}[label=zgjOK124]{Zgjidhja: Radha jote! (OK me dy pika)}
+  \begin{enumerate}
+    \item $4\lambda_2+m=1$; \ $4\lambda_1+m=3$; \ $\lambda_1+\lambda_2=1$.\\
+      Mbledhim dy të parat: $4+2m=4\Rightarrow m=0$; pra $\lambda_1=\tfrac34$, $\lambda_2=\tfrac14$.
+    \item $\sigma^2_{OK}=\tfrac34\cdot1+\tfrac14\cdot3+0=1.5$.
+    \item Në pikën $x$: $\lambda=\big(\tfrac{4-x}4,\tfrac x4\big)$, $m=0$, $\sigma^2(x)=\tfrac{x(4-x)}{2}$.\\
+      Maksimumi në $x=2$ (mesi), $\sigma^2=2$: pika më larg nga të dyja mostrat.
+  \end{enumerate}
+  \vfill\kthehu{ushOK124}
+\end{frame}
+
+\begin{frame}[label=zgjGabim124]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item Mungon kushti i pazhvendosjes: rreshti dhe kolona me 1 (shumëzuesi $m$).
+    \item Pa to, peshat dalin $(2,1)$ me shumë 3: parashikimi është $\approx3$ herë mesatarja. I zhvendosur.
+    \item Sistemi i saktë $3\times3$ jep $\lambda=(1,0)$, $m=1$ (shembulli 2 i ekranit).
+    \item Me $\gamma$ (jo me $C$), sistemi pa kusht nuk ka as kuptim statistikor: SK punon me kovariancën.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim124}
+\end{frame}
+
+\begin{frame}[label=zgjTPS124]{Zgjidhja: Think--pair--share (rrjeti i stacioneve)}
+  \begin{enumerate}
+    \item Vendosim stacionet aty ku $\sigma_{OK}$ është më e madhe (dhe ku ka rëndësi: popullsia, shkollat); pas çdo shtimi rillogarisim hartën.
+    \item $\sigma^2_{OK}$ varet vetëm nga vendndodhjet dhe nga $\gamma$, jo nga vlerat e matura.
+    \item Nëse $\gamma$ është i gabuar (p.sh.\ range shumë i madh), harta e $\sigma$ është optimiste dhe vendet e zgjedhura nuk janë më të mirat. Kontroll: CV dhe analizë ndjeshmërie për disa modele.
+  \end{enumerate}
+  \vfill\kthehu{ushTPS124}
+\end{frame}
+
+\begin{frame}[label=zgjCp124]{Përgjigjet: Checkpoint Ora 4}
+  \begin{enumerate}
+    \item $\gamma(h)=C(0)-C(h)$; kur $C(h)\to0$, $\gamma\to C(0)$: pragu $=$ varianca e procesit.
+    \item Nga kushti $\sum\lambda_i=1$ (pazhvendosja me $\mu$ të panjohur), i futur me shumëzuesin e Lagrange-it $m$.
+    \item UK ka trend $\mathbf x(s)^\top\boldsymbol\beta$; një kusht pazhvendosjeje për çdo term; variogrami llogaritet mbi mbetjet; kovariatët duhen në çdo qelizë.
+  \end{enumerate}
+  \vfill\kthehu{cp124}
+\end{frame}

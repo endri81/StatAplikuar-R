@@ -1,0 +1,472 @@
+% ============================================================
+%  Java 12 · Ora 4 — Teori II: variogrami dhe Kriging-u
+%  Rezultatet: K3, S1, C1
+%  Burimi: Chang (GIS), kapitulli për interpolimin (Kriging);
+%          Cressie (1993), Statistics for Spatial Data; Pebesma & Bivand (2023), kap. 12
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Variogrami dhe Kriging]{Variogrami dhe Kriging-u}
+
+\begin{frame}{Ora 4: Variogrami dhe Kriging-u}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Variogrami}
+% ------------------------------------------------------------
+
+\begin{frame}{Nga peshat ``me dorë'' te peshat nga modeli}
+  \begin{itemize}
+    \item<1-> IDW: peshat nga një rregull ($d^{-p}$); $p$ zgjidhet me CV.
+    \item<2-> Problemet: grumbullimi (Ora 2), asnjë masë pasigurie.
+    \item<3-> Kriging-u: peshat që \textbf{minimizojnë variancën e gabimit}, sipas një modeli për korrelacionin hapësinor.
+    \item<4-> Ky model është \termi{variogrami}{variogram}: sa ndryshojnë vlerat në funksion të distancës.
+  \end{itemize}
+  \LO{K3, S1}
+\end{frame}
+
+\begin{frame}{Modeli: fushë e rastit}
+  \begin{itemize}
+    \item<1-> $z(s)$ është një realizim i një \termi{fushe të rastit}{random field} $Z(s)$.
+    \item<2-> Modeli më i thjeshtë: $Z(s)=\mu+e(s)$, me $\mu$ konstante dhe të panjohur.
+    \item<3-> \termi{Stacionariteti intrinsik}{intrinsic stationarity}:
+      \[ \mathrm E[Z(s+h)-Z(s)]=0,\qquad \mathrm{Var}[Z(s+h)-Z(s)]=2\gamma(h). \]
+    \item<4-> Ndryshimet varen vetëm nga zhvendosja $h$, jo nga vendi $s$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Semivariogrami}
+  \begin{Definicion}[(\emph{semivariogram})]
+    \[ \gamma(h)=\tfrac12\,\mathrm E\big[(Z(s+h)-Z(s))^2\big]. \]
+  \end{Definicion}
+  \begin{itemize}
+    \item<2-> ``Gjysma'' e katrorit mesatar të diferencës mes dy pikave në distancë $h$.
+    \item<3-> $\gamma(0)=0$; zakonisht rritet me $h$ (Tobler).
+    \item<4-> Kur $|h|$ është skalar (vetëm distanca, pa drejtim): variogram \termi{izotropik}{isotropic}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lidhja me kovariancën}
+  Nëse $\mathrm{Var}\,Z(s)=C(0)$ dhe $\mathrm{Cov}(Z(s),Z(s+h))=C(h)$:
+  \begin{enumerate}
+    \item<2-> $\mathrm{Var}[Z(s+h)-Z(s)]=C(0)+C(0)-2C(h)$.
+    \item<3-> Pra $2\gamma(h)=2C(0)-2C(h)$.
+    \item<4-> $\boxed{\gamma(h)=C(0)-C(h)}$.
+  \end{enumerate}
+  \onslide<5->{\begin{Keshille}Korrelacion i lartë ($C(h)$ i madh) $\Leftrightarrow$ $\gamma(h)$ i vogël. Kur $C(h)\to0$, $\gamma(h)\to C(0)$: pragu (\emph{sill}) $=$ varianca.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Variogrami empirik}
+  \[ \hat\gamma(h_j)=\frac{1}{2N(h_j)}\sum_{(i,k)\in N(h_j)}\big(z(s_i)-z(s_k)\big)^2 \]
+  \begin{itemize}
+    \item<2-> $N(h_j)$: çiftet me distancë në klasën (\emph{bin}) $j$, p.sh.\ 0--100 m, 100--200 m, \dots
+    \item<3-> \termi{Reja e variogramit}{variogram cloud}: të gjitha çiftet, para grupimit.
+    \item<4-> Rregull praktik: deri në rreth $1/3$ e distancës maksimale; $\ge30$ çifte për klasë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull (pa ndihmën e PC): variogrami në 1D}
+  Pikat $x=0,1,2,3,4$ me $z=2,4,3,5,6$ (sintetike).
+  \begin{enumerate}
+    \item<2-> $h=1$: çiftet $(2,4),(4,3),(3,5),(5,6)$; katrorët $4,1,4,1$; shuma 10.\\
+      $\hat\gamma(1)=\dfrac{10}{2\cdot4}=1.25$.
+    \item<3-> $h=2$: çiftet $(2,3),(4,5),(3,6)$; katrorët $1,1,9$; shuma 11.\\
+      $\hat\gamma(2)=\dfrac{11}{2\cdot3}\approx1.83$.
+  \end{enumerate}
+  \onslide<4->{\begin{Keshille}Numri i çifteve bie me $h$: vlerat në distanca të mëdha janë më të paqëndrueshme.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=pyetjeG3124]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(3 minuta)]
+    Me të njëjtat pika ($z=2,4,3,5,6$ në $x=0,\dots,4$):
+    \begin{enumerate}
+      \item Llogaritni $\hat\gamma(3)$. Sa çifte ka?
+      \item A rritet $\hat\gamma$ me $h$? Çfarë na thotë kjo?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjG3124}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Tre elementet e variogramit}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=7.2cm, height=4.4cm, xmin=0, xmax=5, ymin=0, ymax=1.2,
+      ylabel={$\gamma(h)$}, axis lines=left, ticks=none, clip=false,
+      label style={font=\scriptsize}]
+      \addplot[thick, uptblue, domain=0.001:3, samples=60] {0.2+0.8*(1.5*x/3-0.5*(x/3)^3)};
+      \addplot[thick, uptblue, domain=3:5] {1};
+      \addplot[only marks, mark=*, mark size=1.5pt, uptblue] coordinates {(0,0)};
+      \draw[dashed, gray] (axis cs:0,1) -- (axis cs:5,1);
+      \draw[dashed, gray] (axis cs:3,0) -- (axis cs:3,1);
+      \draw[<->, accent] (axis cs:0.15,0) -- (axis cs:0.15,0.2) node[right, font=\scriptsize]{nugget $c_0$};
+      \draw[<->, okgreen] (axis cs:4.3,0) -- (axis cs:4.3,1) node[midway, left, font=\scriptsize]{sill $c_0+c$};
+      \node[font=\scriptsize, below] at (axis cs:3,0) {range $a$};
+      \node[font=\scriptsize, right] at (axis cs:5,0) {$h$};
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item \textbf{Range}: distanca pas së cilës pikat nuk janë më të korreluara.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë është \emph{nugget}?}
+  \begin{itemize}
+    \item<1-> $\gamma(h)\to c_0>0$ kur $h\to0$: kërcim në origjinë.
+    \item<2-> Dy burime: \textbf{gabimi i matjes} (laboratori) dhe \textbf{variacion në shkallë më të vogël} se distanca minimale mes mostrave.
+    \item<3-> Raporti $c_0/(c_0+c)$: sa nga varianca \emph{nuk} shpjegohet nga hapësira.
+    \item<4-> $c_0/(c_0+c)\approx1$: \termi{nugget i pastër}{pure nugget}; Kriging $\to$ mesatarja.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Tre modele të zakonshme ($h>0$)}
+  \small
+  \begin{itemize}
+    \item \textbf{Sferik} (\texttt{"Sph"}):
+      $\gamma(h)=c_0+c\Big[\tfrac32\tfrac ha-\tfrac12\big(\tfrac ha\big)^3\Big]$ për $h\le a$; $c_0+c$ për $h>a$.
+    \item \textbf{Eksponencial} (\texttt{"Exp"}):
+      $\gamma(h)=c_0+c\big(1-e^{-h/a}\big)$; range praktik $\approx3a$.
+    \item \textbf{Gausian} (\texttt{"Gau"}):
+      $\gamma(h)=c_0+c\big(1-e^{-(h/a)^2}\big)$; range praktik $\approx\sqrt3\,a$.
+  \end{itemize}
+  \begin{itemize}
+    \item<2-> ``Range praktik'': $\gamma$ arrin 95\% të pragut.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Format e modeleve (pragu 1, range praktik 3)}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=7.6cm, height=4.6cm, xmin=0, xmax=5, ymin=0, ymax=1.1,
+      xlabel={$h$}, ylabel={$\gamma(h)$}, legend pos=south east,
+      legend style={font=\scriptsize}, tick label style={font=\scriptsize},
+      label style={font=\scriptsize}]
+      \addplot[thick, uptblue, domain=0:3, samples=60] {1.5*x/3-0.5*(x/3)^3};
+      \addlegendentry{Sph, $a=3$}
+      \addplot[thick, accent, domain=0:5, samples=60] {1-exp(-x)};
+      \addlegendentry{Exp, $a=1$}
+      \addplot[thick, okgreen, domain=0:5, samples=60] {1-exp(-(x/1.732)^2)};
+      \addlegendentry{Gau, $a=\sqrt3$}
+      \addplot[thick, uptblue, domain=3:5, forget plot] {1};
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Afër origjinës: Exp dhe Sph lineare (fushë ``e ashpër''); Gau parabolike (fushë shumë e lëmuar).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabim i zakonshëm: parametri \texttt{range} te \texttt{gstat}}
+  \begin{Gabim}
+    \texttt{vgm(psill = 1, "Exp", range = 300)} \textbf{nuk} do të thotë që korrelacioni zhduket në 300 m. Për Exp, 300 m është $a$; korrelacioni bie nën 5\% vetëm pas $\approx900$ m.
+  \end{Gabim}
+  \begin{itemize}
+    \item Për \texttt{"Sph"}, \texttt{range} është range i vërtetë.
+    \item Kur krahasoni modele, krahasoni range-in \emph{praktik}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Përshtatja e modelit me variogramin empirik}
+  \begin{itemize}
+    \item<1-> Katrorët më të vegjël me pesha (WLS) mbi klasat $j$:
+      \[ \min_{c_0,c,a}\ \sum_j w_j\big(\hat\gamma(h_j)-\gamma(h_j;c_0,c,a)\big)^2. \]
+    \item<2-> \texttt{gstat::fit.variogram()}, parazgjedhja \texttt{fit.method = 7}: $w_j=N_j/h_j^2$.
+    \item<3-> Më shumë peshë: klasat me shumë çifte dhe distancat e vogla (ato që kanë rëndësi për parashikimin).
+    \item<4-> Duhen vlera fillestare të arsyeshme (``syri'' mbi grafik).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\Zgjerim Pse jo çdo kurbë?}
+  \begin{itemize}
+    \item<1-> Varianca e çdo kombinimi me $\sum\lambda_i=0$ duhet të jetë $\ge0$:
+      \[ \mathrm{Var}\Big(\sum\lambda_iZ(s_i)\Big)=-\sum_i\sum_j\lambda_i\lambda_j\gamma(s_i-s_j)\ge0. \]
+    \item<2-> $\gamma$ duhet të jetë \termi{kushtimisht negativisht e përcaktuar}{conditionally negative definite}.
+    \item<3-> Një polinom çfarëdo i përshtatur mbi $\hat\gamma$ mund të japë varianca negative.
+    \item<4-> Prandaj zgjedhim nga familjet e lejuara (\texttt{vgm()} i liston: \texttt{show.vgms()}).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\Zgjerim Anizotropia}
+  \begin{itemize}
+    \item<1-> Variogrami mund të varet nga drejtimi: p.sh.\ ndotja përhapet përgjatë lumit.
+    \item<2-> Variograme drejtimore: \texttt{variogram(..., alpha = c(0, 45, 90, 135))}.
+    \item<3-> Anizotropi gjeometrike: range ndryshon me drejtimin; elipsë me drejtim kryesor dhe raport.
+    \item<4-> Në \texttt{gstat}: \texttt{vgm(..., anis = c(kendi, raporti))}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC124a]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Variogrami empirik i një variabli është afërsisht i sheshtë në nivelin e variancës, që nga klasa e parë. Çfarë pritet nga Kriging-u?
+    \begin{enumerate}[A.]
+      \item Hartë shumë e detajuar, me ``sy demi''.
+      \item Hartë pothuajse konstante, afër mesatares.
+      \item Hartë identike me Thiessen.
+      \item Kriging-u nuk mund të llogaritet.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC124a}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kriging-u i zakonshëm}
+% ------------------------------------------------------------
+
+\begin{frame}{Synimi: parashikuesi më i mirë linear i pazhvendosur}
+  \[ \hat Z(s_0)=\sum_{i=1}^n\lambda_iZ(s_i) \]
+  \begin{itemize}
+    \item<2-> \textbf{I pazhvendosur}: $\mathrm E[\hat Z(s_0)-Z(s_0)]=\mu\big(\sum\lambda_i-1\big)=0\ \Rightarrow\ \sum\lambda_i=1$.
+    \item<3-> \textbf{Më i miri}: minimizon $\sigma^2_E=\mathrm{Var}[\hat Z(s_0)-Z(s_0)]$.
+    \item<4-> \termi{Kriging-u i zakonshëm}{Ordinary Kriging, OK}: BLUP me $\mu$ të panjohur.
+  \end{itemize}
+  \LO{K3, S1}
+\end{frame}
+
+\begin{frame}{Varianca e gabimit me $\gamma$ (hapi 1)}
+  Shkurtim: $Z_i=Z(s_i)$, $Z_0=Z(s_0)$, $\gamma_{ij}=\gamma(s_i-s_j)$, $\gamma_{i0}=\gamma(s_i-s_0)$.
+  \begin{enumerate}
+    \item<2-> Me $\sum\lambda_i=1$: $\hat Z_0-Z_0=\sum_i\lambda_i(Z_i-Z_0)$.
+    \item<3-> Prandaj
+      $\sigma^2_E=\sum_i\sum_j\lambda_i\lambda_j\,\mathrm E[(Z_i-Z_0)(Z_j-Z_0)]$.
+    \item<4-> Identiteti: $ab=\tfrac12\big[a^2+b^2-(a-b)^2\big]$ me $a=Z_i-Z_0$, $b=Z_j-Z_0$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Varianca e gabimit me $\gamma$ (hapi 2)}
+  \begin{enumerate}
+    \setcounter{enumi}{4}
+    \item<1-> $\mathrm E[(Z_i-Z_0)(Z_j-Z_0)]=\gamma_{i0}+\gamma_{j0}-\gamma_{ij}$.
+    \item<2-> Duke mbledhur me $\sum\lambda_i=1$:
+      \[ \sigma^2_E=2\sum_i\lambda_i\gamma_{i0}-\sum_i\sum_j\lambda_i\lambda_j\gamma_{ij}. \]
+  \end{enumerate}
+  \onslide<3->{\begin{Keshille}Varianca varet vetëm nga \textbf{gjeometria} (distancat) dhe \textbf{modeli} $\gamma$, jo nga vlerat $z$.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Minimizimi me shumëzuesin e Lagrange-it}
+  \begin{enumerate}
+    \item<1-> $L(\boldsymbol\lambda,m)=\sigma^2_E-2m\big(\sum_i\lambda_i-1\big)$.
+    \item<2-> $\dfrac{\partial L}{\partial\lambda_i}=2\gamma_{i0}-2\sum_j\lambda_j\gamma_{ij}-2m=0$.
+    \item<3-> Sistemi i Kriging-ut të zakonshëm:
+      \[ \sum_{j=1}^n\lambda_j\gamma_{ij}+m=\gamma_{i0},\quad i=1,\dots,n;\qquad \sum_{j=1}^n\lambda_j=1. \]
+    \item<4-> $n+1$ ekuacione lineare, $n+1$ të panjohura.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Forma me matrica}
+  \[
+  \begin{pmatrix}
+    \gamma_{11} & \cdots & \gamma_{1n} & 1\\
+    \vdots & & \vdots & \vdots\\
+    \gamma_{n1} & \cdots & \gamma_{nn} & 1\\
+    1 & \cdots & 1 & 0
+  \end{pmatrix}
+  \begin{pmatrix}\lambda_1\\ \vdots\\ \lambda_n\\ m\end{pmatrix}
+  =
+  \begin{pmatrix}\gamma_{10}\\ \vdots\\ \gamma_{n0}\\ 1\end{pmatrix}
+  \]
+  \begin{itemize}
+    \item<2-> Majtas: vetëm mostrat me njëra-tjetrën (\emph{grumbullimi}).
+    \item<3-> Djathtas: mostrat me pikën $s_0$ (\emph{afërsia}).
+    \item<4-> Varianca e Kriging-ut: $\sigma^2_{OK}=\sum_i\lambda_i\gamma_{i0}+m$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pse $\sigma^2_{OK}=\sum\lambda_i\gamma_{i0}+m$?}
+  \begin{enumerate}
+    \item<1-> Shumëzojmë ekuacionin $i$ me $\lambda_i$ dhe mbledhim:
+      $\sum_i\sum_j\lambda_i\lambda_j\gamma_{ij}+m\sum_i\lambda_i=\sum_i\lambda_i\gamma_{i0}$.
+    \item<2-> Me $\sum\lambda_i=1$: $\sum\sum\lambda_i\lambda_j\gamma_{ij}=\sum_i\lambda_i\gamma_{i0}-m$.
+    \item<3-> Zëvendësojmë te $\sigma^2_E$:
+      $2\sum\lambda_i\gamma_{i0}-\big(\sum\lambda_i\gamma_{i0}-m\big)=\sum\lambda_i\gamma_{i0}+m$.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Shembull 1: dy pika, variogram linear $\gamma(h)=h$}
+  $s_1=0$, $s_2=3$, parashikojmë në $s_0=1$ (1D).
+  \begin{enumerate}
+    \item<2-> $\gamma_{12}=3$, $\gamma_{10}=1$, $\gamma_{20}=2$.
+    \item<3-> Ekuacionet: $3\lambda_2+m=1$; \quad $3\lambda_1+m=2$; \quad $\lambda_1+\lambda_2=1$.
+    \item<4-> Zbresim të parin nga i dyti: $3(\lambda_1-\lambda_2)=1$.
+    \item<5-> $\lambda_1=\tfrac23$, $\lambda_2=\tfrac13$, $m=1-3\cdot\tfrac13=0$.
+    \item<6-> $\sigma^2_{OK}=\tfrac23\cdot1+\tfrac13\cdot2+0=\tfrac43$.
+  \end{enumerate}
+  \onslide<7->{\begin{Keshille}Në 1D me $\gamma(h)=h$, OK mes dy pikave $=$ interpolimi linear.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Shembull 2: efekti i ekranit (\emph{screening})}
+  $s_1=1$, $s_2=2$ (në të njëjtën anë), $s_0=0$; $\gamma(h)=h$.
+  \begin{enumerate}
+    \item<2-> $\gamma_{12}=1$, $\gamma_{10}=1$, $\gamma_{20}=2$.
+    \item<3-> $\lambda_2+m=1$; \quad $\lambda_1+m=2$; \quad $\lambda_1+\lambda_2=1$.
+    \item<4-> $\lambda_1-\lambda_2=1\Rightarrow\lambda_1=1$, $\lambda_2=0$, $m=1$.
+    \item<5-> $\sigma^2_{OK}=1\cdot1+0\cdot2+1=2$.
+  \end{enumerate}
+  \onslide<6->{\begin{Keshille}Pika më e afërt ``fsheh'' plotësisht atë pas saj. IDW me $p=2$ do t'i jepte $s_2$ peshë $0.2$.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli në R: sistemi me matrica dhe \texttt{gstat}}
+<<h4-ok>>=
+ok_weights <- function(s, s0, g) {                  # 1D ordinary kriging
+  n <- length(s); G <- outer(s, s, function(a, b) g(abs(a - b)))
+  A <- rbind(cbind(G, 1), c(rep(1, n), 0)); b <- c(g(abs(s - s0)), 1)
+  sol <- solve(A, b); lam <- sol[1:n]; m <- sol[n + 1]
+  c(lambda = lam, m = m, var = sum(lam * b[1:n]) + m)
+}
+lin <- function(h) h
+round(rbind(ex1 = ok_weights(c(0, 3), 1, lin), ex2 = ok_weights(c(1, 2), 0, lin)), 4)
+d <- st_as_sf(data.frame(x = c(0, 3), y = 0, z = c(10, 30)), coords = c("x", "y"))
+krige(z ~ 1, d, st_as_sf(data.frame(x = 1, y = 0), coords = c("x", "y")),
+      model = vgm(1, "Lin", 0), debug.level = 0)$var1.var
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{solve()}: shembulli 1 jep $\tfrac23,\tfrac13$, $\sigma^2=\tfrac43$; shembulli 2 jep $\lambda=(1,0)$, $m=1$, $\sigma^2=2$. Si pa ndihmën e PC.
+    \item<2-> \texttt{gstat} me \texttt{vgm(1, "Lin", 0)} ($\gamma(h)=h$) jep po $4/3$.
+    \item<3-> Me $z=10,30$: $\hat z=\tfrac23\cdot10+\tfrac13\cdot30\approx16.67$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushOK124]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    $\gamma(h)=h$, $s_1=0$, $s_2=4$, $s_0=1$ (1D).
+    \begin{enumerate}
+      \item Shkruani sistemin e OK dhe gjeni $\lambda_1,\lambda_2,m$.
+      \item Llogaritni $\sigma^2_{OK}$.
+      \item Ku në $[0,4]$ është $\sigma^2_{OK}$ maksimale? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjOK124}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Vetitë e Kriging-ut të zakonshëm}
+  \begin{itemize}
+    \item<1-> \textbf{I saktë}: në $s_0=s_k$ zgjidhja është $\lambda_k=1$, $m=0$, $\sigma^2=0$.
+    \item<2-> \textbf{Shpërgrumbullim}: pikat e grumbulluara ndajnë peshën (matrica majtas).
+    \item<3-> \textbf{Ekran}: pikat pas një pike tjetër marrin peshë të vogël ose negative.
+    \item<4-> Peshat \textbf{mund të jenë negative} $\Rightarrow$ $\hat z$ mund të dalë pak jashtë [min, max].
+    \item<5-> \textbf{Pasiguri}: $\sigma_{OK}$ në çdo qelizë, pa të dhëna të reja.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Nugget në origjinë: hartë e saktë, por me kërcime}
+  Me $\gamma(h)=0.5+h$ për $h>0$ dhe $\gamma(0)=0$; $s_1=0$, $s_2=2$:
+  \begin{itemize}
+    \item<2-> Në $s_0=1$: $\lambda=(\tfrac12,\tfrac12)$, $m=0.25$, $\sigma^2_{OK}=1.75$ (pa nugget: 1).
+    \item<3-> Në $s_0=0$: $\lambda=(1,0)$, $\sigma^2_{OK}=0$: i saktë.
+    \item<4-> Por afër $s_1$ (jo mbi të), $\hat z$ nuk shkon te $z_1$: harta ka kërcim te çdo mostër.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Nëse nugget-i është gabim matjeje, mund ta modeloni si të tillë (\texttt{Err} te \texttt{vgm()}): atëherë Kriging-u zbut edhe në mostra.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGabim124]{Gjej gabimin}
+<<h4-bug>>=
+G  <- matrix(c(0, 1,
+               1, 0), 2)          # gamma between s1 = 1 and s2 = 2
+g0 <- c(1, 2)                     # gamma to s0 = 0
+lam <- solve(G, g0); lam; sum(lam)
+@
+  \begin{itemize}
+    \item Studenti merr $\hat z=2z_1+z_2$. Çfarë harroi?
+  \end{itemize}
+  \shkoTe{zgjGabim124}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Varianti të Kriging-ut}
+% ------------------------------------------------------------
+
+\begin{frame}{Kriging-u i thjeshtë (\emph{Simple Kriging})}
+  \begin{itemize}
+    \item<1-> Nëse $\mu$ është i \textbf{njohur}: $\hat Z_0=\mu+\sum_i\lambda_i(Z_i-\mu)$, pa kusht $\sum\lambda_i=1$.
+    \item<2-> Sistemi me kovariancë: $\sum_j\lambda_jC_{ij}=C_{i0}$, d.m.th.\ $\boldsymbol\lambda=C^{-1}\mathbf c_0$.
+    \item<3-> $\sigma^2_{SK}=C(0)-\mathbf c_0^\top C^{-1}\mathbf c_0\le\sigma^2_{OK}$: dimë më shumë, gabojmë më pak.
+    \item<4-> Larg të dhënave: SK $\to\mu$; OK $\to$ mesatare e vlerësuar lokalisht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kriging-u universal (\emph{Universal Kriging})}
+  \begin{itemize}
+    \item<1-> Trendi nuk është konstant: $Z(s)=\mathbf x(s)^\top\boldsymbol\beta+e(s)$.
+    \item<2-> $\mathbf x(s)$: koordinatat (polinomi i Orës 2) ose një kovariat (\texttt{dist}, lartësia).
+    \item<3-> Kushtet e pazhvendosjes: $\sum_i\lambda_ix_k(s_i)=x_k(s_0)$ për çdo $k$ (një shumëzues $m_k$ për secilin).
+    \item<4-> Me kovariat të jashtëm: \termi{Kriging me prirje të jashtme}{Kriging with external drift}; kovariati duhet të njihet në \textbf{çdo} qelizë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{UK $=$ GLS $+$ Kriging i mbetjeve}
+  \begin{enumerate}
+    \item<1-> Vlerësojmë $\boldsymbol\beta$ me GLS:
+      $\hat{\boldsymbol\beta}=(X^\top C^{-1}X)^{-1}X^\top C^{-1}\mathbf z$.
+    \item<2-> Parashikimi: $\hat Z_0=\mathbf x_0^\top\hat{\boldsymbol\beta}+\mathbf c_0^\top C^{-1}(\mathbf z-X\hat{\boldsymbol\beta})$.
+    \item<3-> Pjesa e parë: regres (Java 5--6), por me pesha nga korrelacioni hapësinor.
+    \item<4-> Pjesa e dytë: Kriging i thjeshtë i mbetjeve.
+  \end{enumerate}
+  \onslide<5->{\begin{Keshille}Variogrami për UK llogaritet mbi \textbf{mbetjet}, jo mbi $z$: \texttt{variogram(log(zinc) \textasciitilde\ sqrt(dist), ...)}.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{\Zgjerim Kriging-u në blloqe (\emph{block kriging})}
+  \begin{itemize}
+    \item<1-> Synimi: mesatarja e $Z$ në një sipërfaqe $B$, jo vlera në një pikë.
+    \item<2-> $\bar\gamma(s_i,B)$: mesatarja e $\gamma$ mes $s_i$ dhe pikave të $B$.
+    \item<3-> Varianca e bllokut është më e vogël: nugget-i dhe variacioni i vogël mesatarizohen.
+    \item<4-> \texttt{krige(..., block = c(100, 100))} ose \texttt{newdata} poligone (Ora 6: qarqet).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Krahasimi: IDW, OK, UK}
+  \small
+  \begin{tabular}{@{}lccc@{}}
+    \toprule
+    & IDW & OK & UK \\ \midrule
+    Peshat nga & $d^{-p}$ & $\gamma$ & $\gamma$ $+$ trend \\
+    Shpërgrumbullim & jo & po & po \\
+    Pesha negative & jo & mundet & mundet \\
+    Pasiguri & jo & $\sigma_{OK}$ & $\sigma_{UK}$ \\
+    Kovariatë & jo & jo & po \\
+    Çfarë duhet zgjedhur & $p$, lagjja & modeli i $\gamma$ & trendi $+$ modeli \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Pasiguria nga lognormali}
+  \begin{Gabim}
+    Kriging-u i $\log z$ jep $\hat y$ dhe $\sigma^2$ në $\log$. $\exp(\hat y)$ \textbf{nuk} është mesatarja e $z$: është afër \emph{mesores}.
+  \end{Gabim}
+  \begin{itemize}
+    \item<2-> Për Kriging-un e thjeshtë: $\hat z=\exp\big(\hat y+\sigma^2_{SK}/2\big)$.
+    \item<3-> Intervali 95\%: $\exp(\hat y\pm1.96\sigma)$ mbetet i saktë (kuantilet ruhen nga $\exp$).
+    \item<4-> Ora 5: e shohim në hartat e Meuse.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTPS124]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    Agjencia e mjedisit ka 20 stacione të cilësisë së ajrit dhe buxhet për 5 të reja.
+    \begin{enumerate}
+      \item Si mund të përdorni hartën e $\sigma_{OK}$ për të zgjedhur vendet?
+      \item Pse nuk ju duhen matjet e reja për këtë vendim?
+      \item Çfarë rreziku ka kjo qasje nëse variogrami është i gabuar?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS124}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=cp124]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 4}
+  \begin{enumerate}
+    \item Shkruani lidhjen mes $\gamma(h)$ dhe $C(h)$ dhe shpjegoni pragun.
+    \item Pse sistemi i OK ka një rresht dhe një kolonë me 1?
+    \item Çfarë ndryshon te UK krahasuar me OK?
+  \end{enumerate}
+  \shkoTe{zgjCp124}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 4}
+  \begin{itemize}
+    \item $\gamma(h)=\tfrac12\mathrm E[(Z(s+h)-Z(s))^2]=C(0)-C(h)$; nugget, sill, range.
+    \item Modelet Sph, Exp (range praktik $3a$), Gau ($\sqrt3a$); përshtatja WLS.
+    \item OK: $\sum_j\lambda_j\gamma_{ij}+m=\gamma_{i0}$, $\sum\lambda_j=1$; $\sigma^2_{OK}=\sum\lambda_i\gamma_{i0}+m$.
+    \item Toy: $\tfrac23,\tfrac13$ ($\sigma^2=\tfrac43$); ekran: $\lambda=(1,0)$ ($\sigma^2=2$).
+    \item SK ($\mu$ e njohur), UK (trend $=$ GLS $+$ Kriging i mbetjeve), Kriging në blloqe.
+  \end{itemize}
+  \begin{Keshille}Ora 5 (Lab II): variogrami i Meuse, \texttt{fit.variogram}, OK dhe UK, hartat e pasigurisë, CV.\end{Keshille}
+\end{frame}
