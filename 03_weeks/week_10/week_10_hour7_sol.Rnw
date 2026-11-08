@@ -1,0 +1,133 @@
+% ============================================================
+%  Java 10 · Ora 7 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=s10T1]{Zgjidhja: Teori 1}
+  \small
+  \begin{enumerate}
+    \item Gjeoidi: sipërfaqe me potencial gravitacional konstant (niveli mesatar i detit), e parregullt; referenca e lartësive. Elipsoidi: elipsë e rrotulluar, $(a,f)$; referenca e koordinatave horizontale. Datumi: elipsoidi + vendosja e tij (qendra, orientimi, shkalla) në raport me Tokën. Dy datume kanë elipsoidë të vendosur ndryshe, prandaj të njëjtat kënde japin pika të ndryshme (Albanian 1987 kundrejt WGS 84: 141 m në Tiranë).
+    \item Konform: $h=k$ (çdo pikë, çdo drejtim). Ekuivalent: $hk=1$.
+  \end{enumerate}
+  \vfill\kthehu{q10T1}
+\end{frame}
+
+\begin{frame}[label=s10T2]{Zgjidhja: Teori 2}
+  \small
+  \begin{enumerate}
+    \item \texttt{sfg}: një gjeometri (koordinata, tipi), pa CRS. \texttt{sfc}: listë gjeometrish + CRS + bbox. \texttt{sf}: \texttt{data.frame} me atribute dhe një kolonë \texttt{sfc}. CRS-ja ruhet në \texttt{sfc}.
+    \item \texttt{st\_set\_crs}: vendos etiketën, numrat mbeten. \texttt{st\_transform}: rillogarit koordinatat. Shembull: \texttt{meuse} në metra RD New, e etiketuar 6870, përfundon në Afrikën Qendrore në vend të Holandës.
+  \end{enumerate}
+  \vfill\kthehu{q10T2}
+\end{frame}
+
+\begin{frame}[label=s10T3]{Zgjidhja: Teori 3}
+  \small
+  \begin{enumerate}
+    \item $x=R\lambda\Rightarrow k=\sec\varphi$. $h=\frac{1}{R}\frac{dy}{d\varphi}=\sec\varphi\Rightarrow y=R\int_0^\varphi\sec t\,dt=R\ln\tan(\pi/4+\varphi/2)$.
+    \item Me $k_0=0.9996$ gabimi shpërndahet: $-0.04\%$ te $\lambda_0$, $k=1$ në dy vija $\approx180$ km në L dhe P të $\lambda_0$, deri $\approx+0.1\%$ në skaje në ekuator.
+    \item Sipërfaqet fryhen me $\sec^2\varphi$, që varet nga gjerësia: dendësitë ulen në mënyrë jo të njëtrajtshme dhe renditjet ndryshojnë (Ballkani: Hungaria 3 $\to$ 6).
+  \end{enumerate}
+  \vfill\kthehu{q10T3}
+\end{frame}
+
+\begin{frame}[label=s10E1]{Zgjidhja: Ushtrimi 1}
+  \begin{enumerate}
+    \item $40.619$: $0.619\cdot60=37.14\Rightarrow37'$; $0.14\cdot60=8.4''$: $40^\circ37'08.4''$ V.
+    \item $19+28/60+58.8/3600=19+0.46667+0.01633=19.4830^\circ$ (Vlora).
+    \item $1''$ gjerësi: $111.2/3600$ km $\approx30.9$ m. $1''$ gjatësi në $42^\circ$: $30.9\cdot0.7431\approx23.0$ m.
+  \end{enumerate}
+  \vfill\kthehu{q10E1}
+\end{frame}
+
+\begin{frame}[label=s10E2]{Zgjidhja: Ushtrimi 2}
+  \begin{enumerate}
+    \item $\sqrt{0.5^2+0.3^2}=\sqrt{0.34}=0.5831$; $\cdot111.2=64.8$ km.
+    \item $\Delta x=0.5\cdot111.2\cdot0.7431=41.3$ km; $\Delta y=0.3\cdot111.2=33.4$ km; $d=\sqrt{41.3^2+33.4^2}\approx53.1$ km.
+    \item $(64.8-53.1)/53.1\approx22\%$ më shumë. (Haversine: 53.03 km.)
+  \end{enumerate}
+  \vfill\kthehu{q10E2}
+\end{frame}
+
+\begin{frame}[label=s10E3]{Zgjidhja: Ushtrimi 3}
+  \begin{enumerate}
+    \item $\Delta\varphi=0$: $\operatorname{hav}c=\cos^240^\circ\sin^2 0.5^\circ=0.5868\cdot7.615\cdot10^{-5}=4.469\cdot10^{-5}$; $\sqrt{\cdot}=0.006685$; $d=2\cdot6371\cdot0.006685\approx85.18$ km.
+    \item Harku i paralelit: $R\cos40^\circ\cdot\pi/180=6371\cdot0.7660\cdot0.017453\approx85.18$ km.
+    \item Me R: 85.1798 kundrejt 85.1803 km. Rrethi i madh është më i shkurtër (rruga më e shkurtër mbi sferë); paraleli nuk është rreth i madh. Ndryshimi këtu: $\approx0.5$ m.
+  \end{enumerate}
+  \vfill\kthehu{q10E3}
+\end{frame}
+
+\begin{frame}[label=s10E4,fragile]{Zgjidhja: Ushtrimi 4}
+  \begin{enumerate}
+    \item Termat: $0$; $300\cdot200-300\cdot0=60\,000$; $300\cdot300-100\cdot200=70\,000$; $100\cdot0-0\cdot300=0$. $A=130\,000/2=65\,000$ m$^2=6.5$ ha.
+    \item \texttt{st\_area(st\_polygon(list(rbind(c(0,0), c(300,0), c(300,200), c(100,300), c(0,0)))))} $=65\,000$.
+    \item Në Albania TM shkalla është $\le1+52\cdot10^{-6}$; sipërfaqja gabon $\le\approx0.01\%$, pra $\le7$ m$^2$.
+  \end{enumerate}
+  \vfill\kthehu{q10E4}
+\end{frame}
+
+\begin{frame}[label=s10E5]{Zgjidhja: Ushtrimi 5}
+  \begin{enumerate}
+    \item $\lfloor199.48/6\rfloor+1=34$, $\lfloor201.43/6\rfloor+1=34$, $\lfloor203.73/6\rfloor+1=34$: të gjitha zona 34, $\lambda_0=21^\circ$.
+    \item $k-1\approx100^2/(2\cdot6371^2)=10\,000/81\,180\,000=1.23\cdot10^{-4}$ (123 ppm); në 10 km: $\approx1.2$ m.
+    \item $\sec^245^\circ=2$: sipërfaqja reale $\approx500$ km$^2$.
+  \end{enumerate}
+  \vfill\kthehu{q10E5}
+\end{frame}
+
+\begin{frame}[label=s10E6]{Zgjidhja: Ushtrimi 6}
+  \small
+  \begin{itemize}
+    \item A $=1.765$: Web Mercator, $\sec^2 41.2^\circ\approx1.77$.
+    \item B $=0.999$: UTM 34N, $k_0=0.9996$ te $21^\circ$ (pjesërisht kompensuar nga $k>k_0$ në perëndim).
+    \item C $=1.329$: plate carrée, $hk=\sec41.2^\circ\approx1.33$.
+    \item D $=0.958$: LCC Europe, Shqipëria midis paralelëve standardë ($35^\circ$, $65^\circ$), ku $k<1$; sipërfaqja $\times k^2$.
+    \item E $=1.000$: LAEA, ekuivalent.
+  \end{itemize}
+  \vfill\kthehu{q10E6}
+\end{frame}
+
+\begin{frame}[label=s10E7,fragile]{Zgjidhja: Ushtrimi 7}
+  \scriptsize
+  \begin{enumerate}
+    \item \texttt{b <- st\_read("bashki.shp")}; \texttt{st\_crs(b)} (duhet 2462); \texttt{b <- st\_transform(b, 6870)}.\\
+      \texttt{s <- st\_as\_sf(read.csv("shkolla.csv"), coords = c("lon","lat"), crs = 4326) |> st\_transform(6870)}.\\
+      \texttt{b\$n <- lengths(st\_intersects(b, s))}; \texttt{b <- merge(b, pop, by = "kodi")}; \texttt{b\$per10k <- 1e4 * b\$n / b\$pop}.
+    \item 6870 (Albania TM): distanca dhe sipërfaqe të sakta në Shqipëri; ose 3035 për sipërfaqe.
+    \item (i) shapefile pa \texttt{.prj} ose me etiketë të gabuar $\Rightarrow$ zhvendosje $\approx141$ m (datum) ose qindra km; kontroll vizual me pikat GPS. (ii) Kolonat \texttt{lat}/\texttt{lon} të ndërruara; kontroll me \texttt{st\_bbox}. (iii) Çelësi i bashkimit (emra me/pa ë, ç) $\Rightarrow$ rreshta të humbur; kontroll \texttt{anti\_join} / numri i rreshtave.
+  \end{enumerate}
+  \vfill\kthehu{q10E7}
+\end{frame}
+
+\begin{frame}[label=s10H1]{Udhëzime: Shtëpi 1--2}
+  \begin{itemize}
+    \item Shtëpi 1: \texttt{combn(6, 2)} jep 15 çiftet; prisni gabim relativ haversine kundrejt \texttt{s2} $<10^{-5}$ (rreze pak e ndryshme), kundrejt elipsoidit deri $\approx0.3\%$.
+    \item Shtëpi 2: \texttt{st\_coordinates()} jep kolonat \texttt{L1} (unaza), \texttt{L2} (poligoni); unazat e brendshme (vrimat) zbriten. Përdorni shenjën e shumës, jo vlerën absolute, për çdo unazë.
+  \end{itemize}
+  \vfill\kthehu{h10H1}
+\end{frame}
+
+\begin{frame}[label=s10H3]{Udhëzime: Shtëpi 3--4}
+  \begin{itemize}
+    \item Shtëpi 3: Kosova shtrihet $\approx20^\circ$--$21.8^\circ$ L; provoni $\lambda_0$ në këtë interval me hap $0.1^\circ$; UTM 34N ka $\lambda_0=21^\circ$ por $k_0=0.9996$: gabim sistematik $\approx-400$ ppm.
+    \item Shtëpi 4: përdorni të njëjtin \texttt{nn}; modeli \texttt{log(copper) \textasciitilde{} sqrt(dist)}; raportoni $R^2$, $r_{nn}$ dhe $p$ nga 999 permutacione me \texttt{set.seed(2026)}.
+  \end{itemize}
+  \vfill\kthehu{h10H3}
+\end{frame}
+
+\begin{frame}[label=s10H5]{Udhëzime: Shtëpi 5--6}
+  \begin{itemize}
+    \item Shtëpi 5: $h=\cos\varphi$, $k=\sec\varphi$. Brezi në sferë: $\int_0^{2\pi}\!\int_0^{\varphi_1}R^2\cos\varphi\,d\varphi\,d\lambda=2\pi R^2\sin\varphi_1$; në hartë: $2\pi R\cdot R\sin\varphi_1$. Të barabarta.
+    \item Shtëpi 6: projektoni $(0,60)$, $(10^{-4},60)$, $(0,60+10^{-4})$ me \texttt{"+proj=moll"}; ndani distancat në plan me distancat në sferë me të njëjtën $R$ (\texttt{+R=6371000}).
+  \end{itemize}
+  \vfill\kthehu{h10H5}
+\end{frame}
+
+\begin{frame}[label=zgjCp107]{Përgjigjet: Checkpoint Ora 7}
+  \begin{enumerate}
+    \item \texttt{st\_crs()} (dhe krahasimi me metadata), \texttt{st\_is\_valid()}, një hartë e shpejtë për të parë nëse gjithçka bie në vendin e duhur.
+    \item Sfera nuk mund të shtrihet në plan pa shtrembërim (Gauss); konform dhe ekuivalent njëkohësisht është e pamundur.
+    \item Mbetjet e fqinjëve janë të korreluara ($r_{nn}=0.365$); variogrami e mat këtë si funksion të distancës dhe Kriging e përdor për parashikim.
+  \end{enumerate}
+  \vfill\kthehu{cp107}
+\end{frame}

@@ -1,0 +1,331 @@
+% ============================================================
+%  Java 10 · Ora 7 — Konsolidimi
+%  Rezultatet: K3, S1, S3, S4, C1
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Konsolidimi]{Konsolidimi}
+
+\begin{frame}{Ora 7: Konsolidimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuizi në stilin e provimit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuizi: si funksionon}
+  \begin{itemize}
+    \item<1-> Si në provim: \textbf{25\% teori, 75\% ushtrime}; 3 pyetje teorike (25 pikë) + 7 ushtrime (75 pikë).
+    \item<2-> Koha: 45 minuta. Ushtrimet 1--5 bëhen pa ndihmën e PC.
+    \item<3-> Vlera të dobishme: $R=6371$ km; $\pi/180=0.017453$; $\cos40^\circ=0.7660$; $\cos42^\circ=0.7431$; $\sin0.5^\circ=0.008727$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Te çdo rezultat numerik: shkruani njësinë (gradë, m, km, km$^2$, ppm).\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=q10T1]{Teori 1 (8 pikë)}
+  \begin{Ushtrim}[(Teori 1)]
+    \begin{enumerate}
+      \item Dalloni gjeoidin, elipsoidin dhe datumin. Pse të njëjtat $(\lambda,\varphi)$ në dy datume janë pika të ndryshme?
+      \item Shkruani kushtet për projeksion konform dhe ekuivalent me faktorët e shkallës $h$ dhe $k$.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s10T1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q10T2]{Teori 2 (8 pikë)}
+  \begin{Ushtrim}[(Teori 2)]
+    \begin{enumerate}
+      \item Përshkruani objektet \texttt{sfg}, \texttt{sfc}, \texttt{sf}. Ku ruhet CRS-ja?
+      \item Dalloni \texttt{st\_set\_crs()} nga \texttt{st\_transform()}. Jepni një shembull ku përdorimi i gabuar çon në gabim prej qindra kilometrash.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s10T2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q10T3]{Teori 3 (9 pikë)}
+  \begin{Ushtrim}[(Teori 3)]
+    \begin{enumerate}
+      \item Nxirrni $y(\varphi)$ për Mercatorin nga kushti $h=k$.
+      \item Pse UTM përdor $k_0=0.9996$? Ku është $k=1$?
+      \item Pse Web Mercator nuk duhet përdorur për dendësi popullsie?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s10T3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q10E1]{Ushtrimi 1 (10 pikë): DMS}
+  \begin{Ushtrim}[(Ushtrimi 1, pa ndihmën e PC)]
+    \begin{enumerate}
+      \item Ktheni Korçën $(20.781^\circ, 40.619^\circ)$: gjerësinë në DMS.
+      \item Ktheni $19^\circ28'58.8''$ në gradë dhjetore.
+      \item Sa metra në terren është $1''$ gjerësi? Po $1''$ gjatësi në $42^\circ$V?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s10E1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q10E2]{Ushtrimi 2 (10 pikë): gradë dhe kilometra}
+  \begin{Ushtrim}[(Ushtrimi 2, pa ndihmën e PC)]
+    Pikat $P=(19.5^\circ, 42.0^\circ)$ dhe $Q=(20.0^\circ, 42.3^\circ)$.
+    \begin{enumerate}
+      \item Llogaritni ``distancën'' $\sqrt{\Delta\lambda^2+\Delta\varphi^2}\cdot111.2$ km.
+      \item Korrigjoni: $\Delta x=\Delta\lambda\cdot111.2\cos42^\circ$, $\Delta y=\Delta\varphi\cdot111.2$. Distanca?
+      \item Sa përqind gabon (1) kundrejt (2)?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s10E2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q10E3]{Ushtrimi 3 (10 pikë): haversine}
+  \begin{Ushtrim}[(Ushtrimi 3, pa ndihmën e PC)]
+    Pikat $(20^\circ, 40^\circ)$ dhe $(21^\circ, 40^\circ)$, $R=6371$ km.
+    \begin{enumerate}
+      \item Llogaritni distancën me haversine.
+      \item Llogaritni gjatësinë e harkut përgjatë paralelit $40^\circ$.
+      \item Cila është më e shkurtër dhe pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s10E3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q10E4]{Ushtrimi 4 (10 pikë): formula e lidhëzës}
+  \begin{Ushtrim}[(Ushtrimi 4, pa ndihmën e PC)]
+    Një parcelë në Albania TM ka kulmet (në metra, relativisht nga një pikë referimi):
+    $(0,0)$, $(300,0)$, $(300,200)$, $(100,300)$.
+    \begin{enumerate}
+      \item Llogaritni sipërfaqen në m$^2$ dhe në hektarë.
+      \item Shkruani kodin \texttt{sf} që e verifikon.
+      \item Pse kjo sipërfaqe është praktikisht e saktë në terren?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s10E4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q10E5]{Ushtrimi 5 (10 pikë): projeksionet}
+  \begin{Ushtrim}[(Ushtrimi 5, pa ndihmën e PC)]
+    \begin{enumerate}
+      \item Gjeni zonën UTM dhe $\lambda_0$ për Vlorën ($19.48^\circ$), Shkupin ($21.43^\circ$), Athinën ($23.73^\circ$).
+      \item Në Albania TM ($k_0=1$), sa është $k$ 100 km larg $\lambda_0$? Sa gabon një distancë 10 km atje?
+      \item Një rajon në $45^\circ$V del 1000 km$^2$ në Web Mercator. Sa është sipërfaqja reale?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s10E5}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q10E6]{Ushtrimi 6 (10 pikë): lexo output-in}
+  \begin{Ushtrim}[(Ushtrimi 6)]
+    Sipërfaqja e Shqipërisë (1:50m) në pesë CRS, si raport me Albania TM:
+    \begin{center}\small
+    \begin{tabular}{lccccc}
+      \toprule
+      CRS & A & B & C & D & E \\ \midrule
+      raporti & 1.765 & 0.999 & 1.329 & 0.958 & 1.000 \\ \bottomrule
+    \end{tabular}
+    \end{center}
+    Çiftoni me: UTM 34N, LAEA Europe, plate carrée (4087), Web Mercator (3857), LCC Europe (3034). Arsyetoni çdo çift me faktorët e shkallës.
+  \end{Ushtrim}
+  \shkoTe{s10E6}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q10E7]{Ushtrimi 7 (15 pikë): projekt i vogël}
+  \begin{Ushtrim}[(Ushtrimi 7)]
+    \small
+    Keni: (a) shapefile i bashkive në Albanian 1987 / Gauss--Krüger (EPSG:2462); (b) CSV me koordinata GPS (WGS 84) të shkollave; (c) CSV me popullsinë sipas bashkive.
+    \begin{enumerate}
+      \item Shkruani hapat \texttt{sf} për: numrin e shkollave për bashki dhe shkolla për 10\,000 banorë.
+      \item Në cilin CRS llogaritni sipërfaqet dhe distancat? Pse?
+      \item Përmendni tre gabime që mund të ndodhin dhe si i parandaloni.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s10E7}{Zgjidhja}
+\end{frame}
+
+\begin{frame}{Tabela e pikëve}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Pjesa & Pyetjet & Pikët \\ \midrule
+    Teori (25\%) & T1, T2, T3 & 8 + 8 + 9 = 25 \\
+    Ushtrime (75\%) & U1--U6 & $6\times10=60$ \\
+     & U7 & 15 \\ \midrule
+    Gjithsej & 10 & 100 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Nën 50 pikë: përsëritni Orët 2 dhe 4.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ushtrime për shtëpi}
+% ------------------------------------------------------------
+
+\begin{frame}[label=h10H1]{Ushtrime për shtëpi 1--2}
+  \begin{Ushtrim}[(Shtëpi 1: distancat)]
+    Llogaritni me \texttt{haversine()} (Ora 2) të 15 distancat midis 6 qyteteve. Krahasoni me \texttt{st\_distance()} me \texttt{s2} dhe pa \texttt{s2}. Raportoni gabimin relativ maksimal.
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 2: sipërfaqet)]
+    Shkruani një funksion që llogarit sipërfaqen e një \texttt{MULTIPOLYGON} me formulën e lidhëzës (kujdes me vrimat dhe pjesët). Testojeni te Shqipëria në 6870 kundrejt \texttt{st\_area()}.
+  \end{Ushtrim}
+  \shkoTe{s10H1}{Udhëzime}
+\end{frame}
+
+\begin{frame}[label=h10H3]{Ushtrime për shtëpi 3--4}
+  \begin{Ushtrim}[(Shtëpi 3: TM për Kosovën)]
+    Përsëritni simulimin e Orës 5 për Kosovën (500 çifte). Gjeni $\lambda_0$ që minimizon gabimin maksimal. Krahasoni me UTM 34N.
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 4: \texttt{meuse})]
+    Përsëritni Rastin C të Orës 6 për \texttt{copper} dhe \texttt{lead}. Cili metal ka autokorrelacionin më të fortë në mbetje?
+  \end{Ushtrim}
+  \shkoTe{s10H3}{Udhëzime}
+\end{frame}
+
+\begin{frame}[label=h10H5]{Ushtrime për shtëpi 5--6}
+  \begin{Ushtrim}[(Shtëpi 5: teori)]
+    (a) Tregoni që $y=R\sin\varphi$ jep $hk=1$. (b) Llogaritni sipërfaqen e brezit $0\le\varphi\le\varphi_1$ në sferë dhe në hartë; tregoni që përputhen.
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 6: Zgjerim)]
+    Vlerësoni numerikisht $h$ dhe $k$ të Mollweide në $(0^\circ,60^\circ)$ me diferenca të fundme: projektoni pika $10^{-4}$ gradë larg në L dhe në V. Kontrolloni $hk\approx1$.
+  \end{Ushtrim}
+  \shkoTe{s10H5}{Udhëzime}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gabimet e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet e zakonshme: koordinatat}
+  \begin{Gabim}Rendi (lat, lon) në vend të (lon, lat): Tirana përfundon në Arabinë Saudite (lon 41.3, lat 19.8).\end{Gabim}
+  \pause
+  \begin{Gabim}Gradë në \texttt{sin()}/\texttt{cos()} pa \texttt{pi/180}.\end{Gabim}
+  \pause
+  \begin{Gabim}Distanca Euklidiane mbi (lon, lat): në Shqipëri gabim deri $\approx35\%$ në drejtimin L--P.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: CRS dhe projeksionet}
+  \begin{Gabim}\texttt{st\_set\_crs()} për të ``transformuar'': numrat mbeten, pika zhvendoset qindra km.\end{Gabim}
+  \pause
+  \begin{Gabim}Sipërfaqe dhe dendësi në Web Mercator: $\times1.7$--$1.85$ në Shqipëri, renditja ndryshon.\end{Gabim}
+  \pause
+  \begin{Gabim}Mungesa e CRS-së në CSV: koordinata ``jetime'' që askush nuk i interpreton dot pas një viti.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit të të dhënave hapësinore}
+  \begin{enumerate}
+    \item<1-> \texttt{st\_crs(x)}: a është i njohur dhe i saktë? (krahaso me metadata)
+    \item<2-> \texttt{st\_is\_valid(x)}: a ka gjeometri të pavlefshme?
+    \item<3-> Vizatoni shpejt: a bie gjithçka aty ku duhet?
+    \item<4-> Para çdo operacioni binar: \texttt{st\_crs(a) == st\_crs(b)}.
+    \item<5-> Matje: në CRS të projektuar lokal (6870) ose ekuivalent (3035) për sipërfaqe.
+    \item<6-> Hartë: burimi, viti, CRS, shkalla.
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fletë-kujtesa}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë-kujtesa 1: formulat}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Koncepti & Formula \\ \midrule
+    Elipsoidi & $b=a(1-f)$, \; $e^2=2f-f^2$ \\
+    $1^\circ$ në sferë & gjerësi $R\pi/180\approx111.2$ km; gjatësi $111.2\cos\varphi$ \\
+    Haversine & $d=2R\arcsin\sqrt{\operatorname{hav}\Delta\varphi+\cos\varphi_1\cos\varphi_2\operatorname{hav}\Delta\lambda}$ \\
+    Lidhëza & $A=\tfrac12|\sum(x_iy_{i+1}-x_{i+1}y_i)|$ \\
+    Konform / ekuivalent & $h=k$ \; / \; $hk=1$ \\
+    Mercator & $y=R\ln\tan(\pi/4+\varphi/2)$, sipërfaqe $\times\sec^2\varphi$ \\
+    TM & $k\approx k_0(1+x^2/2R^2)$ \\
+    UTM & $z=\lfloor(\lambda+180)/6\rfloor+1$, \; $\lambda_0=6z-183$ \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 2: funksionet R}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    Krijo & \texttt{st\_point}, \texttt{st\_polygon}, \texttt{st\_sfc(crs=)}, \texttt{st\_as\_sf(coords=, crs=)} \\
+    Lexo / shkruaj & \texttt{st\_read}, \texttt{st\_write} (\texttt{.gpkg}) \\
+    CRS & \texttt{st\_crs}, \texttt{st\_set\_crs}, \texttt{st\_transform} \\
+    Mat & \texttt{st\_area}, \texttt{st\_length}, \texttt{st\_distance} \\
+    Gjeometri & \texttt{st\_buffer}, \texttt{st\_centroid}, \texttt{st\_make\_grid}, \texttt{st\_sample} \\
+    Kallëzues & \texttt{st\_intersects}, \texttt{st\_within}, \texttt{st\_touches} \\
+    Kontroll & \texttt{st\_is\_valid}, \texttt{st\_make\_valid}, \texttt{sf\_use\_s2} \\
+    Hartë & \texttt{geom\_sf}, \texttt{coord\_sf(crs=)}, \texttt{annotation\_scale} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 3: cilin CRS kur}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Situata & CRS \\ \midrule
+    Ruajtje, shkëmbim, GPS & 4326 (WGS 84) \\
+    Distanca, buffer, Kriging në Shqipëri & 6870 (Albania TM 2010) \\
+    Shqipëri + fqinjët e lindjes & 32634 (UTM 34N) \\
+    Sipërfaqe, dendësi, grid statistikor Europe & 3035 (LAEA Europe) \\
+    Të dhëna të vjetra kadastrale & 2462 (Albanian 1987 / GK zona 4) \\
+    Vetëm shfaqje web & 3857 (Web Mercator) \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pamje e Javës 11}
+% ------------------------------------------------------------
+
+\begin{frame}{Java 11: raster dhe vektor \LO{K3, S4}}
+  \begin{itemize}
+    \item<1-> Modeli vektor (\texttt{sf}) kundrejt modelit raster (\texttt{terra}): pika/vija/poligone kundrejt qelizave.
+    \item<2-> Shapefile, GeoPackage, GeoTIFF: struktura, atributet, editimi.
+    \item<3-> Operacione: prerje, maskë, \emph{zonal statistics}, rasterizim, vektorizim.
+    \item<4-> Modeli dixhital i terrenit (DTM): pjerrësia, ekspozicioni, hija.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Para Javës 11}
+  \begin{itemize}
+    \item Kontrolloni që \texttt{terra} ngarkohet: \texttt{library(terra); terra::gdal()}.
+    \item Përsëritni: \texttt{st\_transform}, \texttt{st\_crs}, \texttt{st\_intersects}.
+    \item Ushtrimi i shtëpisë 4 (\texttt{meuse}) do të përdoret në Javën 12.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Burime}
+  \footnotesize
+  \begin{itemize}
+    \item K.-T.~Chang, \emph{Introduction to Geographic Information Systems}, McGraw-Hill, 2012 (sistemet koordinative, projeksionet).
+    \item E.~Pebesma, R.~Bivand, \emph{Spatial Data Science: With Applications in R}, CRC, 2023; \url{https://r-spatial.org/book}.
+    \item R.~Lovelace, J.~Nowosad, J.~Muenchow, \emph{Geocomputation with R}, 2nd ed., CRC; \url{https://r.geocompx.org}.
+    \item J.~P.~Snyder, \emph{Map Projections --- A Working Manual}, USGS Professional Paper 1395, 1987.
+    \item Të dhënat: Natural Earth (\url{https://www.naturalearthdata.com}); GeoNames (CC BY 4.0); \texttt{sp::meuse}, \texttt{sp::meuse.riv}.
+    \item Paketat: \texttt{sf}, \texttt{s2}, \texttt{lwgeom}, \texttt{ggplot2}, \texttt{ggspatial}, \texttt{patchwork}, \texttt{rnaturalearthdata}; PROJ, GDAL, GEOS; regjistri EPSG.
+    \item Repo DS612 nuk mbulon të dhënat hapësinore: e gjithë java është \textbf{material plotësues}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp107]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 7}
+  \begin{enumerate}
+    \item Cilat janë tre kontrollet e para që bëni kur merrni një shtresë hapësinore të re?
+    \item Pse nuk ekziston projeksion ``më i mirë'' për gjithçka?
+    \item Si lidhet autokorrelacioni i mbetjeve në \texttt{meuse} me Javën 12?
+  \end{enumerate}
+  \shkoTe{zgjCp107}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje e Javës 10}
+  \begin{itemize}
+    \item Toka: gjeoid, elipsoid (WGS 84, GRS 80), datum; Albanian 1987 $\to$ WGS 84: 141 m.
+    \item Distanca: haversine; sferë kundrejt elipsoidit $<0.3\%$; kurrë Euklidi mbi gradë.
+    \item \texttt{sf}: \texttt{sfg} $\to$ \texttt{sfc} $\to$ \texttt{sf}; vlefshmëria, kallëzuesit, buffer.
+    \item Projeksionet: konform kundrejt ekuivalent; TM/UTM; Albania TM 2010 (EPSG:6870) gabon $<52$ ppm.
+    \item CRS-ja ndryshon përfundimet: renditja e dendësive në Web Mercator; mbetjet e \texttt{meuse} të korreluara.
+  \end{itemize}
+  \LO{K3, S1, S3, S4, C1}
+\end{frame}
