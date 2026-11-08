@@ -1,0 +1,369 @@
+% ============================================================
+%  Java 8 · Ora 4 — Teoria II: splines natyrore, smoothing, loess, GAM, regresi i fortë
+%  Rezultatet: K2, S1, S3
+%  Burimi: ISLR kap. 7.4--7.7; repo DS612 Lecture_7.2.R;
+%          regresi i fortë: material plotësues (Huber 1964; dokumentacioni i MASS::rlm)
+% ============================================================
+
+\section{Teoria II: zbutja dhe regresi i fortë}
+
+\begin{frame}{Ora 4: Teoria II --- zbutja dhe regresi i fortë}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Splines natyrore}
+% ------------------------------------------------------------
+
+\begin{frame}{Problemi i skajeve \LO{K2}}
+  \begin{itemize}
+    \item<1-> Ora 3: brezi IB i \texttt{bs()} dhe i polinomit zgjerohet shumë pas 70 vjeç.
+    \item<2-> \textbf{Pse?} Në skaje ka pak të dhëna, dhe kubiku i fundit është i lirë të lakohet.
+    \item<3-> Ideja: përtej nyjeve kufitare kërkojmë që funksioni të jetë \textbf{linear}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Spline kubike natyrore}
+  \begin{Definicion}[Spline natyrore (\emph{natural cubic spline})]
+    Spline kubike me kushtin shtesë: $f''=f'''=0$ jashtë nyjeve kufitare, pra $f$ është lineare në dy skajet.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item<2-> Çdo skaj humbet 2 parametra (termat kuadratik dhe kubik).
+    \item<3-> $K$ nyje të brendshme + 2 kufitare: spline kubike ka $(K+2)+4$ parametra; kushtet lineare heqin $2\times2=4$ $\Rightarrow$ $K+2$, përfshirë konstanten.
+    \item<4-> Në R: \texttt{ns(x, df = d)}: $d$ kolona, $d-1$ nyje të brendshme në kuantile.\\
+      P.sh.\ \texttt{ns(x, knots = c(25, 50, 75))} jep 4 kolona: $3+2=5$ parametra me konstanten.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Fotografia: \texttt{bs} kundrejt \texttt{ns} në skaj}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=0.75\textwidth,height=0.42\textwidth,xmin=0,xmax=10,ymin=-1,ymax=4,
+        tick label style={font=\tiny},legend style={font=\tiny},legend pos=north west,
+        xtick={1,9},xticklabels={nyja kufitare,nyja kufitare},ytick=\empty]
+      \addplot[domain=0:10,samples=80,thick,accent] {1+0.5*x-0.02*x^2+0.012*(x>7)*(x-7)^3*3}; \addlegendentry{kubike: ikën}
+      \addplot[domain=0:10,samples=80,thick,uptblue,dashed] {1+0.5*x-0.02*x^2}; \addlegendentry{natyrore: e qetë}
+      \draw[dotted] (axis cs:1,-1) -- (axis cs:1,4); \draw[dotted] (axis cs:9,-1) -- (axis cs:9,4);
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}\small
+    \item Ilustrim skematik: kufizimi linear në skaje ul variancën aty ku ka pak të dhëna.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Smoothing splines}
+% ------------------------------------------------------------
+
+\begin{frame}{Smoothing spline: një tjetër filozofi}
+  \begin{itemize}
+    \item<1-> Deri tani: zgjedhim nyjet, pastaj OLS.
+    \item<2-> Smoothing spline: nyje në \textbf{çdo} $x_i$, por me dënim për lakimin:
+      \[ \min_{g}\ \sum_{i=1}^n\big(y_i-g(x_i)\big)^2+\lambda\int g''(t)^2\,dt \]
+    \item<3-> Termi i parë: përputhje me të dhënat. Termi i dytë: ``vrazhdësia'' e kurbës.
+    \item<4-> $\lambda\ge0$ rregullon kompromisin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Roli i $\lambda$}
+  \begin{itemize}
+    \item<1-> $\lambda=0$: asnjë dënim $\Rightarrow$ $g$ kalon nga çdo pikë (interpolim, mbi-përshtatje).
+    \item<2-> $\lambda\to\infty$: $g''=0$ kudo $\Rightarrow$ $g$ është vijë e drejtë (OLS linear).
+    \item<3-> Teoremë: zgjidhja është një \textbf{spline kubike natyrore} me nyje te $x_1,\dots,x_n$, e ``tkurrur''.
+  \end{itemize}
+  \pause[4]
+  \begin{Keshille}Në vend të numrit të nyjeve, zgjedhim një parametër të vetëm të vazhdueshëm $\lambda$.\end{Keshille}
+\end{frame}
+
+\begin{frame}{Shkallët efektive të lirisë}
+  \begin{itemize}
+    \item<1-> Për $\lambda$ të fiksuar, $\hat g=S_\lambda\,y$: linear në $y$, si $\hat y=Hy$ në OLS.
+    \item<2-> $S_\lambda$ = \termi{matrica e zbutjes}{smoother matrix}, $n\times n$.
+    \item<3-> Shkallët efektive: $\text{df}_\lambda=\operatorname{tr}(S_\lambda)$, nga $n$ ($\lambda=0$) deri në 2 ($\lambda\to\infty$).
+    \item<4-> Lidhja me Javën 7: për OLS $\operatorname{tr}(H)=p+1$; këtu $\operatorname{tr}(S_\lambda)$ luan të njëjtin rol.
+    \item<5-> Në R: \texttt{smooth.spline(x, y, df = 16)} zgjidh $\lambda$ që jep $\text{df}=16$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{LOOCV pa rivlerësim}
+  \begin{itemize}
+    \item<1-> Java 6--7: për OLS, $\text{CV}_{(n)}=\frac1n\sum\big(e_i/(1-h_{ii})\big)^2$.
+    \item<2-> E njëjta shkurtore vlen për smoothing splines:
+      \[ \text{CV}_{(n)}(\lambda)=\frac1n\sum_{i=1}^n\left(\frac{y_i-\hat g_\lambda(x_i)}{1-\{S_\lambda\}_{ii}}\right)^2 \]
+    \item<3-> Një përshtatje e vetme për çdo $\lambda$: LOOCV pothuajse falas.
+    \item<4-> Në R: \texttt{smooth.spline(x, y, cv = TRUE)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeSS]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Një smoothing spline mbi 3000 pika ka $\text{df}_\lambda=6.8$. Cila është e \textbf{saktë}?
+    \begin{enumerate}[A)]
+      \item Modeli ka saktësisht 6.8 nyje.
+      \item Kurba është afërsisht aq fleksibël sa një regres me rreth 7 parametra.
+      \item $\lambda=6.8$.
+      \item Kurba kalon nga të gjitha 3000 pikat.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjSS}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Regresi lokal (loess)}
+% ------------------------------------------------------------
+
+\begin{frame}{Regresi lokal: ideja}
+  Për çdo pikë $x_0$ ku duam $\hat f(x_0)$:
+  \begin{enumerate}
+    \item<2-> Merr fraksionin $s$ (\termi{span}{span}) të pikave më të afërta me $x_0$.
+    \item<3-> U jep peshë $K_{i0}$: e madhe për pikat afër, 0 për pikat jashtë fqinjësisë.
+    \item<4-> Përshtat regres linear (ose kuadratik) \textbf{me peshë}: $\min\sum K_{i0}(y_i-\beta_0-\beta_1x_i)^2$.
+    \item<5-> $\hat f(x_0)=\hat\beta_0+\hat\beta_1x_0$.
+  \end{enumerate}
+  \onslide<6->{\begin{Keshille}Një regres i veçantë për çdo $x_0$: model ``pa memorie'', si KNN, por i lëmuar.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[shrink=3]{Peshat tri-cube}
+  \[ K_{i0}=\Big(1-\big|d_i/d_{\max}\big|^3\Big)^3,\qquad d_i=|x_i-x_0| \]
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \pause
+      Pa ndihmën e PC:
+      \begin{itemize}
+        \item $d/d_{\max}=0$: $K=1$.
+        \item $d/d_{\max}=0.5$: $(1-0.125)^3=0.670$.
+        \item $d/d_{\max}=0.8$: $(1-0.512)^3=0.116$.
+        \item $d/d_{\max}=1$: $K=0$.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[width=\textwidth,height=0.75\textwidth,xmin=-1.1,xmax=1.1,ymin=0,ymax=1.1,
+            tick label style={font=\tiny},xlabel={\scriptsize $d/d_{\max}$}]
+          \addplot[domain=-1:1,samples=80,thick,uptblue] {(1-abs(x)^3)^3};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Span: parametri i fleksibilitetit}
+  \begin{itemize}
+    \item<1-> $s$ i vogël (0.2): çdo regres lokal përdor pak pika $\Rightarrow$ kurbë e valëzuar, variancë e madhe.
+    \item<2-> $s$ i madh (0.8): pothuajse të gjitha pikat $\Rightarrow$ kurbë e lëmuar, afër OLS.
+    \item<3-> Në R: \texttt{loess(y \textasciitilde{} x, span = 0.5)}; parazgjedhja \texttt{span = 0.75}, \texttt{degree = 2}.
+    \item<4-> Me shumë $x$: fqinjësitë bëhen bosh shpejt (mallkimi i dimensionit); loess përdoret me 1--2 variabla.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeSpan]{Parashiko}
+  \begin{Parashiko}
+    \texttt{Wage}, 3000 pika. Krahasojmë \texttt{loess} me span 0.2 dhe 0.5.
+    \begin{enumerate}
+      \item Rreth sa pika përdor çdo regres lokal në secilin rast?
+      \item Cila kurbë do të jetë më e valëzuar? Ku do të duket ndryshimi më shumë?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjSpan}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\Zgjerim Modelet aditive (GAM)}
+% ------------------------------------------------------------
+
+\begin{frame}{\Zgjerim Modelet aditive të përgjithësuara}
+  \begin{itemize}
+    \item<1-> Me disa parashikues: $y_i=\beta_0+f_1(x_{i1})+f_2(x_{i2})+\dots+f_p(x_{ip})+\varepsilon_i$.
+    \item<2-> Çdo $f_j$: spline natyrore, smoothing spline, loess, ose thjesht linear.
+    \item<3-> Me \texttt{ns()}: thjesht \texttt{lm()} me më shumë kolona.
+    \item<4-> Me smoothing splines/loess: algoritmi \termi{backfitting}{backfitting}: përditëso $f_j$ duke mbajtur të tjerët fiks, përsërit.
+    \item<5-> Aditiv: pa ndërveprime (mund të shtohen me dorë). Interpretim: një grafik për çdo $f_j$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\Zgjerim GAM në R}
+  \begin{itemize}
+    \item<1-> \texttt{lm(wage \textasciitilde{} ns(year, 4) + ns(age, 5) + education)}: GAM me \texttt{ns}.
+    \item<2-> \texttt{gam::gam(wage \textasciitilde{} s(year, 4) + s(age, 5) + education)}: smoothing splines (repo \texttt{Lecture\_7.2.R}).
+    \item<3-> \texttt{lo(age, span = 0.5)}: loess brenda GAM.
+    \item<4-> Krahasim modelesh me \texttt{anova(gam1, gam2, gam3)}: a duhet \texttt{year} linear apo jolinear?
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Regresi i fortë}
+% ------------------------------------------------------------
+
+\begin{frame}{Regresi i fortë: M-vlerësuesit \hfill\small Material plotësues}
+  \begin{itemize}
+    \item<1-> OLS: $\min\sum e_i^2$. Mbetjet e mëdha dominojnë.
+    \item<2-> M-vlerësuesi (Huber, 1964): $\min_\beta\sum_i\rho\!\left(\dfrac{y_i-x_i^\top\beta}{s}\right)$.
+    \item<3-> $\rho$: funksion humbjeje që rritet më ngadalë se $e^2$; $s$: shkallë e fortë e mbetjeve.
+    \item<4-> Derivati $\psi=\rho'$ quhet \termi{funksioni i ndikimit}{psi function}: sa ``tërheq'' një mbetje.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Tri funksione humbjeje}
+  \centering\small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+     & $\rho(u)$ & $\psi(u)$\\ \midrule
+    OLS & $u^2/2$ & $u$\\[3pt]
+    Huber ($k$) & $\begin{cases}u^2/2 & |u|\le k\\ k|u|-k^2/2 & |u|>k\end{cases}$ & $\max(-k,\min(k,u))$\\[10pt]
+    Tukey bisquare ($c$) & e kufizuar & $\begin{cases}u\big(1-(u/c)^2\big)^2 & |u|\le c\\ 0 & |u|>c\end{cases}$\\ \bottomrule
+  \end{tabular}
+  \pause
+  \begin{itemize}\small
+    \item Konstantet standarde: $k=1.345$, $c=4.685$: \textbf{95\% efikasitet} kur gabimet janë normale.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Fotografia: $\psi$ për OLS, Huber, bisquare}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=0.75\textwidth,height=0.45\textwidth,xmin=-7,xmax=7,ymin=-3.2,ymax=3.2,
+        tick label style={font=\tiny},legend style={font=\tiny},legend pos=north west,
+        xlabel={\scriptsize $u$},ylabel={\scriptsize $\psi(u)$}]
+      \addplot[domain=-3.2:3.2,thick,gray] {x}; \addlegendentry{OLS}
+      \addplot[domain=-7:7,samples=120,thick,uptblue] {max(-1.345,min(1.345,x))}; \addlegendentry{Huber}
+      \addplot[domain=-7:7,samples=200,thick,accent] {(abs(x)<=4.685)*x*(1-(x/4.685)^2)^2}; \addlegendentry{bisquare}
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}\small
+    \item Huber: ndikimi kufizohet në $k$. Bisquare: ndikimi \textbf{kthehet në 0} për mbetje shumë të mëdha.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Nga $\psi$ te peshat}
+  \begin{itemize}
+    \item<1-> Kushti i optimumit: $\sum_i\psi(u_i)\,x_i=0$, me $u_i=e_i/s$.
+    \item<2-> Shkruaj $\psi(u)=w(u)\,u$, ku $w(u)=\psi(u)/u$.
+    \item<3-> Atëherë: $\sum_iw_i\,e_i\,x_i=0$, pra ekuacionet normale të \textbf{WLS} (Java 7)!
+    \item<4-> Huber: $w=1$ për $|u|\le k$, $w=k/|u|$ për $|u|>k$.
+    \item<5-> Problemi: $w_i$ varen nga $\beta$. Zgjidhja: iteracion.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Algoritmi IRLS}
+  \begin{enumerate}
+    \item<1-> Fillo me $\hat\beta^{(0)}$ (OLS, ose diçka më e fortë).
+    \item<2-> Llogarit mbetjet $e_i$ dhe shkallën $s=\text{MAD}/0.6745$.
+    \item<3-> Peshat $w_i=w(e_i/s)$.
+    \item<4-> WLS: $\hat\beta^{(t+1)}=(X^\top WX)^{-1}X^\top Wy$.
+    \item<5-> Përsërit 2--4 deri në konvergjencë.
+  \end{enumerate}
+  \pause[6]
+  \begin{Keshille}MAD = mediana e $|e_i-\text{med}(e)|$; pjesëtimi me 0.6745 e bën vlerësues të $\sigma$ nën normalitet. Mediana nuk ndikohet nga vlerat ekstreme.\end{Keshille}
+\end{frame}
+
+\begin{frame}{Pa ndihmën e PC: IRLS për një mesatare}
+  \small
+  $y=(1,2,3,4,15)$, vetëm konstante. Mesatarja 5, mediana 3. Huber me $k\cdot s=2$ (fiks).\\
+  Pesha: $w=1$ nëse $|r|\le2$, ndryshe $w=2/|r|$. \quad $\hat\mu^{(t+1)}=\sum w_iy_i/\sum w_i$.
+  \vspace{4pt}
+  \centering
+  \begin{tabular}{cccc}
+    \toprule $t$ & mbetjet nga $\hat\mu^{(t)}$ & peshat $w$ & $\hat\mu^{(t+1)}$\\ \midrule
+    0 & $-4,-3,-2,-1,10$ & $0.5,\,0.67,\,1,\,1,\,0.2$ & $11.83/3.37=3.51$\\
+    1 & $-2.51,\dots,11.49$ & $0.80,\,1,\,1,\,1,\,0.17$ & $12.41/3.97=3.13$\\
+    2 & $-2.13,\dots,11.87$ & $0.94,\,1,\,1,\,1,\,0.17$ & $12.47/4.11=3.03$\\
+    $\vdots$ & & & $\to3.00$\\ \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item<2-> Pika 15 merr peshë $\approx1/6$; vlerësimi konvergjon te 3.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontroll në R}
+<<h4-huber>>=
+y_toy <- c(1, 2, 3, 4, 15)
+MASS::huber(y_toy, k = 1.345)      # mu and robust scale s = MAD
+c(mean = mean(y_toy), median = median(y_toy),
+  k_times_s = 1.345 * mad(y_toy))
+@
+  \begin{itemize}
+    \item<2-> $k\cdot s=1.345\times1.483=1.99\approx2$: tabela jonë pa PC përdori pikërisht këtë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushIRLS]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(6 minuta)]
+    $y=(2,3,4,5,20)$, Huber me $k\cdot s=2$.
+    \begin{enumerate}
+      \item Fillo nga mediana: $\hat\mu^{(0)}=4$. Llogarit mbetjet dhe peshat.
+      \item Llogarit $\hat\mu^{(1)}$.
+      \item A ka konvergjuar? Krahaso me mesataren.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjIRLS}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Pika e thyerjes}
+  \begin{Definicion}[Pika e thyerjes (\emph{breakdown point})]
+    Fraksioni më i vogël i të dhënave që, kur ndryshohet arbitrarisht, mund ta çojë vlerësuesin në pafundësi.
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item<2-> Mesatarja dhe OLS: $1/n\to0$. Një pikë mjafton.
+    \item<3-> Mediana: 50\%.
+    \item<4-> M-vlerësuesit në regres: të fortë ndaj vlerave ekstreme në $y$, por \textbf{jo} ndaj pikave me leverage të lartë në $x$ (pika e thyerjes ende $1/n$).
+    \item<5-> \Zgjerim MM-vlerësuesit (\texttt{robustbase::lmrob}): 50\% pikë thyerjeje dhe 95\% efikasitet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Huber apo bisquare?}
+  \begin{itemize}
+    \item<1-> \textbf{Huber}: funksion konveks $\Rightarrow$ zgjidhje unike, IRLS konvergjon gjithmonë. Vlerat ekstreme kanë ende pak ndikim.
+    \item<2-> \textbf{Bisquare}: ndikimi zero për vlera shumë ekstreme, por funksion jo-konveks $\Rightarrow$ mund të ketë disa minimume; varet nga pika e nisjes.
+    \item<3-> Praktikë: nis me Huber (ose MM), pastaj bisquare.
+    \item<4-> Në R: \texttt{MASS::rlm(y \textasciitilde{} x)} (Huber), \texttt{rlm(..., psi = psi.bisquare)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabime të zakonshme}
+  \begin{Gabim}``Regresi i fortë i heq vlerat ekstreme.'' Jo: i ul peshën, dhe peshat tregojnë cilat pika janë të dyshimta. Kontrolloni ato!\end{Gabim}
+  \pause
+  \begin{Gabim}Përdorimi i \texttt{rlm} kundër pikave me leverage të lartë: M-vlerësuesit nuk mbrojnë në $x$.\end{Gabim}
+  \pause
+  \begin{Gabim}Raportimi vetëm i \texttt{rlm}: krahasoni gjithmonë me OLS. Nëse ndryshojnë shumë, kjo është gjetje më vete.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Harta e metodave të javës}
+  \centering\small
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    Metoda & Fleksibiliteti & Zgjidhet me & R\\ \midrule
+    Polinom & shkalla $d$ & ANOVA, CV & \texttt{poly()}\\
+    Shkallë & prerjet & njohuri, CV & \texttt{cut()}\\
+    Spline regresive & nyjet / df & CV & \texttt{bs()}, \texttt{ns()}\\
+    Smoothing spline & $\lambda$ / df & LOOCV & \texttt{smooth.spline()}\\
+    Loess & span & CV & \texttt{loess()}\\
+    GAM & një $f_j$ për çdo $x_j$ & ANOVA, CV & \texttt{gam::gam()}\\
+    Regres i fortë & $k$ / $c$ & 95\% efikasitet & \texttt{MASS::rlm()}\\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=cp84]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 4}
+  \begin{enumerate}
+    \item Çfarë ndodh me smoothing spline-in kur $\lambda=0$ dhe kur $\lambda\to\infty$?
+    \item Pse spline-i natyror ka 4 parametra më pak se spline-i kubik me të njëjtat nyje (përfshirë kufitaret)?
+    \item Shkruani peshën Huber $w(u)$ dhe shpjegoni pse IRLS është WLS i përsëritur.
+  \end{enumerate}
+  \shkoTe{zgjCp84}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 4}
+  \begin{itemize}
+    \item Spline natyrore: lineare në skaje; \texttt{ns(df = d)}.
+    \item Smoothing spline: dënim $\lambda\int g''^2$; $\text{df}_\lambda=\operatorname{tr}(S_\lambda)$; LOOCV me $\{S_\lambda\}_{ii}$.
+    \item Loess: regres me peshë tri-cube rreth çdo $x_0$; span = fleksibiliteti.
+    \item M-vlerësuesit: $\rho$, $\psi$, peshat $w=\psi(u)/u$, IRLS; Huber $k=1.345$.
+    \item Pika e thyerjes: OLS $1/n$; M në regres: ende $1/n$ në $x$; MM: 50\%.
+  \end{itemize}
+  \begin{Keshille}Ora 5: \texttt{ns}, \texttt{smooth.spline}, \texttt{loess}, \texttt{gam} te \texttt{Wage}; \texttt{rlm} dhe \texttt{lmrob}, me simulim kontaminimi.\end{Keshille}
+\end{frame}

@@ -1,0 +1,41 @@
+% ============================================================
+%  Java 8 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjSS]{Zgjidhja: Pyetje me zgjedhje (df efektiv)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}. $\operatorname{tr}(S_\lambda)=6.8$ mat fleksibilitetin, si numri i parametrave në OLS.
+    \item A: nyjet janë te çdo $x_i$ unik; df nuk është numër nyjesh.
+    \item C: $\lambda$ është në njësi të tjera; \texttt{smooth.spline} gjen $\lambda$ që jep df e kërkuar.
+    \item D: kjo ndodh vetëm për $\lambda=0$ ($\text{df}=n$).
+  \end{itemize}
+  \vfill\kthehu{pyetjeSS}
+\end{frame}
+
+\begin{frame}[label=zgjSpan]{Zgjidhja: Parashiko (span)}
+  \begin{enumerate}
+    \item Span 0.2: $\approx600$ pika; span 0.5: $\approx1500$ pika për çdo regres lokal.
+    \item Span 0.2 më e valëzuar. Ndryshimi duket më shumë në skaje (pas 65), ku fqinjësia ka pak pika dhe pak vëzhgime me peshë të madhe.
+  \end{enumerate}
+  \small Do ta shohim në Orën 5.
+  \vfill\kthehu{pyetjeSpan}
+\end{frame}
+
+\begin{frame}[label=zgjIRLS]{Zgjidhja: Radha jote! (IRLS)}
+  \begin{itemize}
+    \item $\hat\mu^{(0)}=4$: mbetjet $(-2,-1,0,1,16)$.
+    \item Peshat: $|r|\le2\Rightarrow1$; pika 5: $2/16=0.125$. $\;w=(1,1,1,1,0.125)$.
+    \item $\hat\mu^{(1)}=\dfrac{2+3+4+5+0.125\cdot20}{4.125}=\dfrac{16.5}{4.125}=4$.
+    \item $\hat\mu^{(1)}=\hat\mu^{(0)}$: ka konvergjuar menjëherë. Mesatarja është 6.8.
+  \end{itemize}
+  \vfill\kthehu{ushIRLS}
+\end{frame}
+
+\begin{frame}[label=zgjCp84]{Përgjigjet: Checkpoint Ora 4}
+  \begin{enumerate}
+    \item $\lambda=0$: interpolim i të gjitha pikave ($\text{df}=n$). $\lambda\to\infty$: vija e drejtë e OLS ($\text{df}=2$).
+    \item Në secilin skaj, linearitet do të thotë $f''=f'''=0$: 2 kushte shtesë $\times$ 2 skaje = 4.
+    \item $w(u)=1$ për $|u|\le k$, $w(u)=k/|u|$ për $|u|>k$. Kushti $\sum\psi(u_i)x_i=0$ shkruhet $\sum w_ie_ix_i=0$: ekuacionet e WLS; meqë $w_i$ varen nga $\hat\beta$, përsërisim.
+  \end{enumerate}
+  \vfill\kthehu{cp84}
+\end{frame}
