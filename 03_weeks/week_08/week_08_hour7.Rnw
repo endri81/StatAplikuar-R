@@ -1,0 +1,335 @@
+% ============================================================
+%  Java 8 · Ora 7 — Konsolidimi
+%  Rezultatet: K2, S2, S3, C1
+% ============================================================
+
+\section[Konsolidimi]{Konsolidimi}
+
+\begin{frame}{Ora 7: Konsolidimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuizi në stilin e provimit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuizi: si funksionon}
+  \begin{itemize}
+    \item<1-> Si në provim: \textbf{25\% teori, 75\% ushtrime}; 3 pyetje teorike (25 pikë) + 7 ushtrime (75 pikë).
+    \item<2-> Koha: 45 minuta. Ushtrimet 1--5 bëhen pa ndihmën e PC.
+    \item<3-> Ushtrimet 1--2: $x=(-2,-1,0,1,2)$, $y=(4,1,1,1,5)$ (\textbf{sintetike}).
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Te çdo model jolinear, shkruaj sa parametra ka dhe pse.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=q8T1]{Teori 1 (8 pikë)}
+  \begin{Ushtrim}[(Teori 1)]
+    \begin{enumerate}
+      \item Çfarë është një model me funksione bazë? Pse vlerësohet me \texttt{lm()}?
+      \item Krahasoni \texttt{poly(x, d)} dhe \texttt{poly(x, d, raw = TRUE)}: çfarë është e njëjtë dhe çfarë ndryshon?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s8T1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q8T2]{Teori 2 (8 pikë)}
+  \begin{Ushtrim}[(Teori 2)]
+    \begin{enumerate}
+      \item Përkufizoni spline-in kubik dhe nxirrni numrin $K+4$ të parametrave.
+      \item Çfarë shton spline-i natyror? Çfarë roli ka $\lambda$ te smoothing spline?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s8T2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q8T3]{Teori 3 (9 pikë)}
+  \begin{Ushtrim}[(Teori 3)]
+    \begin{enumerate}
+      \item Shkruani $\rho$, $\psi$ dhe peshën $w$ për Huber-in.
+      \item Përshkruani IRLS. Pse është WLS i përsëritur?
+      \item Çfarë është pika e thyerjes? Pse M-vlerësuesit nuk mbrojnë nga pikat me leverage?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s8T3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q8E1]{Ushtrimi 1 (10 pikë): polinomi ortogonal}
+  \begin{Ushtrim}[(Ushtrimi 1, pa ndihmën e PC)]
+    $x=(-2,-1,0,1,2)$, $y=(4,1,1,1,5)$. Përdorni $z=x^2-2$.
+    \begin{enumerate}
+      \item Tregoni që $1,x,z$ janë ortogonale. Llogaritni $\hat\gamma_0,\hat\gamma_1,\hat\gamma_2$ veç e veç.
+      \item Shkruani kurbën në bazën e papërpunuar $\beta_0+\beta_1x+\beta_2x^2$.
+      \item Llogaritni SSE të kuadratikut dhe të modelit linear; testi $F$ ($F_{0.95;1,2}=18.5$).
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s8E1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q8E2]{Ushtrimi 2 (10 pikë): SE dhe funksioni shkallë}
+  \begin{Ushtrim}[(Ushtrimi 2, pa ndihmën e PC)]
+    Me rezultatet e Ushtrimit 1:
+    \begin{enumerate}
+      \item $\hat\sigma^2$ dhe SE e $\hat f(0)$: $\operatorname{Var}=\hat\sigma^2\big(\frac15+\frac{x_0^2}{10}+\frac{(x_0^2-2)^2}{14}\big)$.
+      \item Funksion shkallë me prerje te $-0.5$ dhe $0.5$: mesataret e grupeve dhe SSE.
+      \item Cili model preferohet? Sa parametra ka secili?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s8E2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q8E3]{Ushtrimi 3 (10 pikë): baza e spline-it}
+  \begin{Ushtrim}[(Ushtrimi 3, pa ndihmën e PC)]
+    $x=(1,2,3,4,5)$, një nyje te $\xi=3$.
+    \begin{enumerate}
+      \item Shkruani $X$ për spline-in linear (baza $1,x,(x-3)_+$) dhe për spline-in kubik (baza $1,x,x^2,x^3,(x-3)_+^3$).
+      \item Sa parametra ka secili? Po një spline natyror me 1 nyje të brendshme?
+      \item Sa koeficientë jep \texttt{lm(y \textasciitilde{} bs(x, df = 7))}? Po \texttt{ns(x, df = 7)}?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s8E3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q8E4]{Ushtrimi 4 (10 pikë): loess dhe LOOCV}
+  \begin{Ushtrim}[(Ushtrimi 4, pa ndihmën e PC)]
+    \begin{enumerate}
+      \item Peshat tri-cube për $d/d_{\max}=0.25,\ 0.5,\ 0.75$. ($0.25^3=0.0156$, $0.75^3=0.4219$.)
+      \item Një smoothing spline me 3 pika ka mbetje $e=(1,\,-2,\,0.5)$ dhe $\{S_\lambda\}_{ii}=(0.5,\,0.6,\,0.2)$. Llogaritni $\text{CV}_{(n)}$.
+      \item Pse nuk duhet rivlerësuar modeli 3 herë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s8E4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q8E5]{Ushtrimi 5 (10 pikë): një hap IRLS}
+  \begin{Ushtrim}[(Ushtrimi 5, pa ndihmën e PC)]
+    $y=(2,4,5,6,18)$, vetëm konstante, Huber me $k\cdot s=2$.
+    \begin{enumerate}
+      \item Nisni nga mesatarja $\hat\mu^{(0)}=7$: llogaritni mbetjet dhe peshat.
+      \item Llogaritni $\hat\mu^{(1)}$.
+      \item Ku pritet të konvergjojë? Krahasoni me mesataren dhe medianën.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s8E5}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[fragile,shrink=12,label=q8E6]{Ushtrimi 6 (10 pikë): lexo output-in}
+<<quiz8-anova, echo=FALSE>>=
+wq <- read.csv(file.path(W08DATA, "Wage.csv"))
+fq <- lapply(1:5, function(d) lm(wage ~ poly(age, d), data = wq))
+do.call(anova, fq)
+@
+  10-fold CV MSE për shkallët 1--5: 1676.6, 1599.5, 1597.1, 1595.1, 1596.4.\\
+  Cilën shkallë zgjidhni sipas ANOVA-s? Sipas CV-së? Çfarë raportoni dhe pse? \hfill\shkoTe{s8E6}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[fragile,shrink=10,label=q8E7]{Ushtrimi 7 (15 pikë): OLS kundrejt regresit të fortë}
+<<quiz8-rlm, echo=FALSE>>=
+suppressMessages({library(MASS); library(robustbase)})
+aq <- na.omit(read.csv(file.path(W08DATA, "Auto.csv"), na.strings = "?"))
+fmq <- mpg ~ horsepower + weight + year
+round(rbind(ols = coef(lm(fmq, aq)), huber = coef(rlm(fmq, aq)),
+            mm = coef(lmrob(fmq, aq))), 5)
+@
+  \small
+  \begin{enumerate}
+    \item Interpretoni ndryshimin te \texttt{horsepower}. A duhet raportuar ky efekt?
+    \item Peshat më të ulëta të Huber-it i kanë makina ekonomike të 1980--81. Çfarë sugjeron kjo për formën e modelit?
+    \item Pse krahasojmë edhe me MM dhe jo vetëm me Huber?
+  \end{enumerate}
+  \shkoTe{s8E7}{Zgjidhja}
+\end{frame}
+
+\begin{frame}{Tabela e pikëve}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Pjesa & Pyetjet & Pikët \\ \midrule
+    Teori (25\%) & T1, T2, T3 & 8 + 8 + 9 = 25 \\
+    Ushtrime (75\%) & U1--U6 & $6\times10=60$ \\
+     & U7 & 15 \\ \midrule
+    Gjithsej & 10 & 100 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Nën 50 pikë: përsëritni Orët 2 dhe 4.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ushtrime për shtëpi}
+% ------------------------------------------------------------
+
+\begin{frame}[label=h8H1]{Ushtrime për shtëpi 1--2}
+  \begin{Ushtrim}[(Shtëpi 1: \texttt{Wage})]
+    \texttt{lm(wage \textasciitilde{} ns(age, 4) + year + education)}. Krahasoni me \texttt{gam2} të Orës 5. Vizatoni efektin e \texttt{age} me \texttt{termplot}.
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 2: \texttt{Auto})]
+    \texttt{mpg \textasciitilde{} f(horsepower)}: krahasoni \texttt{poly} (shkallë 1--5) dhe \texttt{ns} (df 2--8) me 10-fold CV mbi të njëjtat palosje. Cilën zgjidhni?
+  \end{Ushtrim}
+  \shkoTe{s8H1}{Udhëzime}
+\end{frame}
+
+\begin{frame}[label=h8H3]{Ushtrime për shtëpi 3--4}
+  \begin{Ushtrim}[(Shtëpi 3: \texttt{Boston})]
+    \texttt{smooth.spline(lstat, medv, cv = TRUE)}. Krahasoni df e zgjedhur me rezultatin e \texttt{ns} në Orën 6.
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 4: simulim)]
+    $y\sim N(10,1)$, $n=50$; zëvendësoni $\epsilon=0,10,\dots,50\%$ të vlerave me 100. Krahasoni mesataren, medianën dhe \texttt{MASS::huber()}. Ku thyhet secili?
+  \end{Ushtrim}
+  \shkoTe{s8H3}{Udhëzime}
+\end{frame}
+
+\begin{frame}[label=h8H5]{Ushtrime për shtëpi 5--6}
+  \begin{Ushtrim}[(Shtëpi 5: teori)]
+    (a) Tregoni që $(x-\xi)_+^3$ ka $h$, $h'$, $h''$ të vazhdueshme te $\xi$. (b) Nxirrni $w(u)$ për bisquare. (c) Pse $\text{df}_\lambda\to2$ kur $\lambda\to\infty$?
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 6: \texttt{Boston}, raport)]
+    Zëvendësoni \texttt{ns(rm, 4)} dhe \texttt{ns(lstat, 4)} me \texttt{gam::gam(\dots + s(rm, 4) + s(lstat, 4))}. Krahasoni CV dhe grafikët. Raport 1-faqësh me 6 pikat.
+  \end{Ushtrim}
+  \shkoTe{s8H5}{Udhëzime}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gabimet e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet e zakonshme: polinomet dhe splines}
+  \begin{Gabim}Interpretimi i koeficientëve të \texttt{poly()} ose \texttt{bs()} si efekte; raportoni kurbën.\end{Gabim}
+  \pause
+  \begin{Gabim}Ekstrapolimi me polinom (mosha 90: 23.6, SE 45).\end{Gabim}
+  \pause
+  \begin{Gabim}Zgjedhja e shkallës, nyjeve ose df me $R^2$ të trajnimit; ose marrja e minimumit të CV pa parë sa e sheshtë është kurba.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: zbutja dhe regresi i fortë}
+  \begin{Gabim}\texttt{cut(x, 4)} pritet të japë grupe të barabarta; jep intervale me gjerësi të barabartë.\end{Gabim}
+  \pause
+  \begin{Gabim}\texttt{rlm} pa kontrolluar \texttt{\$converged}; ose \texttt{rlm} kundër pikave me leverage.\end{Gabim}
+  \pause
+  \begin{Gabim}Raportimi vetëm i modelit të fortë, ose heqja e pikave me peshë të ulët.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit: si ta zgjedh formën}
+  \small
+  \begin{enumerate}
+    \item Grafik $y$ kundrejt $x$ + lowess; \texttt{crPlots} në model të plotë.
+    \item Provo një transformim me kuptim (log) para fleksibilitetit të madh.
+    \item Kandidatët: \texttt{poly} (2--4), \texttt{ns} (df 2--8), \texttt{smooth.spline}.
+    \item CV me \textbf{të njëjtat palosje}, në shkallën origjinale të $y$.
+    \item Rregulli i thjeshtësisë kur kurba e CV është e sheshtë.
+    \item Diagnostiko modelin e zgjedhur (Java 7); SE HC3 nëse duhet.
+    \item Ndjeshmëri me \texttt{rlm}/\texttt{lmrob}; krahaso, mos zëvendëso.
+    \item Raporto kurbat me grafik dhe brez IB.
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fletë-kujtesa}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë-kujtesa 1: formulat}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Madhësia & Formula \\ \midrule
+    Model me baza & $y=\beta_0+\sum_k\beta_kb_k(x)+\varepsilon$ \\
+    SE e $\hat f(x_0)$ & $\sigma^2\ell_0^\top(X^\top X)^{-1}\ell_0$ \\
+    Spline kubike & $K+4$ parametra; baza $1,x,x^2,x^3,(x-\xi_k)_+^3$ \\
+    Spline natyrore & $K+2$ (me konstante), lineare në skaje \\
+    Smoothing spline & $\sum(y_i-g(x_i))^2+\lambda\int g''^2$; \ $\text{df}=\operatorname{tr}(S_\lambda)$ \\
+    LOOCV & $\frac1n\sum\big((y_i-\hat g(x_i))/(1-S_{ii})\big)^2$ \\
+    Tri-cube & $(1-|d/d_{\max}|^3)^3$ \\
+    Huber & $\psi(u)=\max(-k,\min(k,u))$, \ $w=\min(1,k/|u|)$, \ $k=1.345$ \\
+    Shkalla e fortë & $s=\text{MAD}/0.6745$ \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 2: funksionet R}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    Polinom & \Rkey{poly(x, d)}, \Rkey{poly(x, d, raw = TRUE)} \\
+    Funksion shkallë & \Rkey{cut(x, breaks)} \\
+    Splines & \Rkey{splines::bs()}, \Rkey{splines::ns()} \\
+    Smoothing spline & \Rkey{smooth.spline(x, y, df =, cv = TRUE)} \\
+    Regres lokal & \Rkey{loess(y \textasciitilde{} x, span =, degree =)} \\
+    GAM & \Rkey{gam::gam(y \textasciitilde{} s(x, df) + lo(z, span))} \\
+    Parashikim + SE & \Rkey{predict(fit, newdata, se.fit = TRUE)}, \Rkey{termplot()} \\
+    Regres i fortë & \Rkey{MASS::rlm()}, \Rkey{psi.bisquare}, \Rkey{robustbase::lmrob()} \\
+    CV & \Rkey{boot::cv.glm()} ose cikël me \Rkey{fold} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 3: kur cilën metodë}
+  \small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Situata & Metoda & Pse \\ \midrule
+    Lakim i butë, pak të dhëna & \texttt{poly(x, 2--3)} & pak parametra \\
+    Prerje me kuptim (grupmosha) & \texttt{cut()} & interpretim i thjeshtë \\
+    Formë e panjohur, skaje të rëndësishme & \texttt{ns(x, df)} & stabil në skaje \\
+    Një $x$, zgjedhje automatike & \texttt{smooth.spline(cv = TRUE)} & një parametër $\lambda$ \\
+    Eksplorim vizual & \texttt{loess} & lokal, fleksibël \\
+    Disa $x$ jolinearë & GAM / \texttt{ns()} në \texttt{lm} & aditiv, interpretueshëm \\
+    Vlera ekstreme në $y$ & \texttt{rlm} (Huber) & ul peshën \\
+    Pika me leverage & \texttt{lmrob} (MM) & 50\% pikë thyerjeje \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pamje e Javës 9}
+% ------------------------------------------------------------
+
+\begin{frame}{Java 9: regresi logjistik dhe klasifikimi \LO{K2} \LO{S3} \LO{C1}}
+  \begin{itemize}
+    \item<1-> $y$ kategorik (po/jo): \texttt{default}, \texttt{direction}.
+    \item<2-> Regresi logjistik, LDA, QDA, KNN; matrica e konfuzionit, ROC dhe AUC.
+    \item<3-> Lidhja me sot: \texttt{glm(I(wage > 250) \textasciitilde{} poly(age, 3), family = binomial)} (repo \texttt{Lecture\_7.1.R}).
+    \item<4-> Të dhënat: \texttt{Default}, \texttt{Smarket} (ISLR); repo \texttt{Lecture\_4.R}, \texttt{Euclidean\_Distance.R}.
+    \item<5-> Zgjerim: pemët e vendimit, bagging, random forests; rastet lidhen me projektin final.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Para Javës 9}
+  \begin{itemize}
+    \item Ushtrimet për shtëpi 1--6 (sidomos 1 dhe 6).
+    \item Rishikoni: probabiliteti me kusht, shpërndarja Bernoulli dhe binomiale, maksimumi i përgjasisë.
+    \item Lexoni ISLR kap.\ 4.1--4.3.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Burime}
+  \footnotesize
+  \begin{itemize}
+    \item E.~Raço, E.~Llagami, K.~Haxhi, O.~Zaçaj, \emph{Teoria e Probabilitetit dhe Statistika Matematike me ilustrime në gjuhën R}, Kotti, 2021 (regresi).
+    \item J.~Cohen, P.~Cohen, S.~G.~West, L.~S.~Aiken, \emph{Applied Multiple Regression/Correlation Analysis for the Behavioral Sciences}, LEA, 2003 (regresi polinomial dhe jolinear).
+    \item G.~James, D.~Witten, T.~Hastie, R.~Tibshirani, \emph{An Introduction to Statistical Learning}, Springer, kap.~7; \url{https://www.statlearning.com}.
+    \item N.~Lo, \emph{DS612 Data Mining with Business Applications (R)}, \url{https://github.com/NormanLo4319/DS612_Data_Mining_with_Business_Applications_R} (licencë MIT): \texttt{Lecture\_7.1.R}, \texttt{Lecture\_7.2.R}, \texttt{Data/Textbook\_Data/Wage.csv}.
+    \item Material plotësues: P.~J.~Huber (1964), \emph{Annals of Mathematical Statistics} 35(1); dokumentacioni i \texttt{MASS::rlm} dhe \texttt{robustbase::lmrob}.
+    \item Paketat: \texttt{splines}, \texttt{gam}, \texttt{MASS}, \texttt{robustbase}, \texttt{boot}, \texttt{lmtest}, \texttt{sandwich}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp87]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 7}
+  \begin{enumerate}
+    \item Cili është hapi i parë para se të provoni splines me shumë df?
+    \item Si e raportoni një efekt jolinear në një raport?
+    \item Kur përdorni \texttt{lmrob} në vend të \texttt{rlm}?
+  \end{enumerate}
+  \shkoTe{zgjCp87}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje e Javës 8}
+  \begin{itemize}
+    \item Funksionet bazë: jolineare në $x$, lineare në $\beta$ $\Rightarrow$ gjithë mjetet e \texttt{lm}.
+    \item Polinome (ortogonale), shkallë (\texttt{cut}), splines (\texttt{bs}, \texttt{ns}), smoothing splines, loess, GAM.
+    \item Fleksibiliteti zgjidhet me CV; rregulli i thjeshtësisë kur kurba është e sheshtë.
+    \item M-vlerësuesit: IRLS = WLS i përsëritur; Huber mbron në $y$, MM edhe në $x$.
+    \item \texttt{Boston}: CV $23.9\to16.5$ nga Java 6 te Java 8.
+  \end{itemize}
+\end{frame}

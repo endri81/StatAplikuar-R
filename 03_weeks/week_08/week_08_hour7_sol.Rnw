@@ -1,0 +1,146 @@
+% ============================================================
+%  Java 8 · Ora 7 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=s8T1]{Zgjidhja: Teori 1}
+  \small
+  \begin{enumerate}
+    \item $y=\beta_0+\sum_k\beta_kb_k(x)+\varepsilon$, me $b_k$ të njohura para vlerësimit. Jolinear në $x$, \textbf{linear në $\beta$}: kolonat $b_k(x_i)$ formojnë $X$ dhe OLS, SE, testet $t$/$F$, diagnostikimi vlejnë.
+    \item Njësoj: hapësira e kolonave, $\hat y$, SSE, $R^2$, testi $F$ global. Ndryshojnë: koeficientët dhe SE e tyre. Baza ortogonale: $X^\top X$ diagonale, koeficientë të pavarur, $t^2=F$ sekuencial, pa kolinearitet numerik.
+  \end{enumerate}
+  \vfill\kthehu{q8T1}
+\end{frame}
+
+\begin{frame}[label=s8T2]{Zgjidhja: Teori 2}
+  \small
+  \begin{enumerate}
+    \item Polinom kubik në çdo interval, me $f,f',f''$ të vazhdueshme te çdo nyje. $4(K+1)$ parametra $-3K$ kushte $=K+4$.
+    \item Spline natyrore: lineare përtej nyjeve kufitare ($f''=f'''=0$), 4 parametra më pak; SE më të vogla në skaje. $\lambda$ dënon $\int g''^2$: $\lambda=0$ interpolim, $\lambda\to\infty$ vijë e drejtë; zgjidhet me LOOCV; $\text{df}_\lambda=\operatorname{tr}(S_\lambda)$.
+  \end{enumerate}
+  \vfill\kthehu{q8T2}
+\end{frame}
+
+\begin{frame}[label=s8T3]{Zgjidhja: Teori 3}
+  \small
+  \begin{enumerate}
+    \item $\rho(u)=u^2/2$ për $|u|\le k$, $k|u|-k^2/2$ ndryshe; $\psi(u)=\max(-k,\min(k,u))$; $w(u)=\psi(u)/u=\min(1,k/|u|)$.
+    \item Nis nga OLS; mbetjet, $s=\text{MAD}/0.6745$, peshat $w_i$; WLS; përsërit. Kushti $\sum\psi(u_i)x_i=0$ = $\sum w_ie_ix_i=0$ (ekuacionet e WLS), por $w_i$ varen nga $\hat\beta$.
+    \item Fraksioni minimal i të dhënave të ndryshuara që e çon vlerësuesin në pafundësi. Pika me leverage e tërheq vijën drejt vetes, mbetja e saj del e vogël, pesha mbetet 1 $\Rightarrow$ pika e thyerjes $1/n$ në $x$.
+  \end{enumerate}
+  \vfill\kthehu{q8T3}
+\end{frame}
+
+\begin{frame}[label=s8E1]{Zgjidhja: Ushtrimi 1}
+  \small
+  \begin{itemize}
+    \item $\sum x=\sum z=0$, $\sum xz=-4+1+0-1+4=0$: ortogonale.
+    \item $\hat\gamma_0=\bar y=12/5=2.4$; \; $\hat\gamma_1=\frac{-8-1+0+1+10}{10}=0.2$; \; $\hat\gamma_2=\frac{8-1-2-1+10}{14}=1$.
+    \item $2.4+0.2x+(x^2-2)=\boxed{0.4+0.2x+x^2}$.
+    \item $\hat y=(4.0,\,1.2,\,0.4,\,1.6,\,4.8)$, $e=(0,\,-0.2,\,0.6,\,-0.6,\,0.2)$, $\text{SSE}_2=0.8$.
+    \item $\text{SST}=15.2$, $\text{SSR}_1=0.2^2\cdot10=0.4$ $\Rightarrow$ $\text{SSE}_1=14.8$.
+    \item $F=\frac{(14.8-0.8)/1}{0.8/2}=35>18.5$: termi kuadratik nevojitet (R: $p=0.027$).
+  \end{itemize}
+  \vfill\kthehu{q8E1}
+\end{frame}
+
+\begin{frame}[label=s8E2]{Zgjidhja: Ushtrimi 2}
+  \small
+  \begin{itemize}
+    \item $\hat\sigma^2=0.8/2=0.4$; \; $\operatorname{Var}(\hat f(0))=0.4\,(0.2+0+4/14)=0.4\cdot0.486=0.194$; SE $=0.44$. (R: 0.441.)
+    \item Grupet: $\{-2,-1\}$: 2.5; $\{0\}$: 1; $\{1,2\}$: 3.
+    \item SSE $=(4-2.5)^2+(1-2.5)^2+0+(1-3)^2+(5-3)^2=2.25+2.25+4+4=12.5$.
+    \item Të dy kanë 3 parametra; kuadratiku (SSE 0.8) është shumë më i mirë: forma U kërkon trend brenda grupeve, jo konstante.
+  \end{itemize}
+  \vfill\kthehu{q8E2}
+\end{frame}
+
+\begin{frame}[label=s8E3]{Zgjidhja: Ushtrimi 3}
+  \footnotesize
+  \[
+    X_{\text{lin}}=\begin{pmatrix}1&1&0\\1&2&0\\1&3&0\\1&4&1\\1&5&2\end{pmatrix},\qquad
+    X_{\text{kub}}=\begin{pmatrix}1&1&1&1&0\\1&2&4&8&0\\1&3&9&27&0\\1&4&16&64&1\\1&5&25&125&8\end{pmatrix}
+  \]
+  \begin{itemize}
+    \item Linear: $K+2=3$; kubik: $K+4=5$ (me $n=5$: interpolim, 0 df për gabimin); natyror me 1 nyje të brendshme: $K+2=3$.
+    \item \texttt{bs(x, df = 7)}: 7 kolona $+1=8$ koeficientë; \texttt{ns(x, df = 7)}: gjithashtu $7+1=8$.
+  \end{itemize}
+  \vfill\kthehu{q8E3}
+\end{frame}
+
+\begin{frame}[label=s8E4]{Zgjidhja: Ushtrimi 4}
+  \small
+  \begin{itemize}
+    \item $(1-0.0156)^3=0.954$; \; $(1-0.125)^3=0.670$; \; $(1-0.4219)^3=0.193$.
+    \item $e_i/(1-S_{ii})$: $1/0.5=2$, $-2/0.4=-5$, $0.5/0.8=0.625$.
+    \item $\text{CV}_{(n)}=\frac13(4+25+0.391)=\frac{29.39}{3}=9.80$.
+    \item Sepse $\hat g=S_\lambda y$ është linear në $y$: mbetja ``me një jashtë'' del nga një përshtatje e vetme (si $e_i/(1-h_{ii})$ te OLS).
+  \end{itemize}
+  \vfill\kthehu{q8E4}
+\end{frame}
+
+\begin{frame}[label=s8E5]{Zgjidhja: Ushtrimi 5}
+  \small
+  \begin{itemize}
+    \item Mbetjet nga 7: $(-5,-3,-2,-1,11)$.
+    \item Peshat $\min(1,2/|r|)$: $(0.4,\,0.667,\,1,\,1,\,0.182)$; $\sum w=3.249$.
+    \item $\sum wy=0.8+2.667+5+6+3.273=17.74$ $\Rightarrow$ $\hat\mu^{(1)}=17.74/3.249=5.46$.
+    \item Konvergjon te 5.0 (R: \texttt{MASS::huber} jep 5). Mesatarja 7, mediana 5: Huber afrohet te mediana sepse 18 merr peshë $\approx1/7$.
+  \end{itemize}
+  \vfill\kthehu{q8E5}
+\end{frame}
+
+\begin{frame}[label=s8E6]{Zgjidhja: Ushtrimi 6}
+  \small
+  \begin{itemize}
+    \item ANOVA: 2 ($p\approx0$), 3 ($p=0.002$), 4 ($p=0.051$ kufitar), 5 ($p=0.37$) $\Rightarrow$ shkalla 3 ose 4.
+    \item CV: rënie e madhe 1 $\to$ 2, pastaj kurbë e sheshtë (1595--1600); minimumi formal te 4.
+    \item Raporto shkallën 3 ose 4 (të dyja kriteret pajtohen); kurba me brez IB, jo koeficientët e \texttt{poly()}.
+  \end{itemize}
+  \vfill\kthehu{q8E6}
+\end{frame}
+
+\begin{frame}[label=s8E7]{Zgjidhja: Ushtrimi 7}
+  \small
+  \begin{enumerate}
+    \item \texttt{horsepower}: $-0.005$ (OLS) $\to$ $+0.003$ (Huber) $\to$ $+0.006$ (MM); SE $\approx0.009$: asnjë nuk dallohet nga 0. Efekti nuk është i qëndrueshëm, prandaj nuk interpretohet; \texttt{weight} dhe \texttt{year} janë të qëndrueshme.
+    \item Peshat e ulëta janë një grup sistematik (makina ekonomike) $\Rightarrow$ forma e modelit është e gabuar, jo të dhënat; Java 7: $\log(\texttt{mpg})$.
+    \item Huber nuk mbron nga pikat me leverage; MM po (50\% pikë thyerjeje). Nëse Huber dhe MM pajtohen, leverage nuk është problemi.
+  \end{enumerate}
+  \vfill\kthehu{q8E7}
+\end{frame}
+
+\begin{frame}[label=s8H1]{Udhëzime: Shtëpi 1--2}
+  \small
+  \begin{itemize}
+    \item Shtëpi 1: $R^2=0.291$; koeficienti i \texttt{year} 1.19, afër 1.20 të \texttt{gam2}: \texttt{ns} brenda \texttt{lm} jep pothuajse të njëjtin GAM.
+    \item Shtëpi 2 (\texttt{set.seed(2026)}): \texttt{poly} 1--5: 24.3, 19.3, 19.3, 19.3, 18.8; \texttt{ns} df 2--8: 18.8--19.2. Kalimi linear $\to$ kuadratik jep shumicën e fitimit; zgjidh \texttt{poly(horsepower, 2)} ose \texttt{ns(df = 2)}.
+  \end{itemize}
+  \vfill\kthehu{h8H1}
+\end{frame}
+
+\begin{frame}[label=s8H3]{Udhëzime: Shtëpi 3--4}
+  \small
+  \begin{itemize}
+    \item Shtëpi 3: LOOCV jep $\text{df}\approx11.4$ (me paralajmërimin për $x$ të përsëritura), më shumë se \texttt{ns} df 4--6 i CV 10-fold. Kontrolloni me $K$-fold.
+    \item Shtëpi 4 (200 përsëritje): mesatarja ikën menjëherë (19.0 me 10\%); mediana mban deri në 40\% (10.96); Huber mban deri në 40\% (12.9) me pak zhvendosje; në 50\% të gjithë thyhen ($\approx55$).
+  \end{itemize}
+  \vfill\kthehu{h8H3}
+\end{frame}
+
+\begin{frame}[label=s8H5]{Udhëzime: Shtëpi 5--6}
+  \small
+  \begin{itemize}
+    \item 5(a): te $x=\xi$: $(x-\xi)^3$, $3(x-\xi)^2$, $6(x-\xi)$ janë 0 nga djathtas, si nga majtas. 5(b): $w(u)=(1-(u/c)^2)^2$ për $|u|\le c$, 0 ndryshe. 5(c): $g''=0$ $\Rightarrow$ vijë e drejtë, 2 parametra.
+    \item Shtëpi 6: përdorni të njëjtën \texttt{fold}; \texttt{gam::gam} pranon \texttt{predict(newdata)}; krahasoni grafikët me \texttt{termplot} të Orës 6.
+  \end{itemize}
+  \vfill\kthehu{h8H5}
+\end{frame}
+
+\begin{frame}[label=zgjCp87]{Përgjigjet: Checkpoint Ora 7}
+  \begin{enumerate}
+    \item Grafiku dhe një transformim me kuptim (p.sh.\ log); shpesh jep shumicën e fitimit me më pak parametra.
+    \item Me grafik të kurbës (\texttt{termplot}/\texttt{predict}) dhe brez IB; me vlera në pika tipike, jo me koeficientët e bazës.
+    \item Kur dyshoni për pika me leverage të lartë, ose kur Huber dhe OLS ndryshojnë shumë: MM ka 50\% pikë thyerjeje.
+  \end{enumerate}
+  \vfill\kthehu{cp87}
+\end{frame}
