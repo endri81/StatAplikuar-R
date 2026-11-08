@@ -1,0 +1,347 @@
+% ============================================================
+%  Java 8 · Ora 6 — Rast studimi: Boston, forma jolineare dhe ndjeshmëria e fortë
+%  Rezultatet: S2, S3, C1, S4
+%  Burimi: Harrison & Rubinfeld (1978) përmes MASS::Boston; ISLR kap. 7;
+%          vazhdim i rastit të Javëve 6--7
+% ============================================================
+
+\section[Boston]{Rast studimi: \texttt{Boston} me forma jolineare}
+
+\begin{frame}{Ora 6: Rast studimi --- \texttt{Boston} me forma jolineare}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ku mbetëm}
+% ------------------------------------------------------------
+
+\begin{frame}{Historia e modelit \LO{S2} \LO{S3} \LO{C1}}
+  \begin{itemize}
+    \item<1-> Të dhëna: \texttt{MASS::Boston}, \textbf{reale} (Harrison \& Rubinfeld, 1978); kolona e racës \textbf{nuk përdoret}.
+    \item<2-> Java 6: modeli BIC për \texttt{medv}, 10 parashikues; CV MSE 23.9.
+    \item<3-> Java 7: $\log(\texttt{medv})$ dhe $\log(\texttt{lstat})$, SE HC3; CV 18.6; me \texttt{poly(rm, 2)}: 17.8.
+    \item<4-> Sot: a mund ta zgjedhim formën \textbf{sistematikisht} me mjetet e Javës 8?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plani i rastit}
+  \centering
+  \begin{tikzpicture}[node distance=0.3cm,
+      st/.style={draw,rounded corners,fill=uptlight,minimum width=1.9cm,minimum height=0.95cm,align=center,font=\scriptsize}]
+    \node[st] (a) {1. Një\\parashikues};
+    \node[st,right=of a] (b) {2. Model\\i plotë};
+    \node[st,right=of b,fill=orange!15] (c) {3. Rrjetë df\\me CV};
+    \node[st,right=of c] (d) {4. Diagnostikim\\+ HC3};
+    \node[st,right=of d,fill=green!12] (e) {5. \texttt{rlm}\\+ raport};
+    \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}\small
+    \item Të gjitha modelet krahasohen me \textbf{të njëjtat} 10 palosje, në shkallën e \texttt{medv}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Hapi 1: një parashikues}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Palosjet dhe funksioni i CV}
+<<h6-setup>>=
+library(MASS); library(splines); library(lmtest); library(sandwich)
+bos <- Boston[, setdiff(names(Boston), "black")]   # race column excluded
+set.seed(2026)
+K <- 10; fold <- sample(rep(1:K, length.out = nrow(bos)))
+cv_mse <- function(fm, log_y = FALSE) mean(sapply(1:K, function(k) {
+  m <- lm(fm, data = bos[fold != k, ])
+  p <- predict(m, newdata = bos[fold == k, ])
+  if (log_y) p <- exp(p)                         # back to medv scale
+  mean((bos$medv[fold == k] - p)^2) }))
+@
+\end{frame}
+
+\begin{frame}[label=pyetjeLstat]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Vetëm \texttt{medv \textasciitilde{} f(lstat)}. Renditni sipas CV MSE (nga më i miri):
+    \begin{center}
+      linear \quad $\log(\texttt{lstat})$ \quad \texttt{poly(lstat, 2)} \quad \texttt{poly(lstat, 5)} \quad \texttt{ns(lstat, df = 5)}
+    \end{center}
+  \end{Parashiko}
+  \shkoTe{zgjLstat}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{CV për format e \texttt{lstat}}
+<<h6-one>>=
+forms <- c(linear = "medv ~ lstat", log = "medv ~ log(lstat)",
+           setNames(sprintf("medv ~ poly(lstat, %d)", 2:5), paste0("poly", 2:5)),
+           setNames(sprintf("medv ~ ns(lstat, df = %d)", 2:8), paste0("ns", 2:8)))
+cv_one <- sapply(forms, function(f) cv_mse(as.formula(f)))
+round(cv_one, 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Linear: 38.8. Çdo formë jolineare ul gabimin me rreth 25\%.
+    \item<2-> $\log(\texttt{lstat})$ me \textbf{1} parametër (28.5) $\approx$ \texttt{poly(lstat, 4)} me 4 (28.2).
+    \item<3-> \texttt{ns} me df 4--6: 27.2--27.4, më të mirët; pas df $=6$ nuk ka fitim.
+    \item<4-> Mësimi: transformimi i ``duhur'' (log) jep shumicën e fitimit me më pak parametra.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=10]{Fotografia: tri forma}
+<<h6-one-plot, fig.height=3, fig.width=6.5, out.width="0.52\\textwidth">>=
+gl <- data.frame(lstat = seq(2, 37, length.out = 200))
+plot(bos$lstat, bos$medv, pch = 16, cex = 0.6, col = "gray60",
+     xlab = "lstat", ylab = "medv")
+lines(gl$lstat, predict(lm(medv ~ lstat, bos), gl), col = "#B91C1C", lwd = 2)
+lines(gl$lstat, predict(lm(medv ~ log(lstat), bos), gl), col = "#D97706", lwd = 2)
+lines(gl$lstat, predict(lm(medv ~ ns(lstat, df = 5), bos), gl), col = "#2C5AA0", lwd = 2)
+legend("topright", c("linear", "log", "ns df = 5"), lwd = 2,
+       col = c("#B91C1C", "#D97706", "#2C5AA0"), bty = "n")
+@
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Hapi 2--3: modeli i plotë dhe rrjeta e df}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Modeli i plotë: pesë kandidatë}
+<<h6-full>>=
+base <- "crim + zn + chas + nox + dis + rad + tax + ptratio"
+cand <- c(w7_linear = "log(medv) ~ BASE + rm + log(lstat)",
+          w7_rm2    = "log(medv) ~ BASE + poly(rm, 2) + log(lstat)",
+          ns3       = "log(medv) ~ BASE + ns(rm, df = 3) + ns(lstat, df = 3)",
+          ns4       = "log(medv) ~ BASE + ns(rm, df = 4) + ns(lstat, df = 4)",
+          medv_ns3  = "medv ~ BASE + ns(rm, df = 3) + ns(lstat, df = 3)")
+cand <- sub("BASE", base, cand)
+round(sapply(cand, function(f) cv_mse(as.formula(f),
+                                      log_y = startsWith(f, "log"))), 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Modeli i Javës 7 (\texttt{w7\_rm2}): 17.85; me \texttt{ns} për të dyja: 17.45 (df 3), \textbf{16.54} (df 4).
+    \item<2-> Edhe pa log (\texttt{medv\_ns3}): 16.95. Splines kapin pjesën më të madhe të jolinearitetit.
+    \item<3-> Krahasuar me Javën 6 (23.9): rreth 31\% më pak gabim.
+    \item<4-> \texttt{zn}: në Javën 7 humbi efektin pas transformimit ($p=0.96$). E heqim në hapin tjetër.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Rrjeta e df për \texttt{rm} dhe \texttt{lstat}}
+<<h6-grid>>=
+base2 <- "crim + chas + nox + dis + rad + tax + ptratio"      # zn dropped
+g <- expand.grid(df_rm = 2:6, df_lstat = 2:6)
+g$cv <- apply(g, 1, function(r) cv_mse(as.formula(sprintf(
+  "log(medv) ~ %s + ns(rm, df = %d) + ns(lstat, df = %d)",
+  base2, r[1], r[2])), log_y = TRUE))
+xtabs(round(cv, 2) ~ df_rm + df_lstat, data = g)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Gabimi lëviz në 16.3--17.6: sipërfaqe e sheshtë.
+    \item<2-> Minimumi formal: (5, 5) me 16.28. Por (4, 4) jep 16.48 me 2 parametra më pak.
+    \item<3-> Zgjedhja: \textbf{df = 4 për të dyja}: ndryshim $<1.3\%$, model më i thjeshtë.
+  \end{itemize}
+  \begin{Gabim}Krahasuam 25 kombinime mbi të njëjtat palosje: minimumi i CV është pak \textbf{optimist}. Për vlerësim të pastër të gabimit duhet CV e mbivendosur (\emph{nested}) ose një mostër testi e veçantë.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=ushDf]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    \begin{enumerate}
+      \item Ndrysho \texttt{set.seed(2026)} në \texttt{set.seed(1)} dhe rindërto \texttt{fold}.
+      \item Ekzekuto sërish rrjetën. A lëviz minimumi?
+      \item A ndryshon zgjedhja jonë (4, 4)? Pse kjo e mbështet rregullin e thjeshtësisë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjDf}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Hapi 4: modeli përfundimtar}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Modeli përfundimtar dhe diagnostikimi}
+<<h6-final>>=
+fit_fin <- lm(log(medv) ~ crim + chas + nox + dis + rad + tax + ptratio +
+                ns(rm, df = 4) + ns(lstat, df = 4), data = bos)
+data.frame(R2 = round(summary(fit_fin)$r.squared, 3),
+           BP_p = signif(bptest(fit_fin)$p.value, 2),
+           n_t3 = sum(abs(rstudent(fit_fin)) > 3),
+           W = round(unname(shapiro.test(rstandard(fit_fin))$statistic), 3),
+           max_D = round(max(cooks.distance(fit_fin)), 3),
+           cv = round(cv_mse(formula(fit_fin), log_y = TRUE), 2), row.names = "")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $R^2=0.824$ (në shkallën log); CV 16.48.
+    \item<2-> BP refuzon ende: heteroskedasticiteti mbetet $\Rightarrow$ SE HC3, si në Javën 7.
+    \item<3-> 11 pika me $|t|>3$; $D_{\max}=0.21$: asnjë pikë e vetme dominuese.
+    \item<4-> Shapiro $W=0.945$; me $n=506$, inferenca për $\hat\beta$ mbështetet te TLQ.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=6]{\texttt{plot(fit\_fin)}}
+<<h6-plot, fig.height=3.2, fig.width=7, out.width="0.62\\textwidth">>=
+par(mfrow = c(2, 2), mar = c(3.4, 3.4, 1.6, 0.8), cex = 0.6)
+plot(fit_fin)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Residuals vs Fitted: forma U e Javës 7 është zhdukur; vija e kuqe pothuajse e sheshtë.
+    \item<2-> Q-Q: bishta ende pak të rëndë, sidomos 372, 373 (\texttt{medv} $=50$).
+    \item<3-> Scale-Location: pak pjerrësi $\Rightarrow$ HC3.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Efektet jolineare: \texttt{rm} dhe \texttt{lstat}}
+<<h6-term, fig.height=2.6, fig.width=7.5, out.width="0.85\\textwidth">>=
+par(mfrow = c(1, 2), mar = c(3.6, 3.6, 1, 0.8), cex = 0.75)
+termplot(fit_fin, terms = c("ns(rm, df = 4)", "ns(lstat, df = 4)"),
+         se = TRUE, rug = TRUE, col.term = "#2C5AA0", col.se = "#2C5AA0")
+@
+  \footnotesize Kontributi i secilit term në $\log(\texttt{medv})$, me të tjerët fiks; vijat e ndërprera: $\pm2$ SE.
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{rm}: pothuajse e sheshtë deri rreth 6 dhoma, pastaj rritje e fortë: banesat e mëdha kanë ``premium''.
+    \item<2-> \texttt{lstat}: rënie e shpejtë deri rreth 10--15\%, pastaj më e ngadaltë: forma logaritmike.
+    \item<3-> Brezi i gjerë për \texttt{rm} $>8$ dhe \texttt{lstat} $>30$: pak zona.
+    \item<4-> Këto forma nuk mund t'i kapte një model linear.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=6]{Efektet në përqindje me IB HC3}
+<<h6-pct>>=
+V3 <- vcovHC(fit_fin, type = "HC3"); b <- coef(fit_fin)
+t_crit <- qt(0.975, df.residual(fit_fin))
+pct <- function(v, step = 1) {
+  ci <- step * (b[[v]] + c(-1, 1) * t_crit * sqrt(V3[v, v]))
+  round(100 * (exp(c(est = step * b[[v]], lo = ci[1], hi = ci[2])) - 1), 2) }
+rbind(crim = pct("crim"), chas = pct("chas"), nox_0.1 = pct("nox", 0.1),
+      ptratio = pct("ptratio"))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{crim} +1: $-1.2\%$ [$-1.7$, $-0.6$].
+    \item<2-> \texttt{chas} (pranë lumit): $+9.7\%$, por IB [$0.6$, $19.6$]: shumë i gjerë.
+    \item<3-> \texttt{nox} +0.1 ppm: $-6.5\%$.
+    \item<4-> \texttt{ptratio} +1: $-2.8\%$ [$-3.6$, $-2.0$].
+    \item<5-> \texttt{rm} dhe \texttt{lstat} nuk kanë një koeficient të vetëm: raportohen me grafik.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Hapi 5: ndjeshmëria me \texttt{rlm}}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{OLS kundrejt \texttt{rlm} (Huber)}
+<<h6-rlm>>=
+fit_r <- rlm(formula(fit_fin), data = bos, maxit = 50)
+fit_r$converged
+round(rbind(ols = coef(fit_fin), huber = coef(fit_r))[, 2:8], 4)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Kush mori peshë të ulët?}
+<<h6-rlm-w>>=
+c(n_downweighted = sum(fit_r$w < 1),
+  mean_w_capped = round(mean(fit_r$w[bos$medv == 50]), 2),
+  mean_w_other  = round(mean(fit_r$w[bos$medv < 50]), 2))
+o <- order(fit_r$w)[1:5]
+data.frame(row = rownames(bos)[o], w = round(fit_r$w[o], 3),
+           medv = bos$medv[o], lstat = bos$lstat[o], rm = bos$rm[o])
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Koeficientët ndryshojnë 10--25\%: p.sh.\ \texttt{nox} $-0.67\to-0.55$, \texttt{rad} $0.011\to0.008$.
+    \item<2-> Shenjat dhe rendi i madhësive njësoj: përfundimet janë \textbf{të qëndrueshme}.
+    \item<3-> 115 zona me peshë $<1$. Më të ulëtat: 372, 373, 369 (\texttt{medv} $=50$, të cunguara), 365 (8.8 dhoma, çmim mesatar), 402 (zonë shumë e lirë).
+    \item<4-> Kjo përputhet me Javën 7: problemi kryesor është cungimi, jo gabimet e regjistrimit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGab86]{Gjej gabimin}
+  \begin{Parashiko}
+    Një student shkruan në raport:\\[3pt]
+    {\small\emph{``Me \texttt{rlm} koeficienti i \texttt{nox} është $-0.55$ dhe i OLS $-0.67$. Meqë \texttt{rlm} është më i fortë, raportojmë vetëm $-0.55$ dhe heqim zonat me peshë $<0.5$ nga analiza.''}}\\[3pt]
+    Gjej dy gabime.
+  \end{Parashiko}
+  \shkoTe{zgjGab86}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Raporti}
+% ------------------------------------------------------------
+
+\begin{frame}{Tabela e evolucionit të modelit}
+  \centering\small
+  \begin{tabular}{@{}llcc@{}}
+    \toprule
+    Java & Modeli & Parametra & CV MSE\\ \midrule
+    5 & \texttt{medv \textasciitilde{} lstat} & 2 & 38.8\\
+    6 & BIC, 10 parashikues lineare & 11 & 23.9\\
+    7 & $\log y$, $\log(\texttt{lstat})$ & 11 & 18.6\\
+    7 & + \texttt{poly(rm, 2)} & 12 & 17.8\\
+    8 & + \texttt{ns(rm, 4)}, \texttt{ns(lstat, 4)}, pa \texttt{zn} & 16 & 16.5\\ \bottomrule
+  \end{tabular}
+  \pause
+  \begin{itemize}\small
+    \item RMSE: $\sqrt{38.8}=6.2$ $\to$ $\sqrt{16.5}=4.1$ mijë \$: rreth 35\% më pak.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Raporti përfundimtar (6 pikat e Javës 7)}
+  \small
+  \begin{enumerate}
+    \item \textbf{Të dhënat}: \texttt{MASS::Boston}, $n=506$; pa kolonën e racës; 16 zona të cunguara në 50.
+    \item \textbf{Modeli}: $\log(\texttt{medv})$, 7 parashikues lineare + \texttt{ns(rm, 4)} + \texttt{ns(lstat, 4)}; df me CV, rregulli i thjeshtësisë.
+    \item \textbf{Diagnostikimi}: forma U zhduket; heteroskedasticitet i mbetur; $D_{\max}=0.21$.
+    \item \textbf{Inferenca}: SE HC3; efektet në \%; grafikët \texttt{termplot} për \texttt{rm}, \texttt{lstat}.
+    \item \textbf{Validimi}: CV MSE 16.5, RMSE 4.1 mijë \$ (pak optimist: zgjedhje mbi 25 kombinime).
+    \item \textbf{Ndjeshmëria dhe kufizimet}: \texttt{rlm} jep përfundime të njëjta; cungimi; të dhëna vrojtuese, jo shkakësi.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Lidhja me projektin final}
+  \begin{itemize}
+    \item<1-> Nga Java 9, rastet e studimit lidhen me projektin final.
+    \item<2-> Struktura e sotme është modeli: \textbf{krahaso forma $\to$ zgjidh me CV $\to$ diagnostiko $\to$ ndjeshmëri $\to$ raporto}.
+    \item<3-> Me të dhëna INSTAT (kur të jenë të disponueshme në kurs): p.sh.\ paga mesatare sipas qarkut dhe moshës.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp86]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Pse zgjodhëm df $=(4,4)$ dhe jo minimumin (5, 5)?
+    \item Si raportohet efekti i \texttt{rm} kur modelohet me \texttt{ns(rm, 4)}?
+    \item Çfarë tregon krahasimi OLS--\texttt{rlm} për këtë model?
+  \end{enumerate}
+  \shkoTe{zgjCp86}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item Një parashikues: \texttt{lstat} linear 38.8 $\to$ \texttt{ns} 27.2; log me 1 parametër 28.5.
+    \item Modeli i plotë: \texttt{ns(rm, 4)} + \texttt{ns(lstat, 4)}, CV 16.5 (Java 6: 23.9).
+    \item Rrjeta e df: sipërfaqe e sheshtë; rregulli i thjeshtësisë; kujdes me optimizmin.
+    \item Efektet: \texttt{nox} +0.1 $\Rightarrow$ $-6.5\%$; \texttt{rm} premium pas 6 dhomash.
+    \item \texttt{rlm}: përfundime të qëndrueshme; peshat e ulëta te zonat e cunguara.
+  \end{itemize}
+  \begin{Keshille}Ora 7: konsolidim --- kuiz 25/75, detyra, gabimet, fletët e funksioneve, Java 9.\end{Keshille}
+\end{frame}

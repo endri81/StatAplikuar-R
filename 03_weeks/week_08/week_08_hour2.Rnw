@@ -4,7 +4,7 @@
 %  Burimi: ISLR kap. 7.1--7.4; repo DS612 Lecture_7.1.R, Lecture_7.2.R
 % ============================================================
 
-\section{Teoria I: polinome, shkallë, splines}
+\section[Teoria I]{Teoria I: polinome, shkallë, splines}
 
 \begin{frame}{Ora 2: Teoria I --- polinome, funksione shkallë, splines}
   \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]

@@ -5,7 +5,7 @@
 %          regresi i fortë: material plotësues (dokumentacioni i MASS::rlm, robustbase::lmrob)
 % ============================================================
 
-\section{R Lab II: zbutja dhe regresi i fortë}
+\section[R Lab II]{R Lab II: zbutja dhe regresi i fortë}
 
 \begin{frame}{Ora 5: R Lab II --- zbutja dhe regresi i fortë}
   \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]

@@ -1,0 +1,43 @@
+% ============================================================
+%  Java 8 · Ora 6 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjLstat]{Zgjidhja: Parashiko (format e \texttt{lstat})}
+  \begin{enumerate}
+    \item \texttt{ns(lstat, df = 5)}: 27.2
+    \item \texttt{poly(lstat, 5)}: 27.6
+    \item $\log(\texttt{lstat})$: 28.5
+    \item \texttt{poly(lstat, 2)}: 30.7
+    \item linear: 38.8
+  \end{enumerate}
+  \small Surpriza zakonisht: log me 1 parametër mund kuadratikun me 2. Forma e saktë vlen më shumë se numri i parametrave.
+  \vfill\kthehu{pyetjeLstat}
+\end{frame}
+
+\begin{frame}[label=zgjDf]{Zgjidhja: Radha jote! (\texttt{set.seed(1)})}
+  \small
+  \begin{itemize}
+    \item Me \texttt{set.seed(1)}: minimumi lëviz te (6, 6) me 15.94; (4, 4) jep 16.29; (5, 5) 16.08.
+    \item Me \texttt{set.seed(2026)}: minimumi te (5, 5) me 16.28; (4, 4) 16.48.
+    \item Minimumi \textbf{lëviz} me palosjet; diferencat janë $\approx2\%$, nën zhurmën e CV.
+    \item (4, 4) mbetet brenda kësaj zone në të dy rastet: zgjedhje e qëndrueshme, me më pak parametra.
+  \end{itemize}
+  \vfill\kthehu{ushDf}
+\end{frame}
+
+\begin{frame}[label=zgjGab86]{Zgjidhja: Gjej gabimin}
+  \begin{enumerate}
+    \item Raportimi \textbf{vetëm} i \texttt{rlm}: duhet krahasimi me OLS. Diferenca $-0.67$ kundrejt $-0.55$ është vetë informacion (ndjeshmëri ndaj zonave me peshë të ulët).
+    \item Heqja e zonave me peshë $<0.5$: regresi i fortë \textbf{tashmë} u ka ulur peshën; heqja e tyre është ``pastrim'' i Javës 7. Dy prej tyre janë zona të cunguara (\texttt{medv} $=50$), jo gabime.
+  \end{enumerate}
+  \vfill\kthehu{gjejGab86}
+\end{frame}
+
+\begin{frame}[label=zgjCp86]{Përgjigjet: Checkpoint Ora 6}
+  \begin{enumerate}
+    \item Sipërfaqja e CV është e sheshtë (diferenca $<1.3\%$) dhe minimumi lëviz me palosjet; (4, 4) ka 2 parametra më pak.
+    \item Me grafik (\texttt{termplot} ose parashikime në një rrjetë \texttt{rm}, me të tjerët fiks), me brezin $\pm2$ SE; jo me koeficientët e bazës.
+    \item Koeficientët ndryshojnë 10--25\% por shenjat dhe përfundimet mbeten: modeli është i qëndrueshëm; peshat e ulëta tregojnë zonat e cunguara.
+  \end{enumerate}
+  \vfill\kthehu{cp86}
+\end{frame}

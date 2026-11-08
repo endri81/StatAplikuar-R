@@ -4,7 +4,7 @@
 %  Burimi: ISLR kap. 7 (hyrja, 7.1--7.2); repo DS612 Lecture_7.1.R
 % ============================================================
 
-\section{Motivimi: përtej vijës së drejtë}
+\section[Motivimi]{Motivimi: përtej vijës së drejtë}
 
 \begin{frame}{Ora 1: Motivimi --- përtej vijës së drejtë}
   \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]

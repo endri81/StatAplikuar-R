@@ -5,7 +5,7 @@
 %          regresi i fortë: material plotësues (Huber 1964; dokumentacioni i MASS::rlm)
 % ============================================================
 
-\section{Teoria II: zbutja dhe regresi i fortë}
+\section[Teoria II]{Teoria II: zbutja dhe regresi i fortë}
 
 \begin{frame}{Ora 4: Teoria II --- zbutja dhe regresi i fortë}
   \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
