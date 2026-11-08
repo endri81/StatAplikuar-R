@@ -1,0 +1,411 @@
+% ============================================================
+%  Java 10 · Ora 1 — Motivimi: "ku" si dimension i tretë
+%  Rezultatet: K3, S1, S4
+%  Burimi: Chang (GIS), kap. hyrës; Pebesma & Bivand (2023); Lovelace et al. (2025)
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Motivimi]{Motivimi: ``ku'' si dimension i të dhënave}
+
+\begin{frame}{Ora 1: Motivimi --- ``ku'' si dimension i të dhënave}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi}
+% ------------------------------------------------------------
+
+\begin{frame}{Nga ``çfarë?'' te ``ku?''}
+  \begin{itemize}
+    \item<1-> Javët 1--9: çdo rresht ka variabla $(x_1,\dots,x_p,y)$; vendndodhja nuk luante rol.
+    \item<2-> Sot: çdo rresht ka edhe një \termi{gjeometri}{geometry}: pikë, vijë ose poligon.
+    \item<3-> Ligji i parë i gjeografisë (Tobler): gjërat afër janë më të ngjashme se gjërat larg.
+    \item<4-> Pasojë: vëzhgimet \textbf{nuk} janë të pavarura. Pse? Fqinjët ndajnë të njëjtin mjedis.
+  \end{itemize}
+  \LO{K3}
+\end{frame}
+
+\begin{frame}{Ku përdoret në praktikë?}
+  \begin{itemize}
+    \item<1-> \textbf{Statistikë zyrtare}: INSTAT publikon të dhëna sipas qarqeve dhe bashkive; hartat janë mënyra kryesore e komunikimit.
+    \item<2-> \textbf{Mjedis}: ndotja e tokës dhe e ajrit, matur në pika, kërkohet si hartë e vazhdueshme.
+    \item<3-> \textbf{Inxhinieri}: rrugë, rrjete ujësjellësi, modele të terrenit (DTM) për projektim.
+    \item<4-> \textbf{Biznes}: ku të hapet një dyqan, zona shërbimi, logjistika.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Tri pyetje që do të mësojmë t'u përgjigjemi}
+  \begin{enumerate}
+    \item<1-> \textbf{Si i matim vendet?} Koordinata, datume, projeksione (Java 10).
+    \item<2-> \textbf{Si i ruajmë dhe i përpunojmë?} Vektor, raster, atribute (Java 11).
+    \item<3-> \textbf{Si parashikojmë aty ku nuk kemi matur?} Interpolim, variogram, Kriging (Java 12).
+  \end{enumerate}
+  \onslide<4->{\begin{Keshille}Java 12 lidh hapësirën me regresin: Kriging është një parashikues linear optimal, si OLS, por me gabime të korreluara.\end{Keshille}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Të dhënat \texttt{meuse}}
+% ------------------------------------------------------------
+
+\begin{frame}{Të dhënat: \texttt{meuse}}
+  \begin{itemize}
+    \item<1-> 155 mostra toke në fushën e përmbytjes së lumit Meuse (Holandë), afër Stein.
+    \item<2-> Metale të rënda (ppm): \texttt{cadmium}, \texttt{copper}, \texttt{lead}, \texttt{zinc}; plus \texttt{dist} (distanca e normalizuar nga lumi, 0--1).
+    \item<3-> \textbf{Reale} (Burrough \& McDonnell; paketa \texttt{sp}, \texttt{?meuse}).
+    \item<4-> Koordinatat \texttt{x}, \texttt{y}: metra në sistemin holandez RD New (EPSG:28992).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Leximi i të dhënave}
+<<h1-read>>=
+meuse <- read.csv(file.path(W10DATA, "meuse.csv"))
+dim(meuse)
+summary(meuse$zinc)
+range(meuse$x); range(meuse$y)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Zinku varion nga 113 në 1839 ppm; mesatarja 470 > mediana 326: shpërndarje e anuar djathtas.
+    \item<2-> \texttt{x} shtrihet në $\approx 2.8$ km, \texttt{y} në $\approx 3.9$ km.
+    \item<3-> Këto janë metra, jo gradë: dikush tashmë ka zgjedhur një \termi{projeksion}{projection}.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Numrat \texttt{x}, \texttt{y} pa CRS janë thjesht numra. Pa ditur sistemin, nuk mund t'i bashkojmë me të dhëna të tjera.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Nga tabela te objekti hapësinor}
+<<h1-sf>>=
+library(sf)
+meuse_sf <- st_as_sf(meuse, coords = c("x", "y"), crs = 28992)
+meuse_sf[1:3, c("zinc", "dist")]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{st\_as\_sf()}: kolonat \texttt{x}, \texttt{y} bëhen kolonë \texttt{geometry} (\texttt{POINT}).
+    \item<2-> \texttt{crs = 28992}: i themi R-së në cilin sistem janë koordinatat.
+    \item<3-> Objekti \texttt{sf} është një \texttt{data.frame}: \texttt{subset}, \texttt{dplyr}, \texttt{lm} punojnë si më parë.
+    \item<4-> Gjeometria ``ngjitet'': mbetet edhe kur zgjedhim kolona.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=8]{Harta e parë: zinku në Meuse}
+<<h1-map, fig.height=3.2, fig.width=5.2, out.width="0.48\\textwidth">>=
+library(ggplot2)
+ggplot(meuse_sf) +
+  geom_sf(aes(colour = log(zinc)), size = 1.6) +
+  scale_colour_viridis_c() +
+  labs(colour = "log(zinc)") + theme_bw(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vlerat e larta (të verdha) grumbullohen në perëndim, përgjatë lumit.
+    \item<2-> Vlerat e ulëta (vjollcë) janë larg lumit, në lindje.
+    \item<3-> Fqinjët kanë vlera të ngjashme: \textbf{autokorrelacion hapësinor} (\emph{spatial autocorrelation}).
+    \item<4-> \texttt{geom\_sf()} lexon CRS-në dhe vizaton boshtet në koordinata gjeografike.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeDist101]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Sa mendoni se është korrelacioni Pearson midis \texttt{log(zinc)} dhe \texttt{dist}?
+    \begin{enumerate}[A.]
+      \item afër $+0.7$ \quad B. afër $0$ \quad C. afër $-0.7$ \quad D. afër $-1$
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjDist101}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Zinku kundrejt distancës nga lumi}
+<<h1-cor, fig.height=2.6, fig.width=5, out.width="0.5\\textwidth">>=
+cor(log(meuse$zinc), meuse$dist)
+ggplot(meuse, aes(dist, log(zinc))) +
+  geom_point(size = 1) + geom_smooth(method = "loess", se = FALSE) +
+  theme_bw(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $r=-0.74$: sa më larg lumit, aq më pak zink.
+    \item<2-> Lidhja nuk është lineare: rënie e shpejtë në $\texttt{dist}<0.2$, pastaj më e butë.
+    \item<3-> Interpretimi: përmbytjet sjellin sedimente të ndotura pranë lumit.
+    \item<4-> Java 12: \texttt{dist} do të jetë kovariat në \emph{universal kriging}.
+  \end{itemize}
+  \LO{K1, K3}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shqipëria në hartë}
+% ------------------------------------------------------------
+
+\begin{frame}{Të dhënat: kufijtë dhe qytetet}
+  \begin{itemize}
+    \item<1-> Kufijtë: Natural Earth 1:50m (paketa \texttt{rnaturalearthdata}), \textbf{reale}, të përgjithësuar.
+    \item<2-> Ruajtur si \termi{GeoPackage}{.gpkg}: \texttt{balkans\_ne50.gpkg} (7 shtete).
+    \item<3-> Qytetet: gjerësi/gjatësi nga GeoNames (CC BY 4.0), \textbf{reale}.
+    \item<4-> Shkallë 1:50m $\Rightarrow$ detajet e bregdetit humbasin; mjaft për hartë orientuese, jo për kadastër.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Leximi i kufijve dhe i qyteteve}
+<<h1-al>>=
+balk <- st_read(file.path(W10DATA, "balkans_ne50.gpkg"), quiet = TRUE)
+alb  <- balk[balk$admin == "Albania", ]
+cities <- read.csv(file.path(W10DATA, "al_cities.csv"))
+cities_sf <- st_as_sf(cities, coords = c("lon", "lat"), crs = 4326)
+st_crs(alb)$Name
+st_bbox(alb)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{st\_read()}: lexon çdo format që njeh GDAL (\texttt{.gpkg}, \texttt{.shp}, \texttt{.geojson}).
+    \item<2-> CRS: WGS 84, pra gjatësi/gjerësi në gradë.
+    \item<3-> Shqipëria: gjatësia $19.28^\circ$--$21.03^\circ$ L, gjerësia $39.65^\circ$--$42.65^\circ$ V.
+    \item<4-> Qytetet i krijuam nga një CSV me \texttt{crs = 4326}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Harta e Shqipërisë me \texttt{ggplot2} + \texttt{ggspatial}}
+<<h1-almap, eval=FALSE>>=
+library(ggspatial)
+ggplot() +
+  geom_sf(data = balk, fill = "grey92", colour = "grey60") +
+  geom_sf(data = alb, fill = "#cfe3f5") +
+  geom_sf(data = cities_sf, colour = "red", size = 1.5) +
+  geom_sf_text(data = cities_sf, aes(label = city), size = 2.6, nudge_y = 0.12) +
+  coord_sf(xlim = c(18.9, 21.4), ylim = c(39.5, 42.8)) +
+  annotation_scale(location = "bl") + theme_bw(base_size = 9) + labs(x = NULL, y = NULL)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: Shqipëria dhe gjashtë qytete}
+<<h1-almap-fig, ref.label="h1-almap", echo=FALSE, warning=FALSE, fig.height=3.8, fig.width=4.2, out.width="0.40\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Shtresat vendosen njëra mbi tjetrën: shtetet fqinje, Shqipëria, pikat, emrat.
+    \item<2-> \texttt{coord\_sf()} pret hartën në dritaren që na intereson.
+    \item<3-> \texttt{annotation\_scale()} (\texttt{ggspatial}): shiriti i shkallës llogaritet nga CRS-ja.
+    \item<4-> Pyetje: boshtet janë në gradë; a është çdo qelizë $1^\circ\times1^\circ$ katror në terren? (Ora 4.)
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rifreskim: Toka dhe këndet}
+% ------------------------------------------------------------
+
+\begin{frame}{Rifreskim: radianët dhe harku}
+  \begin{itemize}
+    \item<1-> Kënd në radianë: $\theta_{\text{rad}}=\theta^\circ\cdot\pi/180$.
+    \item<2-> Gjatësia e harkut në rreth me rreze $R$: $s=R\,\theta_{\text{rad}}$.
+    \item<3-> Rrezja mesatare e Tokës: $R\approx 6371$ km.
+    \item<4-> $1^\circ$ gjerësi $\approx 6371\cdot\pi/180\approx 111.2$ km, kudo në glob.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pse gjatësia ndryshon me gjerësinë?}
+  \centering
+  \begin{tikzpicture}[scale=1.25]
+    \draw[thick] (0,0) circle (1.5);
+    \draw[dashed] (-1.5,0) -- (1.5,0) node[right,font=\scriptsize]{ekuatori, rreze $R$};
+    \draw[uptblue,thick] (-1.13,0.99) -- (1.13,0.99) node[right,font=\scriptsize]{paraleli $\varphi$, rreze $R\cos\varphi$};
+    \draw (0,0) -- (1.13,0.99);
+    \draw (0.45,0) arc (0:41:0.45) node[midway,right,font=\scriptsize]{$\varphi$};
+    \draw[->] (0,-1.8) -- (0,1.9) node[above,font=\scriptsize]{boshti};
+    \fill (0,0) circle (1pt);
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Paraleli në gjerësinë $\varphi$ është rreth me rreze $R\cos\varphi$.
+    \item $1^\circ$ gjatësi $\approx 111.2\cos\varphi$ km: zero në pol.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeKm101]{Parashiko para se ta ekzekutosh (pa ndihmën e PC)}
+  \begin{Parashiko}
+    Tirana ndodhet në $\varphi\approx 41.33^\circ$ V. Sa kilometra është $1^\circ$ gjatësi atje?
+    \\[2pt] Ndihmë: $\cos 41.33^\circ\approx 0.751$.
+  \end{Parashiko}
+  \shkoTe{zgjKm101}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kontroll në R}
+<<h1-km>>=
+R_earth <- 6371
+km_per_deg_lat <- R_earth * pi / 180
+km_per_deg_lon <- km_per_deg_lat * cos(41.328 * pi / 180)
+c(lat = km_per_deg_lat, lon_tirana = km_per_deg_lon)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $1^\circ$ gjerësi $=111.19$ km; $1^\circ$ gjatësi në Tiranë $=83.50$ km.
+    \item<2-> Shumë burime japin 83.6 km sepse përdorin rrezen e ekuatorit (111.32 km/gradë).
+    \item<3-> Një ``katror'' $1^\circ\times1^\circ$ në Shqipëri është drejtkëndësh $\approx 111\times 84$ km.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Gradët nuk janë njësi gjatësie. Distanca Euklidiane mbi (lon, lat) shtrembëron distancat, më shumë sa më larg ekuatorit.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=gjejGabim101,fragile]{Gjej gabimin}
+  Një student llogarit distancën Tiranë--Durrës kështu:
+<<h1-bug>>=
+dlon <- 19.819 - 19.455; dlat <- 41.328 - 41.324
+sqrt(dlon^2 + dlat^2) * 111.195   # km?
+@
+  Ku është gabimi? Sa është distanca e saktë?
+  \shkoTe{zgjGabim101}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Distancat e sakta me \texttt{st\_distance()}}
+<<h1-dist>>=
+d <- st_distance(cities_sf)
+dimnames(d) <- list(cities$city, cities$city)
+round(units::drop_units(d)[1:4, 1:4] / 1000, 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Tiranë--Durrës $=30.4$ km (vijë ajrore), jo 40.5 km.
+    \item<2-> Me CRS 4326, \texttt{sf} llogarit mbi sferë me \texttt{s2} (\emph{great-circle distance}).
+    \item<3-> Rezultati ka njësi (\texttt{units}): metra. Kthimi në km bëhet në mënyrë eksplicite.
+    \item<4-> Ora 2: formula haversine, që e llogarit këtë pa ndihmën e PC.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mjetet moderne në R}
+% ------------------------------------------------------------
+
+\begin{frame}{Ekosistemi modern hapësinor në R}
+  \centering
+  \begin{tikzpicture}[node distance=0.4cm and 0.5cm, font=\scriptsize,
+      box/.style={draw, rounded corners, fill=uptlight, minimum width=2.1cm, minimum height=0.6cm, align=center}]
+    \node[box] (gdal) {GDAL / GEOS / PROJ\\ (C/C++)};
+    \node[box, above left=0.5cm and 0.2cm of gdal] (sf) {\texttt{sf}\\ vektor};
+    \node[box, above=0.5cm of gdal] (terra) {\texttt{terra}\\ raster};
+    \node[box, above right=0.5cm and 0.2cm of gdal] (stars) {\texttt{stars}\\ kube};
+    \node[box, above=0.5cm of terra] (gg) {\texttt{ggplot2::geom\_sf}, \texttt{ggspatial}, \texttt{tmap}};
+    \node[box, right=0.6cm of gdal] (gstat) {\texttt{gstat}\\ Kriging};
+    \draw[->] (gdal) -- (sf); \draw[->] (gdal) -- (terra); \draw[->] (gdal) -- (stars);
+    \draw[->] (sf) -- (gg); \draw[->] (terra) -- (gg); \draw[->] (stars) -- (gg);
+    \draw[->] (gstat) -- (stars);
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Të gjitha mbështeten në të njëjtat biblioteka të hapura (\emph{open source}).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë ndryshoi pas 2023?}
+  \begin{itemize}
+    \item<1-> \texttt{rgdal}, \texttt{rgeos}, \texttt{maptools} u tërhoqën nga CRAN (2023).
+    \item<2-> \texttt{sp} mbetet, por përdor \texttt{sf} nga brenda; kodi i ri shkruhet me \texttt{sf}.
+    \item<3-> \texttt{raster} $\to$ \texttt{terra}: më i shpejtë, API më i thjeshtë.
+    \item<4-> \texttt{sf} me \texttt{s2}: gjeometria mbi sferë për koordinata gjeografike.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Tutoriale të vjetra me \texttt{readOGR()} ose \texttt{CRS("+init=epsg:...")} nuk punojnë më: përdorni \texttt{st\_read()} dhe \texttt{st\_crs()}.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Versionet në këtë kurs}
+<<h1-ver>>=
+sf_extSoftVersion()[c("GEOS", "GDAL", "proj.4")]
+c(sf = as.character(packageVersion("sf")),
+  terra = as.character(packageVersion("terra")),
+  gstat = as.character(packageVersion("gstat")))
+sf_use_s2()
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{sf} raporton bibliotekat C që përdor; versionet e PROJ ndikojnë transformimet e datumeve.
+    \item<2-> \texttt{sf\_use\_s2()} $=$ \texttt{TRUE}: llogaritjet mbi gradë bëhen mbi sferë.
+    \item<3-> \texttt{tmap} dhe \texttt{leaflet} (harta interaktive) janë opsionale; i instaloni në RStudio.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTPS101]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    INSTAT publikon papunësinë sipas qarqeve.
+    \begin{enumerate}
+      \item Pse dy qarqe fqinje mund të kenë norma të ngjashme?
+      \item Çfarë ndodh me gabimet standarde të \texttt{lm()} nëse e injorojmë këtë?
+      \item Jepni një shembull inxhinierik ku vendndodhja është variabli kryesor.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS101}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC101]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Cili pohim për objektin \texttt{meuse\_sf} është i saktë?
+    \begin{enumerate}[A.]
+      \item Koordinatat janë në gradë, sepse \texttt{sf} i kthen gjithmonë në WGS 84.
+      \item Është \texttt{data.frame} me kolonë \texttt{geometry} dhe CRS EPSG:28992.
+      \item \texttt{lm(zinc \textasciitilde{} dist, meuse\_sf)} nuk punon, sepse ka gjeometri.
+      \item CRS-ja nuk ka rëndësi për distancat.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC101}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Objektivat dhe mbyllja}
+% ------------------------------------------------------------
+
+\begin{frame}{Objektivat e javës}
+  \begin{itemize}
+    \item<1-> \LO{K3} Të shpjegojmë elipsoidin, datumin, koordinatat gjeografike dhe të projektuara.
+    \item<2-> \LO{S1} Të modelojmë Tokën matematikisht: sferë, elipsoid, projeksion.
+    \item<3-> \LO{S4} Të krijojmë, lexojmë, transformojmë dhe vizatojmë të dhëna me \texttt{sf}.
+    \item<4-> Rezultati praktik: harta e Shqipërisë në EPSG:6870 (ETRS89 / Albania TM 2010).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plani i javës}
+  \small
+  \begin{tabular}{cl}
+    \toprule
+    Ora & Tema \\
+    \midrule
+    1 & Motivimi: \texttt{meuse}, Shqipëria në hartë \\
+    2 & Toka, elipsoidi, datumet; haversine \\
+    3 & Lab I: \texttt{sf} nga zero, gjeometritë, distancat \\
+    4 & Projeksionet: konforme, ekuivalente; UTM, TM \\
+    5 & Lab II: \texttt{st\_transform}, EPSG, sipërfaqe dhe shtrembërime \\
+    6 & Rasti: hartë tematike e Shqipërisë, EPSG:6870 \\
+    7 & Konsolidimi: kuiz, ushtrime, fletë përmbledhëse \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=cp101]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 1}
+  \begin{enumerate}
+    \item Pse vëzhgimet hapësinore zakonisht nuk janë të pavarura?
+    \item Sa km është $1^\circ$ gjatësi në ekuator? Po në gjerësinë $60^\circ$?
+    \item Çfarë i duhet \texttt{st\_as\_sf()} përveç emrave të kolonave të koordinatave?
+  \end{enumerate}
+  \shkoTe{zgjCp101}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 1}
+  \begin{itemize}
+    \item Vendndodhja është dimension i të dhënave; fqinjët ngjajnë (Tobler).
+    \item \texttt{meuse} (reale): zinku 113--1839 ppm; $r(\log\text{zinc},\text{dist})=-0.74$.
+    \item \texttt{st\_as\_sf(..., crs=)} $\to$ objekt \texttt{sf}; \texttt{geom\_sf()} $\to$ hartë.
+    \item $1^\circ$ gjerësi $\approx111.2$ km; $1^\circ$ gjatësi $\approx111.2\cos\varphi$ km.
+    \item Distancat mbi gradë: \texttt{st\_distance()} (s2), jo Euklidi; Tiranë--Durrës 30.4 km.
+  \end{itemize}
+  \begin{Keshille}Ora 2: forma e Tokës, elipsoidi GRS80/WGS84, datumet, formula haversine.\end{Keshille}
+\end{frame}

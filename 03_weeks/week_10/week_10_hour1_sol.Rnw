@@ -1,0 +1,59 @@
+% ============================================================
+%  Java 10 · Ora 1 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjDist101]{Zgjidhja: Parashiko (korrelacioni)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}, $r=-0.74$.
+    \item Shenja negative: zinku bie me distancën nga lumi.
+    \item Jo $-1$: lidhja nuk është lineare dhe ka variacion lokal (lartësia, përdorimi i tokës).
+  \end{itemize}
+  \vfill\kthehu{pyetjeDist101}
+\end{frame}
+
+\begin{frame}[label=zgjKm101]{Zgjidhja: Parashiko (km për gradë)}
+  \begin{itemize}
+    \item $1^\circ$ gjerësi: $6371\cdot\pi/180\approx 111.2$ km.
+    \item $1^\circ$ gjatësi në Tiranë: $111.2\cdot0.751\approx 83.5$ km.
+    \item Me 111.32 km/gradë (rrezja e ekuatorit, 6378 km) del $\approx 83.6$ km; ndryshimi vjen nga modeli i Tokës (Ora 2).
+  \end{itemize}
+  \vfill\kthehu{pyetjeKm101}
+\end{frame}
+
+\begin{frame}[label=zgjGabim101]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item Gabimi: $\Delta\lambda$ shumëzohet me 111.2 km, por në $41.3^\circ$ V një gradë gjatësi është vetëm $\approx83.5$ km.
+    \item Korrigjim i përafërt: $\sqrt{(0.364\cdot83.5)^2+(0.004\cdot111.2)^2}\approx 30.4$ km.
+    \item Rruga e saktë: \texttt{st\_distance()} me CRS 4326 $\Rightarrow$ 30.4 km.
+    \item Studenti mori 40.5 km: gabim $\approx 33\%$.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim101}
+\end{frame}
+
+\begin{frame}[label=zgjTPS101]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Ndajnë tregun e punës, lëvizjet ditore, strukturën ekonomike dhe politikat rajonale.
+    \item Mbetjet janë të korreluara pozitivisht $\Rightarrow$ gabimet standarde zakonisht dalin \textbf{shumë të vogla}, testet ``shumë optimiste''.
+    \item P.sh.\ rreziku i rrëshqitjes së dheut sipas pjerrësisë dhe vendit; trysnia në rrjetin e ujësjellësit sipas lartësisë.
+  \end{enumerate}
+  \vfill\kthehu{ushTPS101}
+\end{frame}
+
+\begin{frame}[label=zgjMC101]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item A: \texttt{sf} nuk transformon vetë; koordinatat mbeten në RD New (metra).
+    \item C: \texttt{lm()} punon; gjeometria thjesht injorohet nga formula.
+    \item D: CRS-ja përcakton njësitë dhe metrikën e distancës.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC101}
+\end{frame}
+
+\begin{frame}[label=zgjCp101]{Përgjigjet: Checkpoint Ora 1}
+  \begin{enumerate}
+    \item Fqinjët ndajnë mjedisin dhe proceset (Tobler); vlerat e tyre janë të korreluara.
+    \item Ekuator: $\approx111.2$ km. Në $60^\circ$: $111.2\cdot\cos60^\circ=55.6$ km.
+    \item Argumentin \texttt{crs}: kodin EPSG ose përshkrimin e sistemit të koordinatave.
+  \end{enumerate}
+  \vfill\kthehu{cp101}
+\end{frame}
