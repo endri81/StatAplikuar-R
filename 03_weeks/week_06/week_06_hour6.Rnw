@@ -89,7 +89,7 @@ forms <- list(m1 = mpg ~ horsepower, m2 = mpg ~ horsepower + weight,
 val_mse <- function(seed) {
   set.seed(seed); train <- sample(nrow(auto), 300)                # 300 train, 92 test
   sapply(forms, function(f) {
-    m <- lm(f, data = auto, subset = train)
+    m <- lm(f, data = auto[train, ])
     mean((auto$mpg - predict(m, auto))[-train]^2)
   })
 }
