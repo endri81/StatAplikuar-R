@@ -1,0 +1,49 @@
+% ============================================================
+%  Java 9 · Ora 2 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjTab]{Zgjidhja: Radha jote! (tabela $2\times2$)}
+  \begin{itemize}
+    \item $\text{odds}_0=10/40=0.25$ $\Rightarrow$ $\hat\beta_0=\log0.25=-1.386$.
+    \item $\text{odds}_1=15/15=1$ $\Rightarrow$ OR $=1/0.25=4$, $\hat\beta_1=\log4=1.386$.
+    \item $e^{\hat\beta_1}=4$: shansi i default-it është 4 herë më i madh kur $x=1$.
+    \item $x=1$: $\text{logit}=-1.386+1.386=0$ $\Rightarrow$ $\hat p=0.5=15/30$. \checkmark
+  \end{itemize}
+  \vfill\kthehu{ushTab}
+\end{frame}
+
+\begin{frame}[label=zgjWald]{Zgjidhja: Pyetje me zgjedhje (Wald)}
+  \begin{itemize}
+    \item E gabuara: \textbf{D}. Dyfishohet \textbf{odds}, jo probabiliteti; p.sh.\ nga $p=0.5$ (odds 1) te odds 2 $\Rightarrow$ $p=0.67$, jo 1.
+    \item A: $e^{0.69}\approx2$. \checkmark
+    \item B: $z=0.69/0.20=3.45>1.96$. \checkmark
+    \item C: $\exp(0.69\pm1.96\cdot0.20)=\exp(0.30),\ \exp(1.08)=1.35,\ 2.95$. \checkmark
+  \end{itemize}
+  \vfill\kthehu{pyetjeWald}
+\end{frame}
+
+\begin{frame}[label=zgjStud]{Zgjidhja: Parashiko (studentët)}
+  \begin{enumerate}
+    \item Pozitive: studentët kanë default më shpesh (OR $=1.50$).
+    \item Negative (OR $=0.49$): me balancë të njëjtë, studentët janë më pak të rrezikshëm. Shenja ndryshon sepse \texttt{balance} ngatërron lidhjen.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeStud}
+\end{frame}
+
+\begin{frame}[label=zgjGab92]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item Koeficienti është për \textbf{1 \$} balancë. Për 100 \$: $e^{100\cdot0.0057}=e^{0.57}\approx1.77$: odds rritet 77\%.
+    \item $z=24.7$: efekti është shumë i fortë.
+    \item Madhësia e koeficientit varet nga njësitë e $x$; krahaso me $z$, OR për një ndryshim me kuptim, ose me $x$ të standardizuar.
+  \end{itemize}
+  \vfill\kthehu{gjejGab92}
+\end{frame}
+
+\begin{frame}[label=zgjCp92]{Përgjigjet: Checkpoint Ora 2}
+  \begin{enumerate}
+    \item $U(\beta)=X^\top(y-p)$; \; $H(\beta)=-X^\top WX$, $W=\operatorname{diag}(p_i(1-p_i))$.
+    \item Hapi Newton $\beta+(X^\top WX)^{-1}X^\top(y-p)$ shkruhet $(X^\top WX)^{-1}X^\top Wz$, me $z=X\beta+W^{-1}(y-p)$: WLS i $z$ me peshat $W$, që ndryshojnë në çdo hap.
+    \item Studentët kanë balancë më të lartë; vetëm, OR përfshin këtë efekt indirekt (1.50). Duke mbajtur balancën fiks, mbetet efekti i drejtpërdrejtë (0.49).
+  \end{enumerate}
+  \vfill\kthehu{cp92}
+\end{frame}

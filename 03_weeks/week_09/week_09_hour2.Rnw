@@ -1,0 +1,321 @@
+% ============================================================
+%  Java 9 · Ora 2 — Teoria I: regresi logjistik
+%  Rezultatet: K2, S1, S2
+%  Burimi: ISLR kap. 4.3; Cohen et al. (2003), kapitulli për regresin logjistik;
+%          repo DS612 Lecture_4.R
+% ============================================================
+
+\section[Teoria I]{Teoria I: regresi logjistik}
+
+\begin{frame}{Ora 2: Teoria I --- regresi logjistik}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Modeli}
+% ------------------------------------------------------------
+
+\begin{frame}{Modeli logjistik \LO{K2} \LO{S1}}
+  \begin{Definicion}[Regresi logjistik]
+    $Y_i\mid x_i\sim\text{Bernoulli}(p_i)$, me
+    \[ \log\frac{p_i}{1-p_i}=\beta_0+\beta_1x_{i1}+\dots+\beta_px_{ip}=x_i^\top\beta. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item<2-> Ana e majtë: \termi{logit}{logit}, log-odds; në $(-\infty,\infty)$, si një regres linear.
+    \item<3-> Duke zgjidhur për $p$: \quad $p_i=\dfrac{e^{x_i^\top\beta}}{1+e^{x_i^\top\beta}}=\dfrac{1}{1+e^{-x_i^\top\beta}}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Fotografia: funksioni logjistik}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=0.72\textwidth,height=0.45\textwidth,xmin=-6,xmax=6,ymin=0,ymax=1,
+        xlabel={\scriptsize $\eta=x^\top\beta$},ylabel={\scriptsize $p$},
+        tick label style={font=\tiny},legend style={font=\tiny},legend pos=north west]
+      \addplot[domain=-6:6,samples=100,thick,uptblue] {1/(1+exp(-x))}; \addlegendentry{$1/(1+e^{-\eta})$}
+      \addplot[domain=-2:2,thick,accent,dashed] {0.5+x/4}; \addlegendentry{tangjentja te $\eta=0$: pjerrësi $1/4$}
+      \draw[dotted] (axis cs:0,0) -- (axis cs:0,0.5) -- (axis cs:-6,0.5);
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}\small
+    \item Simetrik rreth $(0,\,0.5)$; më i pjerrët te $p=0.5$, ku pjerrësia është $1/4$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Interpretimi: raporti i shanseve}
+  \begin{itemize}
+    \item<1-> $x_j$ rritet me 1, të tjerët fiks: log-odds rritet me $\beta_j$.
+    \item<2-> Pra odds \textbf{shumëzohet} me $e^{\beta_j}$:
+      \[ \text{OR}_j=\frac{\text{odds}(x_j+1)}{\text{odds}(x_j)}=e^{\beta_j}. \]
+    \item<3-> $\beta_j>0$ $\Rightarrow$ OR $>1$: shansi rritet; $\beta_j<0$ $\Rightarrow$ OR $<1$.
+    \item<4-> Për ndryshim me $c$ njësi: $\text{OR}=e^{c\beta_j}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Po efekti mbi $p$?}
+  \begin{itemize}
+    \item<1-> $\dfrac{\partial p}{\partial x_j}=\beta_j\,p(1-p)$: varet nga $p$, pra nga vlerat e $x$.
+    \item<2-> Maksimumi te $p=0.5$: $\beta_j/4$ (\termi{rregulli i pjesëtimit me 4}{divide-by-4 rule}).
+    \item<3-> Te $p=0.03$: $\beta_j\cdot0.03\cdot0.97\approx0.03\beta_j$: efekt shumë më i vogël.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}``$\beta=0.5$ do të thotë që probabiliteti rritet 0.5 për çdo njësi.'' Jo: log-odds rritet 0.5; odds shumëzohet me $e^{0.5}=1.65$; $p$ rritet të shumtën $0.5/4=0.125$.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Pa ndihmën e PC: tabela $2\times2$}
+  $x$ binar (p.sh.\ student); 30 klientë (\textbf{sintetike}).
+  \begin{center}
+    \begin{tabular}{lccc}
+      \toprule & $y=1$ & $y=0$ & gjithsej\\ \midrule
+      $x=0$ & 4 & 16 & 20\\
+      $x=1$ & 6 & 4 & 10\\ \bottomrule
+    \end{tabular}
+  \end{center}
+  \begin{itemize}
+    \item<2-> $\text{odds}_0=4/16=0.25$, \; $\text{odds}_1=6/4=1.5$.
+    \item<3-> $\hat\beta_0=\log0.25=-1.386$.
+    \item<4-> $\text{OR}=1.5/0.25=6$ $\Rightarrow$ $\hat\beta_1=\log6=1.792$.
+    \item<5-> Me një parashikues binar, logjistiku riprodhon saktësisht proporcionet e tabelës.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTab]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{center}\small
+    \begin{tabular}{lcc}
+      \toprule & $y=1$ & $y=0$\\ \midrule
+      $x=0$ & 10 & 40\\
+      $x=1$ & 15 & 15\\ \bottomrule
+    \end{tabular}
+    \end{center}
+    \begin{enumerate}
+      \item Llogarit $\hat\beta_0$ dhe $\hat\beta_1$. ($\log0.25=-1.386$, $\log4=1.386$.)
+      \item Interpreto $e^{\hat\beta_1}$.
+      \item Sa është $\hat p$ për $x=1$ nga modeli?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTab}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Maksimumi i përgjasisë}
+% ------------------------------------------------------------
+
+\begin{frame}{Log-përgjasia}
+  \begin{itemize}
+    \item<1-> $\ell(\beta)=\sum_{i=1}^n\big[y_i\log p_i+(1-y_i)\log(1-p_i)\big]$, me $p_i=\dfrac{1}{1+e^{-x_i^\top\beta}}$.
+    \item<2-> Duke përdorur $\log\frac{p_i}{1-p_i}=x_i^\top\beta$:
+      \[ \ell(\beta)=\sum_i\big[y_i\,x_i^\top\beta-\log\big(1+e^{x_i^\top\beta}\big)\big]. \]
+    \item<3-> $\ell$ është konkave $\Rightarrow$ maksimumi unik (nëse ekziston).
+    \item<4-> Nuk ka formulë të mbyllur si OLS: duhet iteracion.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Score dhe Hessiani}
+  \begin{itemize}
+    \item<1-> Derivati: $\dfrac{\partial}{\partial\beta}\log(1+e^{\eta})=\dfrac{e^\eta}{1+e^\eta}x=p\,x$.
+    \item<2-> Score: \quad $U(\beta)=\dfrac{\partial\ell}{\partial\beta}=\sum_i(y_i-p_i)\,x_i=X^\top(y-p)$.
+    \item<3-> Hessiani: \quad $\dfrac{\partial^2\ell}{\partial\beta\,\partial\beta^\top}=-\sum_ip_i(1-p_i)\,x_ix_i^\top=-X^\top WX$,\\
+      me $W=\operatorname{diag}\big(p_i(1-p_i)\big)$.
+    \item<4-> Ekuacionet e maksimumit: $X^\top(y-\hat p)=0$. Krahaso me OLS: $X^\top(y-\hat y)=0$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Newton--Raphson = IRLS}
+  \begin{itemize}
+    \item<1-> Hapi Newton: $\beta^{(t+1)}=\beta^{(t)}+(X^\top WX)^{-1}X^\top(y-p)$.
+    \item<2-> Rishkruajmë: $\beta^{(t+1)}=(X^\top WX)^{-1}X^\top W\,z$, me
+      \[ z=X\beta^{(t)}+W^{-1}(y-p)\qquad\text{(``përgjigjja e punës'')}. \]
+    \item<3-> Pra: WLS i $z$ mbi $X$ me peshat $W$, i përsëritur.
+    \item<4-> Lidhja me Javën 8: IRLS i regresit të fortë kishte të njëjtën strukturë.
+    \item<5-> \texttt{glm()} e bën këtë; \texttt{iter} në output tregon numrin e hapave.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pa ndihmën e PC: Newton për vetëm konstante}
+  $n$ vëzhgime, $\bar y=0.2$. Modeli: $\text{logit}(p)=\beta_0$.
+  \begin{itemize}
+    \item<2-> Score: $U=\sum(y_i-p)=n(\bar y-p)$; \; informacioni: $I=np(1-p)$.
+    \item<3-> Nisja $\beta_0^{(0)}=0$ $\Rightarrow$ $p=0.5$: \; $\beta_0^{(1)}=0+\dfrac{n(0.2-0.5)}{n\cdot0.25}=-1.2$.
+    \item<4-> $\beta_0^{(1)}=-1.2$ $\Rightarrow$ $p=1/(1+e^{1.2})=0.2315$:\\
+      $\beta_0^{(2)}=-1.2+\dfrac{0.2-0.2315}{0.2315\cdot0.7685}=-1.2-0.177=-1.377$.
+    \item<5-> Vlera e saktë: $\log(0.2/0.8)=-1.386$. Dy hapa mjaftuan për 2 shifra.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontroll në R}
+<<h2-toy>>=
+x <- c(rep(0, 20), rep(1, 10))
+y <- c(rep(1, 4), rep(0, 16), rep(1, 6), rep(0, 4))
+fit_toy <- glm(y ~ x, family = binomial)
+round(coef(summary(fit_toy)), 4)
+c(log_0.25 = log(0.25), log_6 = log(6), iterations = fit_toy$iter)
+@
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Inferenca}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet standarde}
+  \begin{itemize}
+    \item<1-> Teoria e maksimumit të përgjasisë: $\hat\beta\approx N\big(\beta,\,(X^\top\hat WX)^{-1}\big)$ për $n$ të madh.
+    \item<2-> $\text{SE}(\hat\beta_j)=\sqrt{\big[(X^\top\hat WX)^{-1}\big]_{jj}}$.
+    \item<3-> Krahaso me OLS: $\sigma^2(X^\top X)^{-1}$; këtu $W$ luan rolin e $1/\sigma^2$, por ndryshon nga pika në pikë.
+    \item<4-> Për tabelën $2\times2$: $\text{SE}(\hat\beta_1)=\sqrt{\frac1a+\frac1b+\frac1c+\frac1d}$ (shuma e inverseve të qelizave).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testi Wald}
+  \begin{itemize}
+    \item<1-> $H_0$: $\beta_j=0$. Statistika: $z=\hat\beta_j/\text{SE}(\hat\beta_j)\approx N(0,1)$.
+    \item<2-> IB 95\% për $\beta_j$: $\hat\beta_j\pm1.96\,\text{SE}$; për OR: $\exp(\hat\beta_j\pm1.96\,\text{SE})$.
+    \item<3-> Pa ndihmën e PC (tabela 30 klientë):
+      $\text{SE}=\sqrt{\tfrac14+\tfrac1{16}+\tfrac16+\tfrac14}=\sqrt{0.729}=0.854$; \; $z=1.792/0.854=2.10$.
+    \item<4-> $|z|>1.96$: refuzojmë $H_0$ në 5\%.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Deviance dhe testi LR}
+  \begin{itemize}
+    \item<1-> \termi{Deviance}{deviance}: $D=-2\,\ell(\hat\beta)$ (për të dhëna 0/1).
+    \item<2-> Deviance e nullit $D_0$: modeli vetëm me konstante. $D_0-D$: sa shpjegon modeli.
+    \item<3-> Testi LR për $q$ koeficientë: $\Lambda=D_{\text{reduktuar}}-D_{\text{plotë}}\approx\chi^2_q$.
+    \item<4-> Analog i testit $F$ të pjesshëm (Java 6): \texttt{anova(m0, m1, test = "Chisq")}.
+    \item<5-> AIC $=D+2k$: si në Javën 6.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Wald dhe LR për shembullin}
+<<h2-lr>>=
+c(null_dev = fit_toy$null.deviance, resid_dev = fit_toy$deviance,
+  LR = fit_toy$null.deviance - fit_toy$deviance)
+round(pchisq(fit_toy$null.deviance - fit_toy$deviance, df = 1,
+             lower.tail = FALSE), 4)
+@
+  \begin{itemize}
+    \item<2-> LR $=4.71$, $p=0.030$; Wald $z=2.10$, $p=0.036$. Afër, por jo identike.
+    \item<3-> Me $n$ të vogël, LR preferohet (Wald mund të jetë i pasaktë kur $|\beta|$ i madh).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeWald]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Një model logjistik jep $\hat\beta_1=0.69$, SE $=0.20$. Cila është e \textbf{gabuar}? ($e^{0.69}\approx2$, $e^{0.30}\approx1.35$, $e^{1.08}\approx2.95$.)
+    \begin{enumerate}[A)]
+      \item Odds dyfishohet kur $x_1$ rritet me 1.
+      \item $z=3.45$: koeficienti është i rëndësishëm.
+      \item IB 95\% për OR: afërsisht $[1.35,\ 2.95]$.
+      \item Probabiliteti dyfishohet kur $x_1$ rritet me 1.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjWald}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Disa parashikues dhe ngatërrimi}
+% ------------------------------------------------------------
+
+\begin{frame}{Logjistiku i shumëfishtë}
+  \begin{itemize}
+    \item<1-> $\text{logit}(p)=\beta_0+\beta_1x_1+\dots+\beta_px_p$.
+    \item<2-> $e^{\beta_j}$: OR për $x_j$, \textbf{me të tjerët fiks} (si në Javën 6).
+    \item<3-> Faktorë: dummy si në \texttt{lm}; ndërveprime: \texttt{x1 * x2}.
+    \item<4-> Forma jolineare: \texttt{poly()}, \texttt{ns()} brenda \texttt{glm()} (Java 8).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeStud]{Parashiko: studentët}
+  \begin{Parashiko}
+    Te \texttt{Default}: studentët kanë default 4.3\%, jo-studentët 2.9\%.
+    \begin{enumerate}
+      \item Çfarë shenje pret për \texttt{student} në \texttt{glm(default \textasciitilde{} student)}?
+      \item Po në \texttt{glm(default \textasciitilde{} balance + student)}?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjStud}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Paradoksi i studentëve}
+<<h2-student>>=
+default_df <- read.csv(file.path(W09DATA, "Default.csv"), stringsAsFactors = TRUE)
+g1 <- glm(default ~ student, data = default_df, family = binomial)
+g2 <- glm(default ~ balance + student, data = default_df, family = binomial)
+round(rbind(alone = coef(summary(g1))["studentYes", ],
+            with_balance = coef(summary(g2))["studentYes", ]), 4)
+round(c(OR_alone = exp(coef(g1)[[2]]), OR_adjusted = exp(coef(g2)[["studentYes"]])), 3)
+round(tapply(default_df$balance, default_df$student, mean), 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vetëm: OR $=1.50$: studentët kanë shans 50\% më të madh.
+    \item<2-> Me \texttt{balance}: OR $=0.49$: me \textbf{të njëjtën balancë}, studentët kanë shans gati sa gjysma.
+    \item<3-> Pse? Studentët kanë balancë mesatare më të lartë (988 kundrejt 772 \$), dhe balanca e lartë rrit default-in.
+    \item<4-> Kjo është \termi{ngatërrimi}{confounding}, e njëjta ide si variabla e harruar e Javës 6.
+  \end{itemize}
+  \begin{Keshille}Pyetja përcakton modelin: ``a është studenti më i rrezikshëm?'' (po, në tërësi) kundrejt ``me të njëjtën balancë?'' (jo).\end{Keshille}
+\end{frame}
+
+\begin{frame}{Fotografia: ngatërrimi}
+  \centering
+  \begin{tikzpicture}[v/.style={draw,rounded corners,fill=uptlight,minimum width=2cm,minimum height=0.8cm,font=\small}]
+    \node[v] (s) at (0,0) {student};
+    \node[v] (d) at (6,0) {default};
+    \node[v] (b) at (3,2) {balance};
+    \draw[->,thick] (s) -- node[left,font=\scriptsize,xshift=-2pt] {balancë më e lartë} (b);
+    \draw[->,thick] (b) -- node[right,font=\scriptsize,xshift=2pt] {rrit rrezikun} (d);
+    \draw[->,thick,dashed,accent] (s) -- node[below,font=\scriptsize] {efekti i drejtpërdrejtë: OR $0.49$} (d);
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[label=gjejGab92]{Gjej gabimin}
+  \begin{Parashiko}
+    Një analist shkruan:\\[3pt]
+    {\small\emph{``Koeficienti i \texttt{balance} është 0.0057. Meqë është shumë afër zeros, balanca nuk ka pothuajse asnjë efekt mbi default-in.''}}\\[3pt]
+    Gjej gabimin. (Ndihmë: $e^{0.57}\approx1.77$.)
+  \end{Parashiko}
+  \shkoTe{zgjGab92}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Logjistik kundrejt linear: krahasim}
+  \centering\small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+     & Regres linear & Regres logjistik\\ \midrule
+    $y$ & sasior & 0/1\\
+    Modeli & $E[y]=x^\top\beta$ & $\text{logit}(p)=x^\top\beta$\\
+    Vlerësimi & OLS (formulë e mbyllur) & MLE (IRLS)\\
+    Ekuacionet & $X^\top(y-\hat y)=0$ & $X^\top(y-\hat p)=0$\\
+    $\operatorname{Var}(\hat\beta)$ & $\sigma^2(X^\top X)^{-1}$ & $(X^\top WX)^{-1}$\\
+    Test & $t$, $F$ & Wald $z$, LR $\chi^2$\\
+    Përshtatja & SSE, $R^2$ & deviance, AIC\\
+    Interpretimi & $\Delta y$ për $\Delta x=1$ & OR $=e^\beta$\\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=cp92]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 2}
+  \begin{enumerate}
+    \item Shkruani score-in dhe Hessianin e log-përgjasisë logjistike.
+    \item Pse IRLS është WLS i përsëritur? Cila është ``përgjigjja e punës''?
+    \item Shpjegoni pse OR i \texttt{student} ndryshon nga 1.50 në 0.49.
+  \end{enumerate}
+  \shkoTe{zgjCp92}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 2}
+  \begin{itemize}
+    \item $\text{logit}(p)=x^\top\beta$; $p=1/(1+e^{-x^\top\beta})$; OR $=e^{\beta_j}$; efekti max mbi $p$: $\beta_j/4$.
+    \item $U=X^\top(y-p)$, $H=-X^\top WX$; Newton = IRLS me $z=X\beta+W^{-1}(y-p)$.
+    \item SE nga $(X^\top\hat WX)^{-1}$; Wald $z$, LR $=\Delta D\sim\chi^2_q$.
+    \item Tabela $2\times2$: $\hat\beta_1=\log\text{OR}$, SE $=\sqrt{\sum1/n_{ij}}$.
+    \item Paradoksi i studentëve: ngatërrimi me \texttt{balance}.
+  \end{itemize}
+  \begin{Keshille}Ora 3: \texttt{glm()} në R dhe IRLS nga zero, parashikimet, matrica e konfuzionit, pragu, train/test dhe CV.\end{Keshille}
+\end{frame}
