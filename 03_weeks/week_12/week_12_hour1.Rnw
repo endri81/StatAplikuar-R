@@ -1,0 +1,327 @@
+% ============================================================
+%  Java 12 · Ora 1 — Motivimi: nga pikat te harta
+%  Rezultatet: K3, C1
+%  Burimi: Chang (GIS), kapitulli për interpolimin hapësinor;
+%          Pebesma & Bivand (2023), kap. 12; Burrough & McDonnell (meuse)
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Motivimi]{Motivimi: nga pikat te harta}
+
+\begin{frame}{Ora 1: Motivimi --- nga pikat te harta}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi}
+% ------------------------------------------------------------
+
+\begin{frame}{Matim në pika, na duhet harta}
+  \begin{itemize}
+    \item<1-> Toka e ndotur: 155 mostra në fushën e Meuse; sa zink ka 50 m larg çdo mostre?
+    \item<2-> Klima: disa dhjetëra stacione meteorologjike; sa është temperatura në një fshat pa stacion?
+    \item<3-> Terreni: pika GPS/topografike; si ndërtohet DTM-ja (Java 11) nga pikat?
+    \item<4-> \termi{Interpolimi hapësinor}{spatial interpolation}: parashikimi i vlerës në vende të pamatura nga vlerat e matura afër.
+  \end{itemize}
+  \LO{K3}
+\end{frame}
+
+\begin{frame}{Pse funksionon? Tobler dhe mbetjet}
+  \begin{itemize}
+    \item<1-> Ligji i Tobler-it (Java 10): gjërat afër janë më të ngjashme se gjërat larg.
+    \item<2-> Java 10: mbetjet e $\log(\text{zinc})\sim\sqrt{\text{dist}}$ kishin korrelacion 0.37 me fqinjin më të afërt.
+    \item<3-> Java 11: mbetjet e modelit të temperaturës kishin korrelacion 0.957 me fqinjët.
+    \item<4-> Këtë informacion \texttt{lm()} e hedh poshtë. Sot e përdorim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Një formulë për (pothuajse) të gjitha metodat}
+  \centering
+  \begin{tikzpicture}[scale=0.8, font=\scriptsize]
+    \fill[accent] (0,0) circle (3pt) node[below=3pt]{$s_0$ (?)};
+    \foreach \p/\l/\w in {(2.2,0.6)/z_1/\lambda_1, (-1.6,1.4)/z_2/\lambda_2, (0.6,-1.8)/z_3/\lambda_3, (-2.6,-1.0)/z_4/\lambda_4} {
+      \fill[uptblue] \p circle (2.5pt) node[above right]{$\l$};
+      \draw[gray, ->] \p -- (0,0) node[midway, sloped, above]{$\w$};
+    }
+  \end{tikzpicture}
+  \[ \hat z(s_0)=\sum_{i=1}^n\lambda_i\,z(s_i),\qquad \sum_i\lambda_i=1\ \text{(shpesh)} \]
+  \begin{itemize}
+    \item Metodat ndryshojnë vetëm në \textbf{si zgjidhen peshat} $\lambda_i$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Taksonomia e metodave}
+  \small
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Metoda & Peshat nga & Lokale? & E saktë në pika? & Pasiguri? \\ \midrule
+    Thiessen (Voronoi) & fqinji më i afërt & po & po & jo \\
+    Polinomi global & katrorët më të vegjël & jo & jo & po (regres) \\
+    IDW & $1/d^p$ & po & po & jo \\
+    Kriging & variogrami & po & po (pa nugget) & \textbf{po} \\ \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item<2-> Deterministe: rregull gjeometrik. Statistikore (Kriging): model i probabilitetit për fushën.
+    \item<3-> Vetëm Kriging jep \textbf{gabim standard} për çdo qelizë pa supozime shtesë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Interpolim i saktë apo zbutës?}
+  \begin{itemize}
+    \item<1-> \textbf{I saktë} (\emph{exact}): në pikën e matur, $\hat z(s_i)=z(s_i)$. Thiessen, IDW, Kriging pa nugget.
+    \item<2-> \textbf{Zbutës} (\emph{smoothing}): $\hat z(s_i)\neq z(s_i)$; pranon gabim matjeje. Polinomi global, Kriging me nugget.
+    \item<3-> Kur matjet kanë gabim (laborator, instrument), interpolimi i saktë e ``ngrin'' zhurmën në hartë.
+    \item<4-> \textbf{Interpolim} brenda zonës së mostrave; \textbf{ekstrapolim} jashtë saj: i rrezikshëm për çdo metodë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeToy121]{Parashiko (pa ndihmën e PC)}
+  \begin{Parashiko}
+    Në një vijë: $z(0)=10$ dhe $z(4)=30$. Parashikoni $z(1)$ me:
+    \begin{enumerate}[A.]
+      \item fqinjin më të afërt; \quad B. interpolim linear;
+      \item IDW me $p=1$; \quad D. IDW me $p=2$; \quad E. mesataren globale.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjToy121}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Çfarë na mëson shembulli?}
+  \begin{itemize}
+    \item<1-> Pesë metoda, pesë përgjigje: 10, 15, 15, 12, 20.
+    \item<2-> Sa më i madh $p$, aq më shumë peshë merr pika më e afërt; $p\to\infty$ $\Rightarrow$ fqinji më i afërt.
+    \item<3-> Asnjë nuk është ``e saktë'' a priori: duhet një kriter (validimi, Ora 3) ose një model (Kriging, Ora 4).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushIdw121]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    Pika $s_0=(0,0)$. Mostrat: $(1,0)$ me $z=10$; $(0,2)$ me $z=20$; $(3,4)$ me $z=40$.
+    \begin{enumerate}
+      \item Distancat nga $s_0$.
+      \item Peshat IDW me $p=2$ (para normalizimit) dhe shuma e tyre.
+      \item $\hat z(s_0)$. Pse pika e tretë ndikon kaq pak?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjIdw121}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Të dhënat e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Të dhënat}
+  \begin{itemize}
+    \item<1-> \texttt{meuse.csv}: 155 mostra toke (zink, kadmium, plumb, bakër), \textbf{reale} (Burrough \& McDonnell; paketa \texttt{sp}).
+    \item<2-> \texttt{meuse\_grid.csv}: 3103 qeliza 40 m $\times$ 40 m me \texttt{dist}, \texttt{ffreq}, \texttt{soil}: rrjeta e parashikimit. \textbf{Reale}.
+    \item<3-> Shqipëria: temperatura e korrikut dhe lartësia $30''$ (Java 11), \textbf{reale}.
+    \item<4-> \textbf{Pseudo-stacione}: 80 qeliza të zgjedhura rastësisht nga raster-i i temperaturës. Vlera e ``vërtetë'' kudo është e njohur $\Rightarrow$ vlerësim kundrejt së vërtetës.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{meuse}: pikat dhe rrjeta}
+<<h1-read>>=
+library(sf); library(gstat); library(terra)
+meuse <- read.csv(file.path(W12DATA, "meuse.csv"))
+grid  <- read.csv(file.path(W12DATA, "meuse_grid.csv"))
+ms <- st_as_sf(meuse, coords = c("x", "y"), crs = 28992)
+gs <- st_as_sf(grid,  coords = c("x", "y"), crs = 28992)
+c(samples = nrow(ms), grid_cells = nrow(gs), grid_km2 = nrow(gs) * 40^2 / 1e6)
+round(range(log(meuse$zinc)), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 155 mostra, 3103 qeliza: parashikojmë 20 herë më shumë vende se sa kemi matur.
+    \item<2-> Rrjeta mbulon 4.96 km$^2$ të fushës së përmbytjes; çdo qelizë 40 m.
+    \item<3-> Punojmë me $\log(\text{zinc})$: shpërndarje më simetrike (Java 8).
+    \item<4-> Vlerat e matura: $\log(\text{zinc})\in[4.727, 7.517]$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pamje paraprake: fqinji më i afërt dhe IDW}
+<<h1-prev>>=
+nn  <- idw(log(zinc) ~ 1, ms, gs, nmax = 1, debug.level = 0)   # Thiessen
+iw2 <- idw(log(zinc) ~ 1, ms, gs, idp = 2, debug.level = 0)    # IDW, p = 2
+round(rbind(nearest = summary(nn$var1.pred), idw_p2 = summary(iw2$var1.pred)), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{nmax = 1}: çdo qelizë merr vlerën e mostrës më të afërt: poligonet Thiessen.
+    \item<2-> Fqinji më i afërt ruan saktësisht diapazonin e të dhënave (4.727--7.517).
+    \item<3-> IDW: 4.791--7.482: i ``zbut'' ekstremet; mesatarja 5.78.
+    \item<4-> \texttt{gstat::idw()}: një funksion për të dy, me formulë si \texttt{lm()}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Harta: dy metoda}
+<<h1-map, eval=FALSE>>=
+library(ggplot2)
+riv <- read.csv(file.path(W12DATA, "meuse_riv.csv"))
+river <- st_sfc(st_polygon(list(as.matrix(rbind(riv, riv[1, ])))), crs = 28992)
+tab <- function(pred, method) data.frame(st_coordinates(pred), z = pred$var1.pred, method = method)
+d <- rbind(tab(nn, "Nearest (Thiessen)"), tab(iw2, "IDW, p = 2"))
+ggplot() + geom_raster(data = d, aes(X, Y, fill = z)) +
+  geom_sf(data = river, fill = "lightblue", colour = NA) +
+  geom_sf(data = ms, size = 0.3) + facet_wrap(~ method) +
+  scale_fill_viridis_c(name = "log(zinc)") +
+  coord_sf(datum = NA, xlim = c(178400, 181600), ylim = c(329600, 333800)) +
+  labs(x = NULL, y = NULL) + theme_void(base_size = 8)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati}
+<<h1-map-fig, ref.label="h1-map", echo=FALSE, fig.height=3.3, fig.width=5.4, out.width="0.66\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Thiessen: ``mozaik'' me kufij të prerë; çdo poligon $=$ zona më afër një mostre.
+    \item<2-> IDW: kalime të buta, por ``sy demi'' rreth mostrave ekstreme.
+    \item<3-> Të dyja kapin modelin kryesor: zink i lartë përgjatë lumit (perëndim).
+    \item<4-> Asnjëra nuk përdor \texttt{dist}: informacion që e dimë kudo (Ora 4: Universal Kriging).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushP121,fragile]{Ndrysho parametrin dhe shiko}
+<<h1-p>>=
+sapply(c(p0.5 = 0.5, p1 = 1, p2 = 2, p4 = 4, p8 = 8), function(p) {
+  z <- idw(log(zinc) ~ 1, ms, gs, idp = p, debug.level = 0)$var1.pred
+  round(c(min = min(z), max = max(z), sd = sd(z)), 3)
+})
+@
+  \begin{itemize}
+    \item Çfarë ndodh me diapazonin dhe me devijimin standard të hartës kur rritet $p$?
+  \end{itemize}
+  \shkoTe{zgjP121}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=gjejGabim121]{Gjej gabimin}
+  \begin{itemize}
+    \item Një raport thotë: ``Harta IDW tregon se në qendër të fushës zinku arrin 2500 ppm, më shumë se çdo mostër e matur (max 1839 ppm).''
+  \end{itemize}
+  \begin{Ushtrim}[(Pyetje)]
+    Pse kjo është e pamundur me IDW? Çfarë mund të ketë ndodhur?
+  \end{Ushtrim}
+  \shkoTe{zgjGabim121}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shqipëria: pseudo-stacionet}
+% ------------------------------------------------------------
+
+\begin{frame}{Eksperimenti me të vërtetë të njohur}
+  \begin{itemize}
+    \item<1-> ``E vërteta'': raster-i i temperaturës së korrikut, 44\,902 qeliza (Java 11).
+    \item<2-> Zgjedhim 80 qeliza rastësisht: \textbf{pseudo-stacione}.
+    \item<3-> Interpolojmë nga 80 vlera dhe krahasojmë me 44\,902 vlerat e vërteta.
+    \item<4-> Si në simulimet e javëve 5--9: vlerësim kundrejt së vërtetës, por tani në hapësirë.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Stacionet reale nuk janë rastësore: janë në qytete dhe lugina. Ora 6 do ta diskutojë.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=pyetjeSt121]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    E vërteta: temperatura e korrikut në Shqipëri nga $8.7^\circ$C (malet) deri $25.8^\circ$C.
+    Me 80 pseudo-stacione të rastësishme, sa mendoni se do të jetë minimumi i mostrës? Po maksimumi?
+  \end{Parashiko}
+  \shkoTe{zgjSt121}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Pseudo-stacionet}
+<<h1-st>>=
+tjul <- rast(file.path(W12DATA, "alb_tavg_30s.tif"))$Jul
+set.seed(2026)
+st <- spatSample(tjul, 80, na.rm = TRUE, xy = TRUE)
+round(summary(st$Jul), 2)
+round(unlist(global(tjul, c("min", "max", "mean"), na.rm = TRUE)), 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mostra: $13.5$--$25.7^\circ$C; e vërteta: $8.7$--$25.8^\circ$C.
+    \item<2-> Asnjë stacion në majat më të ftohta: ato zënë pak sipërfaqe.
+    \item<3-> IDW dhe Thiessen \textbf{nuk mund} të parashikojnë nën $13.5^\circ$C: malet do të dalin shumë të ngrohta.
+    \item<4-> Zgjidhja: kovariati \texttt{elev} (Java 11) + Kriging i mbetjeve (Ora 6).
+  \end{itemize}
+  \LO{C1}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC121]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Cila metodë mund të parashikojë temperaturë më të ulët se çdo stacion i matur?
+    \begin{enumerate}[A.]
+      \item Fqinji më i afërt (Thiessen).
+      \item IDW me $p=2$.
+      \item Regresi $T\sim\text{elev}$ (me lartësinë e njohur kudo).
+      \item Mesatarja e tre stacioneve më të afërta.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC121}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushTPS121]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Ku do t'i vendosnit 20 stacione të reja për ta përmirësuar hartën e temperaturës?
+      \item Për ndotjen e tokës, pse matja në rrjetë të rregullt mund të jetë më e mirë se në vende të rastësishme?
+      \item Përveç parashikimit, çfarë do të donte një vendimmarrës nga harta? (Ndihmë: pasiguria.)
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS121}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Objektivat dhe mbyllja}
+% ------------------------------------------------------------
+
+\begin{frame}{Objektivat e javës}
+  \begin{itemize}
+    \item<1-> \LO{K3} Të përshkruajmë metodat e interpolimit: Thiessen, polinomi global, IDW, Kriging.
+    \item<2-> \LO{S1} Të formulojmë variogramin dhe sistemin e Kriging-ut; ta zgjidhim për raste të vogla pa ndihmën e PC.
+    \item<3-> \LO{S2, S4} Të ndërtojmë harta parashikimi me \texttt{gstat} dhe \texttt{sf}/\texttt{terra}.
+    \item<4-> \LO{S3, C1} Të krahasojmë metodat me cross-validation dhe me të vërtetën e njohur; të raportojmë pasigurinë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plani i javës}
+  \small
+  \begin{tabular}{cl}
+    \toprule
+    Ora & Tema \\
+    \midrule
+    1 & Motivimi: nga pikat te harta \\
+    2 & Metodat deterministe: Thiessen, polinomi global, IDW \\
+    3 & Lab I: Voronoi, trendi, IDW nga zero, cross-validation \\
+    4 & Variogrami dhe Kriging (OK, UK) \\
+    5 & Lab II: \texttt{gstat}, sistemi i Kriging-ut me matrica \\
+    6 & Rasti: temperatura e Shqipërisë nga pseudo-stacione \\
+    7 & Konsolidimi, përmbledhja e kursit, projekti final \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=cp121]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 1}
+  \begin{enumerate}
+    \item Shkruani formën e përgjithshme të një interpoluesi linear.
+    \item Cila metodë jep vlerën e mostrës më të afërt? Cila jep gabim standard?
+    \item Pse IDW nuk parashikon dot vlera jashtë diapazonit të të dhënave?
+  \end{enumerate}
+  \shkoTe{zgjCp121}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 1}
+  \begin{itemize}
+    \item Interpolimi: $\hat z(s_0)=\sum\lambda_iz(s_i)$; metodat ndryshojnë te peshat.
+    \item Toy: fqinji 10, linear 15, IDW $p=1$: 15, $p=2$: 12, mesatarja 20.
+    \item \texttt{meuse}: 155 mostra $\to$ 3103 qeliza; Thiessen dhe IDW me \texttt{gstat::idw()}.
+    \item IDW (pesha pozitive, shuma 1) mbetet brenda diapazonit të të dhënave.
+    \item Pseudo-stacionet: 80 nga 44\,902 qeliza; mostra nuk kap malet më të ftohta.
+  \end{itemize}
+  \begin{Keshille}Ora 2: metodat deterministe në thellësi: Voronoi, polinomi global dhe IDW.\end{Keshille}
+\end{frame}
