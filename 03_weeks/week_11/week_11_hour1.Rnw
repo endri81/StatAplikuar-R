@@ -221,8 +221,8 @@ round(global(tavg[[c("Jan", "Jul")]], c("min", "max", "mean"), na.rm = TRUE), 1)
 \begin{frame}{Çfarë na tregon?}
   \begin{itemize}
     \item<1-> Një skedar, 12 shtresa (\emph{layers}): një për çdo muaj. E njëjta rrjetë për të gjitha.
-    \item<2-> Janari: nga $-8.0^\circ$C në male deri $10.4^\circ$C në bregdet; mesatarja $1.1^\circ$C.
-    \item<3-> Korriku: $8.5$--$26.1^\circ$C; mesatarja $19.7^\circ$C.
+    \item<2-> Janari: nga $-7.7^\circ$C në male deri $9.6^\circ$C në bregdet; mesatarja $2.8^\circ$C.
+    \item<3-> Korriku: $8.7$--$25.8^\circ$C; mesatarja $20.8^\circ$C.
     \item<4-> Mesatarja e qelizave $\neq$ temperatura ``tipike'' që ndjen banori: shumica e qelizave janë në male, shumica e banorëve jo.
   \end{itemize}
 \end{frame}
@@ -359,7 +359,7 @@ qv$qark[c(which.max(a_q), which.min(a_q))]
   \begin{itemize}
     \item Objekte $\to$ vektor (\texttt{sf}); fusha $\to$ raster (\texttt{terra}).
     \item Lartësia $30''$: 43\,708 qeliza, 0.63--0.66 km$^2$ secila; max 2623 m (Korabi 2764 m).
-    \item Temperatura: 12 shtresa; janar $-8$ deri $10.4^\circ$C, korrik $8.5$--$26.1^\circ$C.
+    \item Temperatura: 12 shtresa; janar $-7.7$ deri $9.6^\circ$C, korrik $8.7$--$25.8^\circ$C.
     \item Statistikë zonale: Korça qarku më malor (1115 m), Fieri më i ulëti (86 m).
     \item Qarqet GADM: 28\,728 km$^2$; skedari nuk rishpërndahet, krijohet me skript.
   \end{itemize}

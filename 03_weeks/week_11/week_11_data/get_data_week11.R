@@ -36,7 +36,8 @@ s <- crop(s, ext(19.40, 19.98, 41.20, 41.48))
 writeRaster(s, file.path(out, "srtm90_tirana.tif"), overwrite = TRUE, datatype = "INT2S")
 
 # WorldClim monthly mean temperature (deg C)
-w <- worldclim_country("ALB", "tavg", path = raw)
+w <- worldclim_country("ALB", "tavg", path = raw)   # tile also covers neighbours
+w <- mask(crop(w, q), q)                              # keep Albania only
 names(w) <- month.abb
 writeRaster(w, file.path(out, "alb_tavg_30s.tif"), overwrite = TRUE)
 

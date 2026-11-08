@@ -1,0 +1,75 @@
+% ============================================================
+%  Java 11 · Ora 2 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjIdx112]{Zgjidhja: Parashiko (indeksimi)}
+  \begin{enumerate}
+    \item $j=\lfloor(2.3-0)/1\rfloor+1=3$; \; $i=\lfloor(4-0.7)/1\rfloor+1=\lfloor3.3\rfloor+1=4$; \; $c=(4-1)\cdot4+3=15$.
+    \item Qeliza 7: $i=\lceil7/4\rceil=2$, $j=7-4=3$; qendra $x=0+(3-0.5)=2.5$, $y=4-(2-0.5)=2.5$.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeIdx112}
+\end{frame}
+
+\begin{frame}[label=zgjIdxT112]{Zgjidhja: Radha jote! (Tirana)}
+  \begin{enumerate}
+    \item $j=\lfloor(19.819-19.1)\cdot120\rfloor+1=\lfloor86.28\rfloor+1=87$;\\
+          $i=\lfloor(42.8-41.328)\cdot120\rfloor+1=\lfloor176.64\rfloor+1=177$.
+    \item $c=(177-1)\cdot252+87=44\,352+87=44\,439$.
+    \item \texttt{cellFromXY(elev, cbind(19.819, 41.328))} $=44\,439$; \texttt{elev[44439]} $=113$ m.
+  \end{enumerate}
+  \vfill\kthehu{ushIdx112}
+\end{frame}
+
+\begin{frame}[label=zgjSize112]{Zgjidhja: Parashiko (madhësia)}
+  \begin{enumerate}
+    \item $396\cdot252\cdot4=399\,168$ bajt $\approx390$ kB.
+    \item GeoTIFF-i është i kompresuar (pa humbje); qelizat NA jashtë Shqipërisë ($\approx56\%$) dhe vlerat e ngjashme fqinje kompresohen shumë mirë.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeSize112}
+\end{frame}
+
+\begin{frame}[label=zgjMC112]{Zgjidhja: Cila familje?}
+  \begin{enumerate}
+    \item Amplituda: \textbf{lokale} (dy shtresa, e njëjta qelizë).
+    \item Pjerrësia: \textbf{fokale} (kërkon fqinjët $3\times3$).
+    \item Lartësia sipas qarkut: \textbf{zonale}.
+    \item Kuantili 95\%: \textbf{globale}.
+    \item Pragu 1500 m: \textbf{lokale} (\texttt{elev > 1500} ose \texttt{classify}).
+  \end{enumerate}
+  \vfill\kthehu{pyetjeMC112}
+\end{frame}
+
+\begin{frame}[label=zgjW112]{Zgjidhja: Ndrysho parametrin}
+  \begin{enumerate}
+    \item[1--2.] Max: 2623 (origjinal), 2443, 2401, 2271, 2126 m. Min: $-94$, $-75$, \dots, $-8$ m.
+    \item[3.] Mesatarja e një dritareje është $\le$ maksimumi i saj: majat ulen. Minimumi rritet sepse qelizat negative (izoluar, afër ujit) mesatarizohen me fqinjë pozitivë. Varianca e raster-it bie me $w$.
+  \end{enumerate}
+  \vfill\kthehu{ushW112}
+\end{frame}
+
+\begin{frame}[label=zgjGabim112]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item Dendësia është sasi \textbf{intensive} (banorë/km$^2$): shuma e dendësive nuk ka kuptim fizik (njësia: ``banorë/km$^2$ $\times$ 25 qeliza'').
+    \item Së pari ktheni në sasi ekstensive: \texttt{pop <- dens * cellSize(dens, unit = "km")} (banorë për qelizë).
+    \item Pastaj: \texttt{aggregate(pop, fact = 5, fun = sum)}; ose dendësia në rezolucion të ri: \texttt{aggregate(dens, 5, mean)} (e ponderuar me sipërfaqe, afërsisht).
+  \end{itemize}
+  \vfill\kthehu{gjejGabim112}
+\end{frame}
+
+\begin{frame}[label=zgjTPS112]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Qeliza $i$ duhet të jetë i njëjti vend në të dy raster-at. Ndryshe: \texttt{project()} ose \texttt{resample()} në rrjetën e njërit (Ora 5), me humbjen përkatëse.
+    \item Klasa mbizotëruese: \texttt{fun = "modal"}; mesatarja e klasave nuk ka kuptim.
+    \item P.sh.\ varfëria sipas qarqeve duket e njëtrajtshme, ndërsa në nivel bashkie/fshati ka xhepa të thellë: fondet ndahen gabim.
+  \end{enumerate}
+  \vfill\kthehu{ushTPS112}
+\end{frame}
+
+\begin{frame}[label=zgjCp112]{Përgjigjet: Checkpoint Ora 2}
+  \begin{enumerate}
+    \item $j=\lfloor(x-x_{\min})/r_x\rfloor+1$, $i=\lfloor(y_{\max}-y)/r_y\rfloor+1$.
+    \item Lokale: $T_{\text{korrik}}-T_{\text{janar}}$; fokale: zbutja $3\times3$; zonale: lartësia sipas qarkut; globale: mesatarja e Shqipërisë.
+    \item \texttt{mean}: sasi intensive (temperaturë, lartësi, dendësi); \texttt{sum}: ekstensive (banorë, reshje totale në vëllim).
+  \end{enumerate}
+  \vfill\kthehu{cp112}
+\end{frame}

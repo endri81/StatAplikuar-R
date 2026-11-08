@@ -1,0 +1,442 @@
+% ============================================================
+%  Java 11 · Ora 2 — Teori I: modeli raster
+%  Rezultatet: K3, S1
+%  Burimi: Chang (GIS), kapitujt për modelin raster dhe analizën raster;
+%          Tomlin (1990), Map Algebra; Hijmans, dokumentacioni i terra
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Modeli raster]{Modeli raster}
+
+\begin{frame}{Ora 2: Modeli raster}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gjeometria e rrjetës}
+% ------------------------------------------------------------
+
+\begin{frame}{Çfarë e përcakton një raster?}
+  \begin{itemize}
+    \item<1-> Numri i rreshtave $n_r$ dhe i kolonave $n_c$.
+    \item<2-> Shtrirja (\emph{extent}): $x_{\min}, x_{\max}, y_{\min}, y_{\max}$.
+    \item<3-> Rezolucioni: $r_x=(x_{\max}-x_{\min})/n_c$, \quad $r_y=(y_{\max}-y_{\min})/n_r$.
+    \item<4-> CRS-ja, dhe vlerat: një vektor me $n_r\cdot n_c$ numra (për çdo shtresë).
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Koordinatat e qelizave \textbf{nuk} ruhen: llogariten nga 6 numra. Prandaj raster-i është kompakt.\end{Keshille}}
+  \LO{K3}
+\end{frame}
+
+\begin{frame}{Rrjeta $4\times4$: numërimi i qelizave}
+  \centering
+  \begin{tikzpicture}[scale=0.9, font=\scriptsize]
+    \foreach \i in {1,...,4} \foreach \j in {1,...,4} {
+      \pgfmathtruncatemacro{\c}{(\i-1)*4+\j}
+      \draw (\j-1, 4-\i) rectangle ++(1,1);
+      \node at (\j-0.5, 4.5-\i) {\c};
+    }
+    \draw[->] (-0.6,0) -- (4.6,0) node[right]{$x$};
+    \draw[->] (0,-0.6) -- (0,4.6) node[above]{$y$};
+    \foreach \k in {0,...,4} { \node[below] at (\k,-0.1) {\k}; \node[left] at (-0.1,\k) {\k}; }
+    \fill[accent] (2.3,0.7) circle (2pt);
+    \node[accent, right] at (4.8,2.5) {$x_{\min}=0$, $y_{\max}=4$, $r=1$};
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Rreshti 1 është \textbf{lart} ($y$ më i madh); numërimi rresht pas rreshti, nga e majta.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Formulat e indeksimit}
+  \begin{itemize}
+    \item<1-> Nga $(x,y)$ te rreshti dhe kolona:
+      \[ j=\Big\lfloor\frac{x-x_{\min}}{r_x}\Big\rfloor+1,\qquad i=\Big\lfloor\frac{y_{\max}-y}{r_y}\Big\rfloor+1. \]
+    \item<2-> Numri i qelizës: $c=(i-1)\,n_c+j$.
+    \item<3-> Qendra e qelizës $(i,j)$: $x=x_{\min}+(j-\tfrac12)r_x$, \; $y=y_{\max}-(i-\tfrac12)r_y$.
+    \item<4-> Anasjelltas: $i=\lceil c/n_c\rceil$, \; $j=c-(i-1)n_c$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeIdx112]{Parashiko (pa ndihmën e PC)}
+  \begin{Parashiko}
+    Në rrjetën $4\times4$ të slide-it të mëparshëm:
+    \begin{enumerate}
+      \item Në cilën qelizë bie pika $(2.3, 0.7)$?
+      \item Ku është qendra e qelizës 7?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjIdx112}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kontroll me \texttt{terra}}
+<<h2-idx>>=
+library(terra)
+r <- rast(nrows = 4, ncols = 4, xmin = 0, xmax = 4, ymin = 0, ymax = 4,
+          crs = "local")
+values(r) <- 1:16
+cellFromXY(r, cbind(2.3, 0.7))
+xyFromCell(r, 7)
+rowColFromCell(r, c(7, 15))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pika $(2.3, 0.7)$: kolona $\lfloor2.3\rfloor+1=3$, rreshti $\lfloor4-0.7\rfloor+1=4$, qeliza $3\cdot4+3=15$.
+    \item<2-> Qeliza 7: rreshti 2, kolona 3; qendra $(2.5, 2.5)$.
+    \item<3-> \texttt{values(r) <- 1:16} mbush rreshtat nga lart poshtë: i njëjti rend si formula.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Matricat në R mbushen sipas kolonave (\texttt{matrix(1:16, 4)}); raster-at sipas rreshtave. Kur ktheni matricë në raster, përdorni \texttt{byrow = TRUE} ose kontrolloni me një vlerë të njohur.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=ushIdx112]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    Raster-i i lartësisë: $x_{\min}=19.1$, $y_{\max}=42.8$, $r=1/120^\circ$, $n_c=252$.
+    \begin{enumerate}
+      \item Në cilin rresht dhe kolonë bie Tirana $(19.819, 41.328)$?
+      \item Cili është numri i qelizës?
+      \item Kontrolloni me \texttt{cellFromXY()} dhe lexoni lartësinë.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjIdxT112}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Qeliza: pikë apo sipërfaqe?}
+  \begin{itemize}
+    \item<1-> \textbf{Sipërfaqe} (\emph{pixel-is-area}): vlera përfaqëson të gjithë qelizën (mesatare, shumë, klasë mbizotëruese). P.sh.\ lartësia $30''$, dendësia GPW.
+    \item<2-> \textbf{Pikë} (\emph{pixel-is-point}): vlera është matur/interpoluar në qendër. P.sh.\ rrjeta e Kriging-ut (Java 12).
+    \item<3-> Pasoja: \textbf{agregimi} kërkon mesatare për sasi intensive (temperaturë, lartësi) dhe shumë për sasi ekstensive (banorë).
+    \item<4-> Dendësia (banorë/km$^2$) është intensive; numri i banorëve $=$ dendësi $\times$ sipërfaqe qelize.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Vlerat dhe skedarët}
+% ------------------------------------------------------------
+
+\begin{frame}{Tipet e të dhënave dhe NA}
+  \small
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    Tipi në \texttt{terra} & Bajt & Diapazoni & Përdorimi \\ \midrule
+    \texttt{INT1U} & 1 & 0--255 & klasa, mbulim toke \\
+    \texttt{INT2S} & 2 & $-32\,768$--$32\,767$ & lartësi në m (SRTM) \\
+    \texttt{INT4S} & 4 & $\pm2.1\cdot10^9$ & numërime \\
+    \texttt{FLT4S} & 4 & $\approx\pm3.4\cdot10^{38}$, 7 shifra & temperaturë, dendësi \\
+    \texttt{FLT8S} & 8 & double & llogaritje \\ \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item<2-> NA ruhet si vlerë e veçantë (\emph{NoData}), p.sh.\ $-32\,768$ në SRTM.
+    \item<3-> Tipi i gabuar: \texttt{INT1U} për lartësinë $\Rightarrow$ çdo gjë mbi 255 m humbet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeSize112]{Parashiko (pa ndihmën e PC)}
+  \begin{Parashiko}
+    Raster-i i lartësisë ka $396\times252$ qeliza, tipi \texttt{FLT4S}.
+    \begin{enumerate}
+      \item Sa bajt do të zinte pa kompresim?
+      \item Skedari në disk ka 118\,729 bajt. Si është e mundur?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjSize112}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Formatet raster}
+  \begin{itemize}
+    \item<1-> \textbf{GeoTIFF} (\texttt{.tif}): standardi; CRS, shtrirja dhe tipi brenda skedarit; kompresim.
+    \item<2-> \textbf{Cloud-Optimized GeoTIFF} (COG): i organizuar në blloqe dhe piramida; lexohet pjesë-pjesë nga interneti.
+    \item<3-> \textbf{NetCDF} (\texttt{.nc}): kuba shumë-dimensionale (koha, lartësia); klima, oqeanografia.
+    \item<4-> \textbf{ASCII Grid} (\texttt{.asc}): tekst; i thjeshtë, por i madh dhe pa CRS të plotë.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}\texttt{terra::rast()} lexon të gjitha përmes GDAL; \texttt{writeRaster()} zgjedh formatin nga prapashtesa.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Shumë shtresa dhe koha}
+  \begin{itemize}
+    \item<1-> Një \texttt{SpatRaster} mund të ketë $k$ shtresa me të njëjtën rrjetë: $n_r\times n_c\times k$.
+    \item<2-> Shembuj: 12 muajt e WorldClim; bandat e Sentinel-2; seritë kohore ditore.
+    \item<3-> \texttt{r[[i]]} ose \texttt{r\$Jan}: zgjedh shtresë; \texttt{nlyr(r)}: numri; \texttt{time(r)}: data.
+    \item<4-> Funksionet zbatohen shtresë për shtresë (\texttt{global}, \texttt{extract}) ose përmes shtresave (\texttt{app}).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Algjebra e hartave}
+% ------------------------------------------------------------
+
+\begin{frame}{Algjebra e hartave (Tomlin): katër familje}
+  \centering
+  \begin{tikzpicture}[scale=0.42, font=\scriptsize]
+    % local
+    \foreach \i in {0,1,2} \foreach \j in {0,1,2} \draw (\i,\j) rectangle ++(1,1);
+    \fill[accent] (1,1) rectangle ++(1,1);
+    \node at (1.5,-0.8) {lokale};
+    % focal
+    \begin{scope}[xshift=4.5cm]
+      \foreach \i in {0,1,2} \foreach \j in {0,1,2} \draw (\i,\j) rectangle ++(1,1);
+      \fill[accent!40] (0,0) rectangle (3,3); \fill[accent] (1,1) rectangle ++(1,1);
+      \foreach \i in {0,1,2} \foreach \j in {0,1,2} \draw (\i,\j) rectangle ++(1,1);
+      \node at (1.5,-0.8) {fokale};
+    \end{scope}
+    % zonal
+    \begin{scope}[xshift=9cm]
+      \fill[uptblue!30] (0,0) rectangle (2,3); \fill[okgreen!30] (2,0) rectangle (3,3);
+      \foreach \i in {0,1,2} \foreach \j in {0,1,2} \draw (\i,\j) rectangle ++(1,1);
+      \node at (1.5,-0.8) {zonale};
+    \end{scope}
+    % global
+    \begin{scope}[xshift=13.5cm]
+      \fill[accent!40] (0,0) rectangle (3,3);
+      \foreach \i in {0,1,2} \foreach \j in {0,1,2} \draw (\i,\j) rectangle ++(1,1);
+      \node at (1.5,-0.8) {globale};
+    \end{scope}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item<2-> \textbf{Lokale}: çdo qelizë vetëm me veten (në një ose disa shtresa).
+    \item<3-> \textbf{Fokale}: qeliza me fqinjët e saj (dritare $w\times w$).
+    \item<4-> \textbf{Zonale}: të gjitha qelizat e një zone (raster ose poligon).
+    \item<5-> \textbf{Globale}: të gjitha qelizat $\to$ një numër.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC: raster $3\times3$}
+  \centering
+  \begin{tabular}{ccc}
+    1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9
+  \end{tabular}
+  \hspace{1.5cm}
+  \begin{tabular}{ccc}
+    1 & 1 & 2 \\ 1 & 2 & 2 \\ 3 & 3 & 2
+  \end{tabular}
+  \\[3pt] {\scriptsize vlerat $v$ \hspace{2.4cm} zonat $z$}
+  \begin{itemize}
+    \item<2-> Lokale: $2v-1$ $\Rightarrow$ $1,3,5,\dots,17$.
+    \item<3-> Fokale (mesatare $3\times3$): në qendër $(1+\dots+9)/9=5$; në cepin lart-majtas, me \texttt{na.rm}: $(1+2+4+5)/4=3$.
+    \item<4-> Zonale (mesatare): zona 1: $(1+2+4)/3=2.33$; zona 2: $(3+5+6+9)/4=5.75$; zona 3: $(7+8)/2=7.5$.
+    \item<5-> Globale: mesatarja 5, shuma 45.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=12]{Kontroll me \texttt{terra}}
+<<h2-alg>>=
+v <- rast(matrix(1:9, 3, byrow = TRUE))
+z <- rast(matrix(c(1, 1, 2,  1, 2, 2,  3, 3, 2), 3, byrow = TRUE))
+as.matrix(2 * v - 1, wide = TRUE)                       # local
+as.matrix(focal(v, w = 3, fun = mean, na.rm = TRUE), wide = TRUE)  # focal
+zonal(v, z, fun = mean)                                 # zonal
+global(v, c("mean", "sum"))                             # global
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të gjitha vlerat përputhen me llogaritjen pa ndihmën e PC.
+    \item<2-> Fokale: qendra 5; cepat 3, 4, 6, 7; skajet 3.5, 4.5, 5.5, 6.5.
+    \item<3-> \texttt{zonal()} kthen tabelë (zona, mesatarja), jo raster.
+    \item<4-> \texttt{global()} kthen \texttt{data.frame} me një rresht për shtresë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Skajet: \texttt{na.rm} në algjebrën fokale}
+<<h2-edge>>=
+as.matrix(focal(v, w = 3, fun = mean), wide = TRUE)     # na.rm = FALSE
+@
+  \begin{itemize}
+    \item Pa \texttt{na.rm = TRUE}, qelizat e skajit ``shohin'' fqinjë NA $\Rightarrow$ NA.
+    \item Në një hartë reale: bregdeti dhe kufiri humbasin një brez qelizash.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC112]{Pyetje me zgjedhje: cila familje?}
+  \begin{Parashiko}
+    Klasifikoni secilën operacion: lokale, fokale, zonale apo globale?
+    \begin{enumerate}
+      \item Amplituda vjetore $T_{\text{korrik}}-T_{\text{janar}}$ në çdo qelizë.
+      \item Pjerrësia e terrenit nga lartësia (Ora 6).
+      \item Lartësia mesatare e çdo qarku.
+      \item Kuantili 95\% i dendësisë së popullsisë në Shqipëri.
+      \item Qelizat mbi 1500 m $\to$ 1, të tjerat 0.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC112}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Lokale në praktikë: amplituda vjetore}
+<<h2-amp>>=
+tavg <- rast(file.path(W11DATA, "alb_tavg_30s.tif"))
+amp  <- tavg$Jul - tavg$Jan                       # local, cell by cell
+round(global(amp, c("min", "max", "mean"), na.rm = TRUE), 1)
+rbind(min_at = xyFromCell(amp, which.min(values(amp))),
+      max_at = xyFromCell(amp, which.max(values(amp))))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Amplituda nga $14.0^\circ$C deri $21.6^\circ$C; mesatarja $18.0^\circ$C.
+    \item<2-> Minimumi në bregdetin jugperëndimor ($19.27^\circ$, $40.50^\circ$): deti zbut ndryshimet.
+    \item<3-> Maksimumi në verilindje ($20.47^\circ$, $42.11^\circ$, zona e Kukësit): klimë më kontinentale.
+    \item<4-> Një rresht kodi, 44\,902 zbritje: algjebra lokale është e vektorizuar.
+  \end{itemize}
+  \LO{S1}
+\end{frame}
+
+\begin{frame}[fragile]{Harta e amplitudës}
+<<h2-ampmap, eval=FALSE>>=
+library(ggplot2)
+da <- as.data.frame(amp, xy = TRUE, na.rm = TRUE)
+ggplot(da, aes(x, y, fill = Jul)) + geom_raster() +
+  scale_fill_viridis_c(name = "deg C", option = "inferno") +
+  coord_sf(crs = 4326) + labs(x = NULL, y = NULL) + theme_bw(base_size = 7)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: amplituda vjetore}
+<<h2-ampmap-fig, ref.label="h2-ampmap", echo=FALSE, fig.height=3.4, fig.width=3.0, out.width="0.34\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Gradient i qartë perëndim--lindje: nga ndikimi detar te kontinentaliteti.
+    \item<2-> Emri i shtresës mbetet \texttt{Jul} pas zbritjes; riemërtojeni: \texttt{names(amp) <- "amp"}.
+    \item<3-> Kjo hartë nuk ekziston në asnjë skedar: e krijuam nga dy shtresa.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Fokale në praktikë: zbutja}
+  \begin{itemize}
+    \item<1-> Filtri i mesatares $w\times w$: çdo qelizë merr mesataren e fqinjëve.
+    \item<2-> Efekti: zvogëlon zhurmën, por edhe ``rrafshon'' majat dhe luginat.
+    \item<3-> Lidhja me statistikën: mesatare lëvizëse në 2D; si \texttt{loess} në Javën 8, por me dritare fikse.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushW112]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Zbatoni \texttt{focal(elev, w = w, fun = mean, na.rm = TRUE)} për $w=3,5,9,15$.
+      \item Maskoni me \texttt{mask(, elev)} dhe raportoni maksimumin dhe minimumin.
+      \item Si ndryshon lartësia maksimale? Pse minimumi rritet?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjW112}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Zbutja e lartësisë}
+<<h2-focal>>=
+elev <- rast(file.path(W11DATA, "alb_elev_30s.tif"))
+smooth_range <- function(w) {
+  f <- if (w == 1) elev else mask(focal(elev, w = w, fun = mean, na.rm = TRUE), elev)
+  round(unlist(global(f, c("max", "min"), na.rm = TRUE)))
+}
+sapply(c(w1 = 1, w3 = 3, w5 = 5, w9 = 9, w15 = 15), smooth_range)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Maksimumi: $2623\to2443\to2401\to2271\to2126$ m.
+    \item<2-> Minimumi: $-94\to-75\to\dots\to-8$ m: artefaktet negative ``tretën'' nga fqinjët.
+    \item<3-> Dritarja $15\times15$ $\approx$ 14 km $\times$ 10 km: mesatarja rajonale, jo terreni lokal.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Rezolucioni ose zbutja ndryshojnë ekstremet dhe variancën. Mos krahasoni statistika të llogaritura në rezolucione të ndryshme pa e thënë.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rezolucioni dhe agregimi}
+% ------------------------------------------------------------
+
+\begin{frame}{Agregimi dhe zbërthimi}
+  \begin{itemize}
+    \item<1-> \texttt{aggregate(r, fact = k, fun)}: blloqe $k\times k$ $\to$ një qelizë; rezolucioni $\times k$.
+    \item<2-> \texttt{disaggregate(r, fact = k)}: çdo qelizë $\to$ $k\times k$ qeliza me të njëjtën vlerë (\textbf{nuk} shton informacion).
+    \item<3-> \texttt{fun = mean} për sasi intensive, \texttt{fun = sum} për sasi ekstensive.
+    \item<4-> Shembull pa ndihmën e PC: raster-i $4\times4$ me vlera 1--16, \texttt{fact = 2}, mesatare.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Agregimi $4\times4\to2\times2$}
+<<h2-agg>>=
+as.matrix(r, wide = TRUE)
+as.matrix(aggregate(r, fact = 2, fun = mean), wide = TRUE)
+@
+  \begin{itemize}
+    \item Blloku lart-majtas: $(1+2+5+6)/4=3.5$. \; Poshtë-djathtas: $(11+12+15+16)/4=13.5$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Problemi i njësisë së ndryshueshme (MAUP)}
+  \begin{itemize}
+    \item<1-> \emph{Modifiable Areal Unit Problem}: rezultatet statistikore varen nga \textbf{madhësia} dhe \textbf{forma} e njësive.
+    \item<2-> Efekti i shkallës: korrelacioni midis dy variablave zakonisht rritet kur agregojmë.
+    \item<3-> Efekti i zonimit: e njëjta shkallë, kufij të ndryshëm $\Rightarrow$ rezultate të ndryshme.
+    \item<4-> Për INSTAT: statistika sipas qarqeve, bashkive apo rrjetit 1 km mund të tregojnë histori të ndryshme.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Ora 5: simulim i efektit të shkallës mbi korrelacionin temperaturë--lartësi.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=gjejGabim112,fragile]{Gjej gabimin}
+  Duam numrin e banorëve në qeliza $5\times$ më të mëdha nga GPW:
+<<h2-bug, eval=FALSE>>=
+dens <- rast(file.path(W11DATA, "alb_gpw_dens_2020_2.5m.tif"))  # persons/km2
+pop5 <- aggregate(dens, fact = 5, fun = sum)
+global(pop5, "sum", na.rm = TRUE)
+@
+  \begin{itemize}
+    \item Çfarë njësie ka \texttt{pop5}? Pse rezultati nuk është numri i banorëve?
+  \end{itemize}
+  \shkoTe{zgjGabim112}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushTPS112]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Pse algjebra e hartave mund të bëhet vetëm mbi raster-a me të njëjtën rrjetë? Çfarë bëni kur rrjetat ndryshojnë?
+      \item Një raster i mbulimit të tokës (klasa 1--10): çfarë funksioni agregimi përdorni?
+      \item Shembull ku MAUP mund të çojë në përfundim të gabuar politik.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS112}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë përmbledhëse: funksionet e orës}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    Krijo raster & \texttt{rast(nrows, ncols, xmin, \dots)}, \texttt{rast(matrix)} \\
+    Gjeometria & \texttt{ext}, \texttt{res}, \texttt{ncol}, \texttt{nrow}, \texttt{crs}, \texttt{cellSize} \\
+    Indekset & \texttt{cellFromXY}, \texttt{xyFromCell}, \texttt{rowColFromCell} \\
+    Lokale & \texttt{+ - * /}, \texttt{ifel}, \texttt{app} \\
+    Fokale & \texttt{focal(w =, fun =)} \\
+    Zonale / globale & \texttt{zonal}, \texttt{extract}, \texttt{global} \\
+    Rezolucioni & \texttt{aggregate}, \texttt{disaggregate} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=cp112]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 2}
+  \begin{enumerate}
+    \item Shkruani formulat për rreshtin dhe kolonën e pikës $(x,y)$.
+    \item Jepni një shembull për secilën nga katër familjet e algjebrës së hartave.
+    \item Kur agregoni me \texttt{mean} dhe kur me \texttt{sum}?
+  \end{enumerate}
+  \shkoTe{zgjCp112}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 2}
+  \begin{itemize}
+    \item Raster $=$ 6 numra gjeometrie + vektor vlerash; qelizat numërohen nga lart-majtas, rresht pas rreshti.
+    \item $j=\lfloor(x-x_{\min})/r_x\rfloor+1$, $i=\lfloor(y_{\max}-y)/r_y\rfloor+1$, $c=(i-1)n_c+j$.
+    \item Algjebra: lokale (amplituda $14.0$--$21.6^\circ$C), fokale (zbutja), zonale, globale.
+    \item Zbutja dhe agregimi ulin ekstremet: maksimumi $2623\to2126$ m me $w=15$.
+    \item Intensive $\to$ \texttt{mean}; ekstensive $\to$ \texttt{sum}; kujdes nga MAUP.
+  \end{itemize}
+  \begin{Keshille}Ora 3 (Lab I): \texttt{terra} në praktikë: prerje, maskë, klasifikim, sipërfaqe sipas brezave të lartësisë.\end{Keshille}
+\end{frame}
