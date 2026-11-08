@@ -1,0 +1,58 @@
+% ============================================================
+%  Java 8 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjExtr]{Diskutimi: Parashiko (mosha 90)}
+  \begin{itemize}
+    \item Mosha 30: 103.7 (SE 1.4); 50: 119.6 (SE 1.1).
+    \item Mosha 79 (brenda të dhënave, në skaj): 85.2 me SE 11.9: tashmë e pasigurt.
+    \item Mosha 90 (jashtë): 23.6 me SE 45.1. IB përfshin vlera negative: \textbf{e pakuptimtë}.
+    \item Termi $\texttt{age}^4$ dominon jashtë intervalit dhe e tërheq kurbën poshtë.
+  \end{itemize}
+  \vfill\kthehu{pyetjeExtr}
+\end{frame}
+
+\begin{frame}[label=zgjCut]{Zgjidhja: Radha jote! (\texttt{cut} me 6 grupe)}
+  \small
+  \begin{itemize}
+    \item Konstantja 76.28 = mesatarja 18--25. Koeficientët: $+27.9$, $+42.8$, $+41.3$, $+42.7$, $+26.3$.
+    \item $76.3+27.9=104.2$, $76.3+42.8=119.1$, \dots: pikërisht mesataret e Orës 1. \checkmark
+    \item $R^2=0.082$ kundrejt 0.062 për \texttt{cut(age, 4)}.
+    \item Pse: grupi i parë (18--25) ndahet nga 26--35, aty ku paga rritet më shpejt; prerjet përputhen me formën.
+    \item Kosto: 6 parametra kundrejt 4; dhe $R^2$ ende nën \texttt{poly(age, 4)} (0.086 me 5 parametra).
+  \end{itemize}
+  \vfill\kthehu{ushCut}
+\end{frame}
+
+\begin{frame}[label=zgjGab83]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item Formula përdor \texttt{wage\_df\$age}, jo emrin \texttt{age}.
+    \item \texttt{predict()} kërkon në \texttt{newdata} një variabël me emrin \texttt{wage\_df\$age}; nuk e gjen dhe përdor të dhënat origjinale: kthen 3000 vlera të përshtatura me paralajmërim.
+    \item Zgjidhja: \texttt{lm(wage \textasciitilde{} poly(age, 4), data = wage\_df)}.
+  \end{itemize}
+  \vfill\kthehu{gjejGab83}
+\end{frame}
+
+\begin{frame}[label=zgjSigma]{Zgjidhja: Ndrysho parametrin ($\sigma=1$)}
+  \begin{center}\small
+  \begin{tabular}{lcccccc}
+    \toprule & poly3 & poly5 & poly9 & bs4 & bs6 & bs12\\ \midrule
+    $\sigma=0.3$ & 0.0072 & \textbf{0.0055} & 0.0091 & 0.0075 & 0.0065 & 0.0119\\
+    $\sigma=1$ & \textbf{0.043} & 0.061 & 0.102 & 0.053 & 0.072 & 0.132\\ \bottomrule
+  \end{tabular}
+  \end{center}
+  \begin{itemize}
+    \item Me më shumë zhurmë, varianca dominon: fiton modeli \textbf{më i thjeshtë} (\texttt{poly3}).
+    \item Fleksibiliteti optimal varet nga raporti sinjal/zhurmë dhe nga $n$.
+  \end{itemize}
+  \vfill\kthehu{ushSigma}
+\end{frame}
+
+\begin{frame}[label=zgjCp83]{Përgjigjet: Checkpoint Ora 3}
+  \begin{enumerate}
+    \item Çdo rresht teston nëse shkalla $d$ përmirëson ndjeshëm shkallën $d-1$ (test $F$ i pjesshëm); zgjidh shkallën e fundit me $p$ të vogël.
+    \item E njëjta hapësirë, por numerikisht e qëndrueshme (\texttt{kappa} 49 kundrejt $10^8$) dhe lokale.
+    \item $R^2$ matet në të dhënat e trajnimit; \texttt{poly9} ndjek zhurmën, prandaj larget më shumë nga $f$ e vërtetë (variancë e madhe).
+  \end{enumerate}
+  \vfill\kthehu{cp83}
+\end{frame}

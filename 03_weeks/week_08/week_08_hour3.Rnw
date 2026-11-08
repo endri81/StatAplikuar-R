@@ -1,0 +1,348 @@
+% ============================================================
+%  Java 8 · Ora 3 — R Lab I: polinome, shkallë, splines
+%  Rezultatet: S4, S2, S3
+%  Burimi: repo DS612 Lecture_7.1.R (poly, anova, cut), Lecture_7.2.R (bs);
+%          ISLR kap. 7.8.1--7.8.2
+% ============================================================
+
+\section{R Lab I: polinome, shkallë, splines}
+
+\begin{frame}{Ora 3: R Lab I --- polinome, shkallë, splines}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Polinomet te \texttt{Wage}}
+% ------------------------------------------------------------
+
+\begin{frame}{Plani i laboratorit \LO{S4} \LO{S2} \LO{S3}}
+  \begin{itemize}
+    \item<1-> \texttt{Wage} (reale, ISLR; pa kolonën e racës): \texttt{wage \textasciitilde{} f(age)}.
+    \item<2-> Polinomet: ANOVA midis shkallëve 1--5, CV për shkallën, brezat IB, ekstrapolimi.
+    \item<3-> Funksionet shkallë me \texttt{cut()}.
+    \item<4-> \texttt{bs()} kundrejt bazës truncated power të ndërtuar nga zero.
+    \item<5-> Simulim me $f(x)=\sin(2x)$ të njohur (sintetike): vlerësimi kundrejt së vërtetës.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pesë polinome dhe ANOVA}
+<<h3-anova>>=
+library(splines); library(boot)
+wage_df <- read.csv(file.path(W08DATA, "Wage.csv"), stringsAsFactors = TRUE)
+fit_d <- lapply(1:5, function(d) lm(wage ~ poly(age, d), data = wage_df))
+tab <- do.call(anova, fit_d)
+round(data.frame(degree = 1:5, RSS = tab$RSS, F = tab$F,
+                 p = tab$`Pr(>F)`), 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 1 $\to$ 2: $F=143.6$, $p\approx0$: termi kuadratik shumë i nevojshëm.
+    \item<2-> 2 $\to$ 3: $F=9.9$, $p=0.002$: edhe kubiku.
+    \item<3-> 3 $\to$ 4: $p=0.051$, në kufi; 4 $\to$ 5: $p=0.37$, jo.
+    \item<4-> ANOVA sugjeron shkallë 3 ose 4 (si në ISLR).
+  \end{itemize}
+  \begin{Keshille}Këto teste funksionojnë sepse modelet janë të \textbf{përfshira} (\emph{nested}): secili përmban të mëparshmin.\end{Keshille}
+\end{frame}
+
+\begin{frame}[fragile]{$t^2=F$ me bazën ortogonale}
+<<h3-t2>>=
+co <- coef(summary(fit_d[[5]]))
+round(co[, c("Estimate", "t value")], 3)
+round(co[-1, "t value"]^2, 2)          # compare with F column above
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $t^2$ i termave 2--5 = $F$ i ANOVA-s: $11.98^2=143.6$, $3.14^2=9.9$, \dots \checkmark
+    \item<2-> Ky është përfitimi i bazës ortogonale (Ora 2): një model i vetëm jep të gjitha testet sekuenciale.
+    \item<3-> Kujdes: vlen vetëm me \texttt{poly()} ortogonal, jo me \texttt{raw = TRUE}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{10-fold CV për shkallën}
+<<h3-cv>>=
+set.seed(2026)
+cv_deg <- sapply(1:10, function(d)
+  cv.glm(wage_df, glm(wage ~ poly(age, d), data = wage_df), K = 10)$delta[1])
+round(cv_deg, 1)
+which.min(cv_deg)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Kalimi 1 $\to$ 2: MSE bie nga 1677 në 1600.
+    \item<2-> Nga shkalla 2 deri në 10: 1593--1600; ndryshime \textbf{të vogla}, brenda zhurmës së CV.
+    \item<3-> Minimumi formal: 7, por kurba është e sheshtë.
+    \item<4-> Zgjedhja e arsyeshme: shkalla më e ulët pas rënies së madhe, 3 ose 4 (rregulli i thjeshtësisë).
+  \end{itemize}
+  \begin{Gabim}Zgjedhja e minimumit të CV pa parë sa e sheshtë është kurba. Me \texttt{set.seed} tjetër minimumi lëviz.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile,shrink=8]{Kurba me brezin IB 95\%}
+<<h3-band, fig.height=3, fig.width=6.5, out.width="0.52\\textwidth">>=
+fit4 <- fit_d[[4]]
+grid <- data.frame(age = 18:80)
+pr <- predict(fit4, newdata = grid, se.fit = TRUE)
+plot(wage_df$age, wage_df$wage, pch = 16, cex = 0.5,
+     col = rgb(0.6, 0.6, 0.6, 0.3), xlab = "age", ylab = "wage")
+lines(grid$age, pr$fit, col = "#2C5AA0", lwd = 2)
+matlines(grid$age, cbind(pr$fit - 2 * pr$se.fit, pr$fit + 2 * pr$se.fit),
+         col = "#2C5AA0", lty = 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Kurba rritet deri rreth 45--50 vjeç, pastaj bie lehtë.
+    \item<2-> Brezi është i ngushtë në mes (shumë të dhëna), i gjerë pas 70 (pak të dhëna).
+    \item<3-> $\pm2\,\text{SE}$: IB afërsisht 95\% për $f(x_0)$, \textbf{jo} për një pagë individuale.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=pyetjeExtr]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Me polinomin e shkallës 4: sa do të ishte paga e parashikuar për moshën 90? Po SE?
+  \end{Parashiko}
+  \pause
+<<h3-extr>>=
+pr2 <- predict(fit4, newdata = data.frame(age = c(30, 50, 79, 90)),
+               se.fit = TRUE)
+round(cbind(age = c(30, 50, 79, 90), fit = pr2$fit, se = pr2$se.fit), 2)
+@
+  \shkoTe{zgjExtr}{Diskutimi}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Funksionet shkallë}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{cut()}: 4 intervale të barabarta}
+<<h3-cut>>=
+table(cut(wage_df$age, 4))
+fit_step <- lm(wage ~ cut(age, 4), data = wage_df)
+round(coef(fit_step), 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{cut(age, 4)}: 4 intervale me \textbf{gjerësi} të barabartë, jo me numër të barabartë vëzhgimesh.
+    \item<2-> Konstantja 94.2 = mesatarja e grupit 18--33.5.
+    \item<3-> 33.5--49: $+24.1$; 49--64.5: $+23.7$; 64.5--80: $+7.6$ mbi grupin e parë.
+    \item<4-> Grupi i fundit ka vetëm 72 vëzhgime.
+  \end{itemize}
+  \begin{Keshille}Për intervale me numër të barabartë vëzhgimesh: \texttt{cut(x, quantile(x, 0:4/4), include.lowest = TRUE)}.\end{Keshille}
+\end{frame}
+
+\begin{frame}[fragile,shrink=8]{Funksioni shkallë kundrejt polinomit}
+<<h3-step-plot, fig.height=3, fig.width=6.5, out.width="0.52\\textwidth">>=
+plot(wage_df$age, wage_df$wage, pch = 16, cex = 0.5,
+     col = rgb(0.6, 0.6, 0.6, 0.3), xlab = "age", ylab = "wage")
+lines(grid$age, predict(fit_step, grid), col = "#D97706", lwd = 2, type = "s")
+lines(grid$age, pr$fit, col = "#2C5AA0", lwd = 2)
+legend("topright", c("cut(age, 4)", "poly(age, 4)"), lwd = 2,
+       col = c("#D97706", "#2C5AA0"), bty = "n")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Funksioni shkallë humbet rritjen e shpejtë brenda grupit 18--33.5.
+    \item<2-> Kërcimet te 33.5, 49, 64.5 janë artificiale: paga nuk ndryshon papritur në një ditëlindje.
+    \item<3-> $R^2$: 0.062 (shkallë) kundrejt 0.086 (polinom), me të njëjtin numër parametrash (4 kundrejt 5).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushCut]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    \begin{enumerate}
+      \item Përshtat \texttt{lm(wage \textasciitilde{} cut(age, c(17, 25, 35, 45, 55, 65, 80)))}.
+      \item Krahaso koeficientët me mesataret e Orës 1 (76, 104, 119, \dots).
+      \item Llogarit $R^2$. A është më mirë se \texttt{cut(age, 4)}? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjCut}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Splines: \texttt{bs()} dhe baza nga zero}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\texttt{bs()} me tri nyje}
+<<h3-bs>>=
+fit_bs <- lm(wage ~ bs(age, knots = c(25, 40, 60)), data = wage_df)
+dim(bs(wage_df$age, knots = c(25, 40, 60)))
+length(coef(fit_bs))                         # K + 4 = 7
+round(summary(fit_bs)$r.squared, 4)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Baza truncated power nga zero}
+<<h3-tp>>=
+tp <- function(x, knot) pmax(x - knot, 0)^3      # (x - knot)_+^3
+a <- wage_df$age
+X_tp <- cbind(a, a^2, a^3, tp(a, 25), tp(a, 40), tp(a, 60))
+fit_tp <- lm(wage_df$wage ~ X_tp)
+all.equal(unname(fitted(fit_tp)), unname(fitted(fit_bs)))
+c(kappa_tp = kappa(cbind(1, X_tp)), kappa_bs = kappa(model.matrix(fit_bs)))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të njëjtat $\hat y$: dy baza, \textbf{e njëjta hapësirë} kolonash. \checkmark
+    \item<2-> Numri i kushtëzimit (\texttt{kappa}): $\approx1.2\times10^8$ për truncated power, $\approx49$ për B-spline.
+    \item<3-> \textbf{Pse?} $a^3$ shkon deri në $512\,000$, ndërsa B-splines janë të kufizuara në $[0,1]$ dhe lokale.
+    \item<4-> Prandaj në praktikë përdorim \texttt{bs()}; truncated power shërben për ta kuptuar.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=8]{Spline-i me nyjet}
+<<h3-bs-plot, fig.height=3, fig.width=6.5, out.width="0.52\\textwidth">>=
+pb <- predict(fit_bs, newdata = grid, se.fit = TRUE)
+plot(wage_df$age, wage_df$wage, pch = 16, cex = 0.5,
+     col = rgb(0.6, 0.6, 0.6, 0.3), xlab = "age", ylab = "wage")
+lines(grid$age, pb$fit, col = "#15803D", lwd = 2)
+matlines(grid$age, cbind(pb$fit - 2 * pb$se.fit, pb$fit + 2 * pb$se.fit),
+         col = "#15803D", lty = 2)
+abline(v = c(25, 40, 60), lty = 3, col = "gray40")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Forma e ngjashme me polinomin e shkallës 4: rritje deri rreth 40, rrafsh, rënie.
+    \item<2-> Nyjet (vija me pika) nuk duken si thyerje: $f''$ e vazhdueshme.
+    \item<3-> Brezi zgjerohet shumë pas 70: spline-i kubik është i paqëndrueshëm në skaje, si polinomi.
+    \item<4-> Ora 4: splines natyrore e zgjidhin këtë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{CV për df të \texttt{bs()}}
+<<h3-cv-bs>>=
+set.seed(2026)
+df_grid <- 3:12
+cv_bs <- sapply(df_grid, function(d)
+  cv.glm(wage_df, glm(wage ~ bs(age, df = d), data = wage_df), K = 10)$delta[1])
+round(setNames(cv_bs, df_grid), 1)
+@
+  \begin{itemize}
+    \item<2-> Përsëri kurbë e sheshtë (1594--1600); minimumi te \texttt{df = 4}, pra 1 nyje. Splines dhe polinomet japin MSE të ngjashëm.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab83]{Gjej gabimin}
+<<h3-bug, error=TRUE>>=
+fit_bad <- lm(wage_df$wage ~ poly(wage_df$age, 4))
+predict(fit_bad, newdata = data.frame(age = c(30, 50)))[1:4]
+@
+  \begin{itemize}
+    \item Pse nuk morëm 2 parashikime për moshat 30 dhe 50?
+  \end{itemize}
+  \shkoTe{zgjGab83}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulim: vlerësimi kundrejt së vërtetës}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Të dhëna me $f$ të njohur \hfill\small(sintetike)}
+<<h3-sim-data>>=
+f_true <- function(x) sin(2 * x)
+set.seed(2026)
+n <- 100
+sim <- data.frame(x = seq(0, 3, length.out = n))
+sim$y <- f_true(sim$x) + rnorm(n, sd = 0.3)
+xg <- data.frame(x = seq(0, 3, length.out = 200))
+@
+  \begin{itemize}
+    \item<2-> E vërteta: $f(x)=\sin(2x)$ në $[0,3]$, $\sigma=0.3$.
+    \item<3-> Matja e gabimit: $\text{MSE}_f=\frac1{200}\sum_g\big(\hat f(x_g)-f(x_g)\big)^2$, kundrejt $f$, jo kundrejt $y$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=8]{Katër modele në një mostër}
+<<h3-sim-plot, fig.height=3, fig.width=6.5, out.width="0.52\\textwidth">>=
+mods <- list(poly3 = y ~ poly(x, 3), poly9 = y ~ poly(x, 9),
+             bs6 = y ~ bs(x, df = 6), bs12 = y ~ bs(x, df = 12))
+plot(sim$x, sim$y, pch = 16, cex = 0.6, col = "gray60", xlab = "x", ylab = "y")
+curve(f_true, 0, 3, add = TRUE, lwd = 3)
+cols <- c("#2C5AA0", "#D97706", "#15803D", "#B91C1C")
+for (k in seq_along(mods))
+  lines(xg$x, predict(lm(mods[[k]], data = sim), xg), col = cols[k], lwd = 1.5)
+legend("bottomleft", c("truth", names(mods)), col = c("black", cols),
+       lwd = c(3, rep(1.5, 4)), bty = "n", cex = 0.7)
+@
+\end{frame}
+
+\begin{frame}[fragile]{200 përsëritje}
+<<h3-sim-rep>>=
+set.seed(2026)
+mods6 <- list(poly3 = y ~ poly(x, 3), poly5 = y ~ poly(x, 5),
+              poly9 = y ~ poly(x, 9), bs4 = y ~ bs(x, df = 4),
+              bs6 = y ~ bs(x, df = 6), bs12 = y ~ bs(x, df = 12))
+mse_f <- replicate(200, {
+  d <- data.frame(x = sim$x, y = f_true(sim$x) + rnorm(n, sd = 0.3))
+  sapply(mods6, function(m)
+    mean((predict(lm(m, data = d), xg) - f_true(xg$x))^2)) })
+round(rowMeans(mse_f), 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon? (vlerësimi kundrejt së vërtetës)}
+  \begin{itemize}
+    \item<1-> Më të mirët: \texttt{poly5} (0.0055) dhe \texttt{bs6} (0.0065).
+    \item<2-> Shumë pak fleksibilitet (\texttt{poly3}, \texttt{bs4}): zhvendosje, $\approx0.0073$.
+    \item<3-> Shumë fleksibilitet (\texttt{poly9}, \texttt{bs12}): variancë, 0.009--0.012.
+    \item<4-> Kompromisi zhvendosje--variancë në numra: fleksibiliteti i mesëm fiton.
+    \item<5-> Në praktikë $f$ nuk e njohim: CV është zëvendësuesi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=ushSigma]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(6 minuta)]
+    Në kodin e përsëritjeve ndrysho \texttt{sd = 0.3} në \texttt{sd = 1}.
+    \begin{enumerate}
+      \item Parashiko: cili model do të fitojë tani, më i thjeshtë apo më fleksibël?
+      \item Ekzekuto dhe krahaso.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSigma}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[shrink=3]{Gabime të zakonshme në laborator}
+  \begin{Gabim}\texttt{lm(df\$y \textasciitilde{} poly(df\$x, 4))}: \texttt{predict()} me \texttt{newdata} nuk funksionon. Përdor \texttt{data = } dhe emra variablash.\end{Gabim}
+  \pause
+  \begin{Gabim}\texttt{cut(x, 4)} pritet të japë grupe me madhësi të barabartë; jep intervale me gjerësi të barabartë.\end{Gabim}
+  \pause
+  \begin{Gabim}Shkalla ose df zgjidhen me $R^2$ në të dhënat e trajnimit: gjithmonë fiton modeli më fleksibël.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=cp83]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Si e lexoni tabelën \texttt{anova(fit1, \dots, fit5)} për polinomet?
+    \item Pse \texttt{bs()} preferohet ndaj bazës truncated power në R?
+    \item Në simulim, pse \texttt{poly9} është më keq se \texttt{poly5}, megjithëse ka $R^2$ më të lartë?
+  \end{enumerate}
+  \shkoTe{zgjCp83}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item ANOVA sekuenciale: shkalla 3--4 te \texttt{Wage}; $t^2=F$ me \texttt{poly()}.
+    \item CV: kurbë e sheshtë pas shkallës 2; zgjidh modelin më të thjeshtë që e arrin.
+    \item Ekstrapolimi: mosha 90 $\Rightarrow$ 23.6 me SE 45; i pakuptimtë.
+    \item \texttt{cut()}: kërcime artificiale; $R^2$ 0.062 kundrejt 0.086.
+    \item \texttt{bs()} = truncated power (të njëjtat $\hat y$), \texttt{kappa} 49 kundrejt $10^8$.
+    \item Simulimi: fleksibiliteti i mesëm fiton.
+  \end{itemize}
+  \begin{Keshille}Ora 4: splines natyrore, smoothing splines, loess, GAM dhe regresi i fortë.\end{Keshille}
+\end{frame}
