@@ -1,0 +1,415 @@
+% ============================================================
+%  Java 10 · Ora 4 — Projeksionet hartografike
+%  Rezultatet: K3, S1, C1
+%  Burimi: Chang (GIS), kapitulli për sistemet koordinative;
+%          Snyder, Map Projections --- A Working Manual (USGS PP 1395, 1987);
+%          dokumentacioni PROJ / EPSG
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Projeksionet]{Projeksionet hartografike}
+
+\begin{frame}{Ora 4: Projeksionet hartografike}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pse projektojmë?}
+% ------------------------------------------------------------
+
+\begin{frame}{Nga elipsoidi në plan}
+  \begin{itemize}
+    \item<1-> \termi{Projeksioni}{map projection}: funksion $(\lambda,\varphi)\mapsto(x,y)$ nga elipsoidi në plan.
+    \item<2-> Pse? Ekranet, letra dhe shumica e algoritmeve (Euklidi, grid-et, Kriging) punojnë në plan.
+    \item<3-> Në plan: distanca $=\sqrt{\Delta x^2+\Delta y^2}$, sipërfaqja me formulën e lidhëzës (Ora 3).
+    \item<4-> Çmimi: çdo projeksion \textbf{shtrembëron} diçka.
+  \end{itemize}
+  \LO{K3, S1}
+\end{frame}
+
+\begin{frame}{Pse nuk ka hartë të përsosur?}
+  \begin{itemize}
+    \item<1-> Provoni të shtypni lëvozhgën e një portokalli në tavolinë: çahet ose shtrihet.
+    \item<2-> Matematikisht: sfera ka lakim Gausian $1/R^2>0$, plani ka 0.
+    \item<3-> \emph{Theorema Egregium} (Gauss): lakimi ruhet nga çdo hartim që ruan të gjitha distancat.
+    \item<4-> Pasojë: asnjë projeksion nuk ruan distancat kudo. Zgjedhim çfarë ruajmë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë mund të ruajmë?}
+  \begin{itemize}
+    \item<1-> \termi{Konform}{conformal}: këndet dhe format lokale (rrathë të vegjël $\to$ rrathë).
+    \item<2-> \termi{Ekuivalent}{equal-area}: sipërfaqet (me shkallë konstante).
+    \item<3-> \termi{Ekuidistant}{equidistant}: distancat përgjatë disa vijave (p.sh.\ meridianeve).
+    \item<4-> \termi{Kompromis}{compromise}: pak shtrembërim në gjithçka (p.sh.\ Robinson).
+  \end{itemize}
+  \onslide<5->{\begin{Teoreme}[(pa vërtetim)]Asnjë projeksion nuk është njëkohësisht konform dhe ekuivalent.\end{Teoreme}}
+\end{frame}
+
+\begin{frame}{Sipërfaqet ndihmëse: cilindër, kon, plan}
+  \centering
+  \begin{tikzpicture}[scale=0.75, font=\scriptsize]
+    % cylinder
+    \draw (0,0) circle (1);
+    \draw[uptblue,thick] (-1,-1.4) -- (-1,1.4); \draw[uptblue,thick] (1,-1.4) -- (1,1.4);
+    \draw[uptblue] (0,1.4) ellipse (1 and 0.18); \draw[uptblue] (0,-1.4) ellipse (1 and 0.18);
+    \node at (0,-2.0) {cilindrike};
+    % cone
+    \begin{scope}[xshift=3.6cm]
+      \draw (0,0) circle (1);
+      \draw[uptblue,thick] (0,2.1) -- (-1.35,-0.6); \draw[uptblue,thick] (0,2.1) -- (1.35,-0.6);
+      \draw[uptblue] (0,-0.6) ellipse (1.35 and 0.22);
+      \node at (0,-2.0) {konike};
+    \end{scope}
+    % plane
+    \begin{scope}[xshift=7.2cm]
+      \draw (0,0) circle (1);
+      \draw[uptblue,thick] (-1.4,1) -- (1.4,1);
+      \fill[uptblue] (0,1) circle (1.5pt);
+      \node at (0,-2.0) {azimutale};
+    \end{scope}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Tangjente (prek në një vijë/pikë) ose sekante (pret në dy vija).
+    \item Normale, tërthore (\emph{transverse}) ose të pjerrëta (\emph{oblique}).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Projeksionet cilindrike}
+% ------------------------------------------------------------
+
+\begin{frame}{Faktorët e shkallës}
+  \begin{itemize}
+    \item<1-> $h$: shkalla përgjatë meridianit; $k$: shkalla përgjatë paralelit.
+    \item<2-> Në sferë, gjatësia e vërtetë e $d\varphi$ është $R\,d\varphi$; e $d\lambda$ është $R\cos\varphi\,d\lambda$.
+    \item<3-> $h=\dfrac{dy/d\varphi}{R}$, \quad $k=\dfrac{dx/d\lambda}{R\cos\varphi}$ (projeksionet cilindrike normale).
+    \item<4-> Konform $\Leftrightarrow h=k$. \quad Ekuivalent $\Leftrightarrow h\cdot k=1$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plate carrée (ekuidistant cilindrik)}
+  \begin{itemize}
+    \item<1-> $x=R\lambda$, \quad $y=R\varphi$ (këndet në radianë).
+    \item<2-> $h=R/R=1$: meridianët në shkallë të saktë.
+    \item<3-> $k=R/(R\cos\varphi)=\sec\varphi$: paralelët zgjaten.
+    \item<4-> Sipërfaqja zmadhohet me $hk=\sec\varphi$: në $41.2^\circ$, $\times1.33$.
+  \end{itemize}
+  \onslide<5->{\begin{Gabim}Vizatimi i (lon, lat) si (x, y) pa projeksion është pikërisht plate carrée. Mirë për të parë, keq për të matur.\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Mercator: kërkojmë $h=k$}
+  \begin{itemize}
+    \item<1-> Mbajmë $x=R\lambda$, pra $k=\sec\varphi$.
+    \item<2-> Për konformitet duam $h=\sec\varphi$: $\dfrac{dy}{d\varphi}=R\sec\varphi$.
+    \item<3-> Integrojmë: $y=R\displaystyle\int_0^\varphi\sec t\,dt=R\ln\tan\!\Big(\frac{\pi}{4}+\frac{\varphi}{2}\Big)$.
+    \item<4-> Sipërfaqja zmadhohet me $hk=\sec^2\varphi$: $\times4$ në $60^\circ$; $\infty$ në pol.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeMerc104]{Parashiko (pa ndihmën e PC)}
+  \begin{Parashiko}
+    \begin{enumerate}
+      \item Në Mercator, sa herë zmadhohet sipërfaqja në gjerësinë $60^\circ$? ($\cos60^\circ=0.5$)
+      \item Shqipëria është rreth $41.2^\circ$ V, $\cos41.2^\circ\approx0.752$. Sa herë del më e madhe në Web Mercator?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMerc104}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kontroll në R: $y$ i Mercatorit}
+<<h4-merc>>=
+merc_y <- function(lat, R = 6371) R * log(tan(pi / 4 + lat * pi / 360))
+lat <- c(0, 30, 41.3, 60, 80, 89)
+round(data.frame(lat, y_km = merc_y(lat), area_factor = 1 / cos(lat * pi / 180)^2), 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Hapësira midis paralelëve rritet: nga $30^\circ$ në $60^\circ$ shtohen 5\,000 km, nga $60^\circ$ në $89^\circ$ edhe 21\,800 km.
+    \item<2-> Në $41.3^\circ$: sipërfaqja $\times1.77$; në $80^\circ$: $\times33$.
+    \item<3-> Prandaj Grenlanda duket sa Afrika, ndërsa në realitet Afrika është rreth 14 herë më e madhe.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lambert cilindrik ekuivalent}
+  \begin{itemize}
+    \item<1-> Duam $hk=1$ me $k=\sec\varphi$ $\Rightarrow$ $h=\cos\varphi$.
+    \item<2-> $\dfrac{dy}{d\varphi}=R\cos\varphi$ $\Rightarrow$ $y=R\sin\varphi$.
+    \item<3-> Sipërfaqet e sakta, por format afër poleve shtypen fort.
+    \item<4-> Tri projeksione, një familje: $y=R\varphi$, \; $y=R\ln\tan(\pi/4+\varphi/2)$, \; $y=R\sin\varphi$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Tre zgjedhje të $y(\varphi)$}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=7.5cm, height=4.6cm, xmin=0, xmax=85, ymin=0, ymax=3,
+        xlabel={$\varphi$ (gradë)}, ylabel={$y/R$}, legend pos=north west,
+        legend style={font=\scriptsize}, tick label style={font=\scriptsize}, label style={font=\scriptsize}]
+      \addplot[uptblue, thick, domain=0:85, samples=60] {x*pi/180};
+      \addplot[accent, thick, domain=0:85, samples=60] {ln(tan(45+x/2))};
+      \addplot[okgreen, thick, domain=0:85, samples=60] {sin(x)};
+      \legend{plate carrée, Mercator, Lambert ekuivalent}
+    \end{axis}
+  \end{tikzpicture}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Indikatrisa e Tissot}
+% ------------------------------------------------------------
+
+\begin{frame}{Indikatrisa e Tissot}
+  \begin{itemize}
+    \item<1-> Vizatojmë rrathë të vegjël me rreze \textbf{të njëjtë në terren} në shumë vende.
+    \item<2-> Pas projeksionit, çdo rreth bëhet elipsë me gjysmëboshte $a'$ dhe $b'$.
+    \item<3-> Konform: $a'=b'$ (rrathë), por madhësia ndryshon.
+    \item<4-> Ekuivalent: $a'b'$ konstant (sipërfaqe e njëjtë), por format shtrembërohen.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Të dhënat: bota 1:110m}
+  \begin{itemize}
+    \item<1-> Natural Earth 1:110m (paketa \texttt{rnaturalearthdata}), \textbf{reale}, e përgjithësuar.
+    \item<2-> Hoqëm Antarktidën dhe prenë në $60^\circ$J--$84^\circ$V: Mercator nuk përcaktohet në pol.
+    \item<3-> Ruajtur si \texttt{world\_ne110.gpkg} (176 shtete).
+    \item<4-> Rrathët: rreze 800 km, ndërtuar me \texttt{st\_buffer()} mbi sferë (\texttt{s2}).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Rrathët e Tissot me \texttt{sf}}
+<<h4-tis>>=
+library(sf); library(ggplot2)
+world <- st_read(file.path(W10DATA, "world_ne110.gpkg"), quiet = TRUE)
+grid  <- expand.grid(lon = seq(-150, 150, 60), lat = seq(-60, 60, 30))
+tissot <- st_buffer(st_as_sf(grid, coords = c("lon", "lat"), crs = 4326),
+                    dist = 800000)                 # metres, on the sphere
+tis_map <- function(crs, title) ggplot() +
+  geom_sf(data = st_transform(world, crs), fill = "grey88", colour = "grey60",
+          linewidth = 0.1) +
+  geom_sf(data = st_transform(tissot, crs), fill = "red", alpha = 0.45, colour = NA) +
+  ggtitle(title) + theme_void(base_size = 9)
+range(as.numeric(st_area(tissot)) / 1e6)          # km^2, all equal
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 30 rrathë, secili $\approx2.03$ milion km$^2$ ($\pi\cdot800^2=2.01$ milion): \texttt{s2} e mbulon rrethin me poligon pak më të madh. Ajo që ka rëndësi: të gjithë janë të barabartë.
+    \item<2-> Funksioni \texttt{tis\_map()} vizaton botën dhe rrathët në cilindo CRS.
+    \item<3-> E njëjta shtresë, vetëm \texttt{crs} ndryshon: kjo është fuqia e \texttt{st\_transform()}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Mercator kundrejt Mollweide}
+<<h4-tis-plot, fig.height=2.4, fig.width=8, out.width="0.98\\textwidth">>=
+library(patchwork)
+tis_map("+proj=merc", "Mercator (konform)") +
+  tis_map("+proj=moll", "Mollweide (ekuivalent)")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mercator: të gjitha mbeten rrathë, por në $60^\circ$ janë shumë më të mëdhenj: format ruhen, sipërfaqet jo.
+    \item<2-> Mollweide: të gjitha kanë të njëjtën sipërfaqe, por larg qendrës bëhen elipsa të shtrembëruara.
+    \item<3-> Kjo është zgjedhja themelore: formë apo sipërfaqe?
+  \end{itemize}
+  \LO{S3, C1}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC104]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    INSTAT do të hartojë dendësinë e popullsisë sipas bashkive, me ngjyra. Cili projeksion është më i përshtatshëm?
+    \begin{enumerate}[A.]
+      \item Web Mercator (EPSG:3857), sepse e përdor Google Maps.
+      \item Një projeksion ekuivalent ose me shtrembërim shumë të vogël sipërfaqesh në Shqipëri.
+      \item Plate carrée, sepse ruan meridianët.
+      \item Nuk ka rëndësi, ngjyrat janë relative.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC104}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Transverse Mercator dhe UTM}
+% ------------------------------------------------------------
+
+\begin{frame}{Transverse Mercator (TM)}
+  \begin{itemize}
+    \item<1-> Mercator i rrotulluar $90^\circ$: cilindri prek përgjatë një \textbf{meridiani qendror} $\lambda_0$.
+    \item<2-> Konform; shkalla e saktë përgjatë $\lambda_0$, rritet larg tij.
+    \item<3-> Përafrim: $k\approx k_0\Big(1+\dfrac{x^2}{2R^2}\Big)$, ku $x$ është distanca nga $\lambda_0$.
+    \item<4-> I mirë për vende të ngushta në drejtimin L--P: Shqipëria ka gjerësi vetëm $\approx150$ km.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pse $k\approx 1+x^2/(2R^2)$?}
+  \begin{itemize}
+    \item<1-> Te Mercatori normal, $k=\sec\varphi$, ku $\varphi$ është këndi nga vija e prekjes (ekuatori).
+    \item<2-> Te TM, ``ekuatori'' është meridiani qendror; këndi nga ai është $\theta\approx x/R$.
+    \item<3-> $\sec\theta=1+\theta^2/2+O(\theta^4)$ (seria e Taylor-it).
+    \item<4-> Pra $k\approx1+x^2/(2R^2)$; me faktor $k_0$: $k\approx k_0(1+x^2/(2R^2))$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  \begin{itemize}
+    \item<1-> Albania TM 2010: $\lambda_0=20^\circ$, $k_0=1$.
+    \item<2-> Korça, $\approx 0.8^\circ$ në lindje; në $40.6^\circ$: $x\approx0.8\cdot84.5\approx68$ km.
+    \item<3-> $k-1\approx \dfrac{68^2}{2\cdot6371^2}=\dfrac{4624}{81\,180\,000}\approx5.7\cdot10^{-5}$.
+    \item<4-> 57 ppm: 5.7 cm në 1 km. Mjaft i vogël për shumicën e punëve inxhinierike.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{UTM: Universal Transverse Mercator}
+  \begin{itemize}
+    \item<1-> Toka ndahet në 60 zona me gjerësi $6^\circ$; zona $z$ ka $\lambda_0=6z-183$.
+    \item<2-> Numri i zonës: $z=\lfloor(\lambda+180)/6\rfloor+1$.
+    \item<3-> $k_0=0.9996$: $-0.04\%$ në mes, $k=1$ në dy vija $\approx180$ km nga $\lambda_0$, deri $\approx+0.1\%$ në skajet e zonës (në ekuator).
+    \item<4-> \emph{False easting} $500\,000$ m në $\lambda_0$, që $x$ të jetë gjithmonë pozitiv.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushUTM104]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Gjeni zonën UTM për Tiranën ($19.82^\circ$), Korçën ($20.78^\circ$) dhe Romën ($12.5^\circ$).
+      \item Cili është meridiani qendror i zonës së Shqipërisë?
+      \item A shtrihet e gjithë Shqipëria ($19.28^\circ$--$21.03^\circ$) në një zonë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjUTM104}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Projeksionet që përdoren në Shqipëri}
+  \small
+  \begin{tabular}{llll}
+    \toprule
+    EPSG & Emri & Datumi & $\lambda_0$, $k_0$, $x_0$ \\
+    \midrule
+    2462 & Gauss--Krüger zona 4 & Albanian 1987 & $21^\circ$, 1, 4\,500\,000 \\
+    32634 & UTM zona 34N & WGS 84 & $21^\circ$, 0.9996, 500\,000 \\
+    6870 & Albania TM 2010 & ETRS89 & $20^\circ$, 1, 500\,000 \\
+    3035 & LAEA Europe & ETRS89 & azimutal ekuivalent \\
+    \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item<2-> Të tre të parët janë Transverse Mercator; ndryshojnë datumi, $\lambda_0$, $k_0$, $x_0$.
+    \item<3-> EPSG:3035: grid-i statistikor i Eurostat (GISCO) për të dhënat e popullsisë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Të njëjtat parametra në PROJ}
+<<h4-proj>>=
+st_crs(6870)$proj4string
+st_crs(32634)$proj4string
+st_crs(3035)$proj4string
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{+proj=tmerc}: Transverse Mercator; \texttt{+lon\_0=20}, \texttt{+k=1}, \texttt{+x\_0=500000}.
+    \item<2-> \texttt{+proj=utm +zone=34}: PROJ i nxjerr vetë parametrat ($21^\circ$, 0.9996).
+    \item<3-> \texttt{+proj=laea}: Lambert azimutal ekuivalent me qendër në $52^\circ$V, $10^\circ$L.
+  \end{itemize}
+  \begin{Keshille}Në kod përdorni kodin EPSG (\texttt{crs = 6870}). Vargu proj4 është vetëm për lexim; WKT2 është përshkrimi i plotë.\end{Keshille}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pasojat për statistikën}
+% ------------------------------------------------------------
+
+\begin{frame}[label=pyetjeArea104]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Llogarisim sipërfaqen e Shqipërisë (1:50m) në 8 CRS të ndryshëm.
+    Renditni nga më e vogla te më e madhja: Albania TM, UTM 34N, plate carrée (EPSG:4087), Web Mercator (EPSG:3857).
+  \end{Parashiko}
+  \shkoTe{zgjArea104}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Sipërfaqja e Shqipërisë në 8 CRS}
+<<h4-area>>=
+balk <- st_read(file.path(W10DATA, "balkans_ne50.gpkg"), quiet = TRUE)
+alb  <- balk[balk$admin == "Albania", ]
+crs_list <- c(6870, 2462, 32634, 3035, 6933, 3034, 4087, 3857)
+area <- sapply(crs_list, function(k) as.numeric(st_area(st_transform(alb, k))) / 1e6)
+data.frame(epsg = crs_list, name = substr(sapply(crs_list, function(k) st_crs(k)$Name), 1, 34),
+           km2 = round(area, 1), ratio = round(area / area[1], 3))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> TM, GK, UTM dhe të dy ekuivalentët (3035, 6933): 28\,355--28\,378 km$^2$, brenda 0.1\%.
+    \item<2-> LCC Europe (konform, konik): 27\,183, $-4.2\%$: Shqipëria është midis paralelëve standardë ($35^\circ$ dhe $65^\circ$), ku $k<1$.
+    \item<3-> Plate carrée $\times1.33$ ($\sec41.2^\circ$); Web Mercator $\times1.77$ ($\sec^2 41.2^\circ$).
+    \item<4-> Teoria e faktorëve të shkallës parashikoi saktë raportet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGabim104,fragile]{Gjej gabimin}
+  Një analist llogarit dendësinë e popullsisë sipas qarqeve:
+<<h4-bug, eval=FALSE>>=
+qarqet <- st_transform(qarqet, 3857)       # same as the web map
+qarqet$density <- qarqet$pop / (as.numeric(st_area(qarqet)) / 1e6)
+@
+  \begin{itemize}
+    \item Çfarë është e gabuar? Me sa përqind gabon dendësia?
+    \item A ndryshon renditja e qarqeve sipas dendësisë?
+  \end{itemize}
+  \shkoTe{zgjGabim104}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Si ta zgjedhim projeksionin?}
+  \small
+  \begin{tabular}{ll}
+    \toprule
+    Detyra & Zgjedhja \\
+    \midrule
+    Sipërfaqe, dendësi, harta me ngjyra & ekuivalent (LAEA, EPSG:3035) \\
+    Distanca, buffer, inxhinieri në Shqipëri & Albania TM (6870) ose UTM 34N \\
+    Interpolim, Kriging (Java 12) & projeksion lokal në metra \\
+    Navigim, harta web & Mercator / Web Mercator (vetëm për shfaqje) \\
+    Botë për komunikim & Robinson, Equal Earth (kompromis / ekuivalent) \\
+    \bottomrule
+  \end{tabular}
+  \onslide<2->{\begin{Keshille}Rregull i thjeshtë: ruani të dhënat në 4326 ose 6870; llogaritni në CRS të projektuar lokal; shfaqni në çfarë të doni.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=ushTPS104]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Pse Kriging-u (Java 12) kërkon koordinata në metra dhe jo në gradë?
+      \item Një projekt me të dhëna nga Shqipëria, Kosova dhe Maqedonia e Veriut: cilin CRS do të zgjidhnit? Pse jo Albania TM?
+      \item A mund të ketë një projeksion ``më të mirë'' për të gjitha detyrat?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS104}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp104]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 4}
+  \begin{enumerate}
+    \item Shkruani kushtet për projeksion konform dhe ekuivalent me $h$ dhe $k$.
+    \item Sa është faktori i zmadhimit të sipërfaqes në Mercator në gjerësinë $\varphi$?
+    \item Pse UTM përdor $k_0=0.9996$ dhe jo 1?
+  \end{enumerate}
+  \shkoTe{zgjCp104}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 4}
+  \begin{itemize}
+    \item Asnjë projeksion nuk ruan gjithçka (Gauss); zgjedhim: formë, sipërfaqe, distancë.
+    \item Cilindrikët: $y=R\varphi$, $R\ln\tan(\pi/4+\varphi/2)$, $R\sin\varphi$; $h=k$ konform, $hk=1$ ekuivalent.
+    \item Tissot: Mercator ruan rrathët, Mollweide sipërfaqet.
+    \item TM/UTM: $k\approx k_0(1+x^2/2R^2)$; Albania TM ($20^\circ$, $k_0=1$), UTM 34N ($21^\circ$, 0.9996).
+    \item Shqipëria: 28\,373 km$^2$ në TM, $\times1.77$ në Web Mercator.
+  \end{itemize}
+  \begin{Keshille}Ora 5 (Lab II): \texttt{st\_transform}, matja e shtrembërimeve, harta e Shqipërisë në disa projeksione.\end{Keshille}
+\end{frame}

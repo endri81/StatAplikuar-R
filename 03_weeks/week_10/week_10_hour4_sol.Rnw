@@ -1,0 +1,70 @@
+% ============================================================
+%  Java 10 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjMerc104]{Zgjidhja: Parashiko (Mercator)}
+  \begin{enumerate}
+    \item $\sec^2 60^\circ=1/0.5^2=4$: sipërfaqja $\times4$.
+    \item $1/0.752^2=1/0.5655\approx1.77$: Shqipëria del $\approx77\%$ më e madhe.
+  \end{enumerate}
+  \begin{itemize}
+    \item Faktori linear është $\sec\varphi$ (në të dy drejtimet), prandaj sipërfaqja merr katrorin.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMerc104}
+\end{frame}
+
+\begin{frame}[label=zgjMC104]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item A: Web Mercator fryn sipërfaqet me 69--85\% brenda Shqipërisë, më shumë në veri.
+    \item C: plate carrée i fryn me $\sec\varphi\approx1.33$.
+    \item D: dendësia $=$ popullsi / sipërfaqe; sipërfaqja e gabuar jep dendësi të gabuar, edhe relativisht (veri kundrejt jugut).
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC104}
+\end{frame}
+
+\begin{frame}[label=zgjUTM104]{Zgjidhja: Radha jote! (UTM)}
+  \begin{enumerate}
+    \item Tirana: $\lfloor199.82/6\rfloor+1=33+1=34$. Korça: $\lfloor200.78/6\rfloor+1=34$. Roma: $\lfloor192.5/6\rfloor+1=32+1=33$.
+    \item $\lambda_0=6\cdot34-183=21^\circ$ L.
+    \item Po: zona 34 mbulon $18^\circ$--$24^\circ$ L.
+  \end{enumerate}
+  \vfill\kthehu{ushUTM104}
+\end{frame}
+
+\begin{frame}[label=zgjArea104]{Zgjidhja: Parashiko (renditja)}
+  \begin{itemize}
+    \item UTM 34N (28\,355) $<$ Albania TM (28\,373) $<$ plate carrée (37\,714) $<$ Web Mercator (50\,090).
+    \item UTM pak më e vogël: $k_0=0.9996$ zvogëlon sipërfaqet afër $\lambda_0=21^\circ$ me $\approx0.06\%$.
+    \item Plate carrée: $\sec\varphi$; Web Mercator: $\sec^2\varphi$.
+  \end{itemize}
+  \vfill\kthehu{pyetjeArea104}
+\end{frame}
+
+\begin{frame}[label=zgjGabim104]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item Web Mercator nuk është ekuivalent: sipërfaqet fryhen me $\sec^2\varphi$.
+    \item Në $39.65^\circ$ faktori është 1.69, në $42.65^\circ$ 1.85: dendësia del 41\% deri 46\% më e ulët.
+    \item Renditja mund të ndryshojë: qarqet veriore ``humbasin'' më shumë dendësi se ato jugore.
+    \item Rregullimi: \texttt{st\_area(st\_transform(qarqet, 6870))} ose 3035.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim104}
+\end{frame}
+
+\begin{frame}[label=zgjTPS104]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Kriging përdor distanca Euklidiane midis pikave; në gradë, $1^\circ$ L $\neq$ $1^\circ$ V në km, pra variogrami do të ishte i shtrembëruar sipas drejtimit.
+    \item P.sh.\ UTM 34N ($18^\circ$--$24^\circ$, mbulon të tria) ose LAEA 3035. Albania TM ($\lambda_0=20^\circ$) shtrembërohet më shumë në lindje të Maqedonisë së Veriut ($\approx23^\circ$).
+    \item Jo (Gauss): zgjedhja varet nga detyra dhe nga zona.
+  \end{enumerate}
+  \vfill\kthehu{ushTPS104}
+\end{frame}
+
+\begin{frame}[label=zgjCp104]{Përgjigjet: Checkpoint Ora 4}
+  \begin{enumerate}
+    \item Konform: $h=k$; ekuivalent: $hk=1$.
+    \item $\sec^2\varphi=1/\cos^2\varphi$.
+    \item Me $k_0<1$ cilindri bëhet sekant: gabimi shpërndahet midis mesit ($-0.04\%$) dhe skajeve, në vend që të rritet vetëm në njërin drejtim.
+  \end{enumerate}
+  \vfill\kthehu{cp104}
+\end{frame}

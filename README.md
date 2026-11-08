@@ -30,7 +30,7 @@ Titullari: Prof. Asoc. Dr. Endri Raço (eraco@fimif.edu.al)
 | 07 | Kontrolli i hipotezave dhe diagnostikimi | S3, C1 | ✅ Gati (217 slide + 43 zgjidhje) |
 | 08 | Regresi jolinear dhe robust | K2, S2 | ✅ Gati (203 slide + 40 zgjidhje) |
 | 09 | Regresi logjistik dhe klasifikimi (+ Zgjerim: pemët, RF) | K2, S3, C1 | ✅ Gati (177 slide + 41 zgjidhje) |
-| 10 | Sistemet koordinative, projeksionet, datumet (`sf`, `s2`, `ggspatial`) | K3 | 🔄 Orët 1–3 gati (120 slide + 23 zgjidhje) |
+| 10 | Sistemet koordinative, projeksionet, datumet (`sf`, `s2`, `ggspatial`) | K3 | 🔄 Orët 1–4 gati (156 slide + 30 zgjidhje) |
 | 11 | Raster dhe vektor, shapefile (`sf`, `terra`) | K3, S4 | ⏳ |
 | 12 | Interpolimi hapësinor, DTM, Kriging (`gstat`) + projekti final | K3, C1 | ⏳ |
 
