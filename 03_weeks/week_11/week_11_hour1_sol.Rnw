@@ -1,0 +1,51 @@
+% ============================================================
+%  Java 11 · Ora 1 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjCells111]{Zgjidhja: Parashiko (numri i qelizave)}
+  \begin{itemize}
+    \item Sipërfaqja e qelizës: $0.93\cdot0.70\approx0.65$ km$^2$.
+    \item $28\,750/0.65\approx44\,200$ qeliza: përgjigjja \textbf{B}.
+    \item R jep 43\,708: maska e raster-it vjen nga një kufi pak më i thjeshtuar se GADM.
+    \item A do të ishte e saktë vetëm nëse qeliza do të ishte 1 km$^2$.
+  \end{itemize}
+  \vfill\kthehu{pyetjeCells111}
+\end{frame}
+
+\begin{frame}[label=zgjGabim111]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item \texttt{res(elev)} është në gradë: numri 3.035 është në \textbf{gradë katrore}, jo km$^2$.
+    \item Gradët katrore nuk kanë sipërfaqe fikse: $1^\circ\times1^\circ$ në $41^\circ$ është $\approx111\times84$ km, në ekuator $111\times111$ km.
+    \item Rregullimi: \texttt{global(cellSize(elev, unit = "km") * !is.na(elev), "sum")}, ose raster në CRS të projektuar (6870), ku \texttt{prod(res())} është në m$^2$.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim111}
+\end{frame}
+
+\begin{frame}[label=zgjMC111]{Zgjidhja: Vektor apo raster?}
+  \begin{enumerate}
+    \item Rrugët: \textbf{vektor} (vija, me atribute: emri, kategoria).
+    \item PM$_{2.5}$: \textbf{raster} (fushë e vazhdueshme; matet në pika, hartohet si rrjetë).
+    \item Parcelat: \textbf{vektor} (poligone me kufij ligjorë të saktë).
+    \item Sentinel-2: \textbf{raster} (piksele 10--60 m, disa shtresa spektrale).
+    \item Stacionet: \textbf{vektor} (pika); hartat e temperaturës që dalin prej tyre: raster.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeMC111}
+\end{frame}
+
+\begin{frame}[label=zgjTPS111]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Maska e raster-it bazohet në një kufi tjetër, më të thjeshtuar. Po të rasterizojmë GADM-in në të njëjtën rrjetë: 44\,387 qeliza, 28\,738 km$^2$. Gjithashtu, një qelizë hyn ose del e tëra sipas qendrës së saj.
+    \item $30/0.65\approx46$ qeliza: mjafton për mesataren, por qelizat e kufirit peshojnë shumë; \texttt{exactextractr} i peshon sipas pjesës brenda (Ora 5).
+    \item Popullsia në rrjetë 1 km (si GEOSTAT/Eurostat), mbulimi i tokës, dritat e natës, distanca nga shërbimet.
+  \end{enumerate}
+  \vfill\kthehu{ushTPS111}
+\end{frame}
+
+\begin{frame}[label=zgjCp111]{Përgjigjet: Checkpoint Ora 1}
+  \begin{enumerate}
+    \item Objekte: shkolla, rrugë, qark. Fusha: lartësi, temperaturë, ndotje.
+    \item Gjerësia e qelizës në L--P është $\propto\cos\varphi$: qelizat ngushtohen drejt veriut.
+    \item Qeliza mban vlerën mesatare të terrenit në $\approx0.65$ km$^2$; maja është një pikë.
+  \end{enumerate}
+  \vfill\kthehu{cp111}
+\end{frame}

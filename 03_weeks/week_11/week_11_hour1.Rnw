@@ -1,0 +1,367 @@
+% ============================================================
+%  Java 11 · Ora 1 — Motivimi: dy mënyra për të parë botën
+%  Rezultatet: K3, S4
+%  Burimi: Chang (GIS), kapitujt për modelet e të dhënave vektor/raster;
+%          Pebesma & Bivand (2023), kap. 1, 3; Hijmans, dokumentacioni i terra
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Motivimi]{Motivimi: vektor dhe raster}
+
+\begin{frame}{Ora 1: Motivimi --- vektor dhe raster}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi}
+% ------------------------------------------------------------
+
+\begin{frame}{Dy pyetje për Shqipërinë}
+  \begin{itemize}
+    \item<1-> Sa i lartë është, mesatarisht, terreni i secilit qark? Cili është qarku më malor?
+    \item<2-> Sa ftohtë është në janar në Korçë krahasuar me Durrësin?
+    \item<3-> Të dhënat: \textbf{kufijtë e qarqeve} (poligone) dhe \textbf{lartësia/temperatura} (vlerë në çdo pikë të territorit).
+    \item<4-> Dy lloje të ndryshme të dhënash $\Rightarrow$ dy modele: \termi{vektor}{vector} dhe \termi{raster}{raster}.
+  \end{itemize}
+  \LO{K3}
+\end{frame}
+
+\begin{frame}{Objekte dhe fusha}
+  \begin{itemize}
+    \item<1-> \textbf{Objekte diskrete}: kanë kufij të qartë dhe identitet: qytet, rrugë, qark, parcelë.
+    \item<2-> \textbf{Fusha të vazhdueshme}: një vlerë në çdo vend: lartësia, temperatura, ndotja, dendësia.
+    \item<3-> Objektet $\to$ vektor (Java 10). Fushat $\to$ zakonisht raster (sot).
+    \item<4-> Pyetje: zinku në \texttt{meuse} është objekt apo fushë? (E matur në pika, por është fushë.)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vektor kundrejt raster-it}
+  \centering
+  \begin{tikzpicture}[scale=0.62, font=\scriptsize]
+    % vector
+    \draw[thick, fill=uptlight] (0,0) -- (3,0.4) -- (3.6,2.6) -- (1.2,3.4) -- (-0.3,1.8) -- cycle;
+    \draw[thick, accent] (0.2,3.8) .. controls (1.5,2.0) and (2.5,1.5) .. (4.0,1.0);
+    \fill (2.2,1.6) circle (3pt);
+    \node at (1.8,-0.8) {vektor: pikë, vijë, poligon};
+    % raster
+    \begin{scope}[xshift=6cm]
+      \foreach \i in {0,...,5} \foreach \j in {0,...,5} {
+        \pgfmathsetmacro{\v}{10+12*\i+7*\j}
+        \fill[uptblue!\v!white] (\i*0.65,\j*0.65) rectangle ++(0.65,0.65);
+        \draw[white] (\i*0.65,\j*0.65) rectangle ++(0.65,0.65);
+      }
+      \node at (1.95,-0.8) {raster: rrjetë qelizash};
+    \end{scope}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Vektor: koordinata të kulmeve + tabelë atributesh.
+    \item Raster: një numër për çdo qelizë + gjeometria e rrjetës (origjina, madhësia e qelizës, CRS).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kur cilin?}
+  \small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    & Vektor & Raster \\ \midrule
+    Përshtatet për & objekte diskrete & fusha të vazhdueshme \\
+    Saktësia e pozicionit & e lartë (kulmet) & sa një qelizë \\
+    Madhësia e skedarit & varet nga numri i kulmeve & varet nga rezolucioni \\
+    Algjebra & prerje, bashkime & aritmetikë qelizë për qelizë \\
+    Paketa në R & \texttt{sf} & \texttt{terra} (edhe \texttt{stars}) \\ \bottomrule
+  \end{tabular}
+  \onslide<2->{\begin{Keshille}Analizat më interesante i kombinojnë: ``lartësia mesatare (raster) për çdo qark (vektor)'' $=$ statistikë zonale.\end{Keshille}}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Të dhënat e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Të dhënat: të gjitha reale}
+  \begin{itemize}
+    \item<1-> Qarqet: GADM 4.1, niveli 1, 12 qarqe. \textbf{Reale}.
+    \item<2-> Lartësia: SRTM e agreguar në $30''$ ($\approx1$ km), e maskuar në Shqipëri (\texttt{geodata::elevation\_30s}). \textbf{Reale}.
+    \item<3-> SRTM 90 m (CGIAR-CSI v4.1), dritarja Durrës--Tiranë--Dajt. \textbf{Reale}.
+    \item<4-> Temperatura mesatare mujore: WorldClim 2.1, $30''$, 1970--2000 (CC BY 4.0). \textbf{Reale}, e interpoluar nga stacionet.
+    \item<5-> Dendësia e popullsisë 2020: GPW v4 (CIESIN), $2.5'$. \textbf{Reale, e modeluar}: \textbf{nuk} është shifër zyrtare e INSTAT.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Licencat dhe skripti i shkarkimit}
+  \begin{itemize}
+    \item GADM lejohet për përdorim akademik, por \textbf{nuk} lejohet rishpërndarja: skedari nuk është në repo.
+    \item Të gjitha të dhënat krijohen me një skript:
+  \end{itemize}
+<<h1-get, eval=FALSE>>=
+# from the folder week_11/ (needs internet once)
+source("week_11_data/get_data_week11.R")
+list.files("week_11_data", pattern = "tif$|gpkg$")
+@
+  \begin{itemize}
+    \item WorldClim, GPW: CC BY 4.0 (citohen); SRTM: domen publik.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Raster-i i parë: lartësia e Shqipërisë}
+<<h1-elev>>=
+library(terra)
+elev <- rast(file.path(W11DATA, "alb_elev_30s.tif"))
+elev
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 396 rreshta $\times$ 252 kolona $\times$ 1 shtresë; rezolucioni $0.008\overline{3}^\circ=30''$.
+    \item<2-> Shtrirja (\emph{extent}): $19.1^\circ$--$21.2^\circ$L, $39.5^\circ$--$42.8^\circ$V; CRS: WGS 84.
+    \item<3-> Lartësia nga $-94$ në 2623 m. A ka vërtet $-94$ m në Shqipëri? (Do ta shohim.)
+    \item<4-> Skedari ka vetëm 119 kB: \texttt{terra} e lexon sipas nevojës, jo të gjithin në memorie.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeCells111]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Shqipëria ka $\approx28\,750$ km$^2$. Një qelizë $30''\times30''$ në $41^\circ$V ka përmasa $\approx0.93$ km (V--J) $\times$ $0.70$ km (L--P).
+    Sa qeliza jo-\texttt{NA} pritet të ketë raster-i?
+    \begin{enumerate}[A.]
+      \item $\approx28\,750$ \quad B. $\approx44\,000$ \quad C. $\approx100\,000$
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjCells111}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Qelizat dhe sipërfaqja e tyre}
+<<h1-cells>>=
+n_cells <- global(!is.na(elev), "sum")[1, 1]
+area_km2 <- cellSize(elev, unit = "km")              # varies with latitude
+c(n_cells = n_cells,
+  area_sum = global(mask(area_km2, elev), "sum", na.rm = TRUE)[1, 1])
+range(values(mask(area_km2, elev)), na.rm = TRUE)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 43\,708 qeliza me vlerë; secila $0.63$--$0.66$ km$^2$ (më e vogël në veri: $\cos\varphi$).
+    \item<2-> Shuma: 28\,296 km$^2$, afër sipërfaqes së Shqipërisë.
+    \item<3-> \texttt{cellSize()} llogarit sipërfaqen e vërtetë të çdo qelize mbi elipsoid.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Në raster gjeografik, ``qeliza'' nuk ka sipërfaqe konstante. Numri i qelizave $\times$ një sipërfaqe fikse jep gabim sistematik veri--jug.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Harta e lartësisë}
+<<h1-map, eval=FALSE>>=
+library(ggplot2); library(sf)
+qarqe <- st_read(file.path(W11DATA, "gadm41_ALB_1.gpkg"), quiet = TRUE)
+df <- as.data.frame(elev, xy = TRUE, na.rm = TRUE)
+names(df)[3] <- "elev"
+ggplot() +
+  geom_raster(data = df, aes(x, y, fill = elev)) +
+  geom_sf(data = qarqe, fill = NA, colour = "white", linewidth = 0.3) +
+  scale_fill_viridis_c(name = "m", option = "turbo") +
+  coord_sf(crs = 4326) + labs(x = NULL, y = NULL) + theme_bw(base_size = 8)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: lartësia dhe qarqet}
+<<h1-map-fig, ref.label="h1-map", echo=FALSE, fig.height=3.8, fig.width=3.4, out.width="0.36\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Ultësira perëndimore (blu) dhe malet në lindje e veri (kuq).
+    \item<2-> \texttt{as.data.frame(xy = TRUE)}: çdo qelizë bëhet rresht me $(x, y, \text{vlerë})$, gati për \texttt{ggplot}.
+    \item<3-> \texttt{geom\_raster()} vizaton qelizat; \texttt{geom\_sf()} vizaton kufijtë vektorialë sipër.
+    \item<4-> Dy modele, një hartë: kjo është puna e përditshme në GIS.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Qeliza më e lartë dhe vlerat negative}
+<<h1-max>>=
+i_max <- which.max(values(elev))
+xyFromCell(elev, i_max)
+neg <- values(elev) < 0 & !is.na(values(elev))
+c(n_negative = sum(neg), min = min(values(elev), na.rm = TRUE))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Maksimumi në $(20.55^\circ, 41.80^\circ)$: masivi i Korabit.
+    \item<2-> Por Korabi është 2764 m, jo 2623 m: qeliza 0.65 km$^2$ mban \textbf{mesataren} e terrenit, jo majën.
+    \item<3-> Vlerat negative: 652 qeliza (1.5\%), kryesisht bregdetare/lagunore; artefakte të SRTM-së afër ujit.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Raster-i me rezolucion të ulët nuk jep ekstreme të sakta: majat ``ulen'', gropat ``ngrihen''. Ekstremet varen nga madhësia e qelizës.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=gjejGabim111,fragile]{Gjej gabimin}
+  Një student llogarit sipërfaqen e Shqipërisë nga raster-i:
+<<h1-bug>>=
+n_cells * prod(res(elev))
+@
+  Çfarë njësie ka ky numër? Pse nuk është sipërfaqe në km$^2$?
+  \shkoTe{zgjGabim111}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Raster me shumë shtresa}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Temperatura: 12 shtresa}
+<<h1-tavg>>=
+tavg <- rast(file.path(W11DATA, "alb_tavg_30s.tif"))
+nlyr(tavg); names(tavg)
+round(global(tavg[[c("Jan", "Jul")]], c("min", "max", "mean"), na.rm = TRUE), 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Një skedar, 12 shtresa (\emph{layers}): një për çdo muaj. E njëjta rrjetë për të gjitha.
+    \item<2-> Janari: nga $-8.0^\circ$C në male deri $10.4^\circ$C në bregdet; mesatarja $1.1^\circ$C.
+    \item<3-> Korriku: $8.5$--$26.1^\circ$C; mesatarja $19.7^\circ$C.
+    \item<4-> Mesatarja e qelizave $\neq$ temperatura ``tipike'' që ndjen banori: shumica e qelizave janë në male, shumica e banorëve jo.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Janari dhe korriku}
+<<h1-tmap, eval=FALSE>>=
+dt <- as.data.frame(tavg[[c("Jan", "Jul")]], xy = TRUE, na.rm = TRUE)
+dt <- rbind(data.frame(dt[, 1:2], month = "Jan", t = dt$Jan),
+            data.frame(dt[, 1:2], month = "Jul", t = dt$Jul))
+ggplot(dt, aes(x, y, fill = t)) + geom_raster() + facet_wrap(~ month) +
+  scale_fill_distiller(palette = "RdYlBu", name = "deg C") +
+  coord_sf(crs = 4326) + labs(x = NULL, y = NULL) + theme_bw(base_size = 8)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: janari dhe korriku}
+<<h1-tmap-fig, ref.label="h1-tmap", echo=FALSE, fig.height=3.0, fig.width=5.0, out.width="0.62\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të dy muajt ndjekin relievin: sa më lart, aq më ftohtë.
+    \item<2-> Shkalla e ngjyrave është e përbashkët: ndryshimi sezonal $\approx18^\circ$C.
+    \item<3-> Ora 6: sa gradë humbasim për 100 m lartësi? Një regres mbi 40\,000 qeliza.
+  \end{itemize}
+  \LO{S1}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC111]{Pyetje me zgjedhje: vektor apo raster?}
+  \begin{Parashiko}
+    Cili model është më i natyrshëm për secilën?
+    \begin{enumerate}
+      \item Rrjeti rrugor i Tiranës.
+      \item Përqendrimi i PM$_{2.5}$ mbi Tiranë.
+      \item Parcelat kadastrale.
+      \item Imazhi satelitor Sentinel-2.
+      \item Stacionet meteorologjike.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC111}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Nga raster te qarqet}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Pamje paraprake: lartësia mesatare sipas qarkut}
+<<h1-zonal>>=
+qv <- vect(file.path(W11DATA, "gadm41_ALB_1.gpkg"))
+z  <- extract(elev, qv, fun = mean, na.rm = TRUE)
+res_q <- data.frame(qark = qv$qark, elev_mean = round(z[, 2]))
+res_q[order(-res_q$elev_mean), ][1:6, ]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Korça (1115 m), Dibra (1007), Kukësi (1000): qarqet më malore.
+    \item<2-> Fieri (86 m) dhe Durrësi (156): ultësira bregdetare.
+    \item<3-> \texttt{extract(raster, poligone, fun = mean)}: \textbf{statistikë zonale} në një rresht kodi.
+    \item<4-> Ora 5: qelizat që preken pjesërisht nga kufiri, \texttt{exactextractr}, dhe popullsia.
+  \end{itemize}
+  \LO{S4}
+\end{frame}
+
+\begin{frame}[fragile]{Sipërfaqja e qarqeve nga vektori}
+<<h1-area>>=
+a_q <- expanse(qv, unit = "km")                     # geodesic area
+round(c(total = sum(a_q), largest = max(a_q), smallest = min(a_q)), 1)
+qv$qark[c(which.max(a_q), which.min(a_q))]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Totali 28\,727.7 km$^2$: vetëm 0.07\% nga 28\,748 e cituar zakonisht. GADM ka shumë më tepër kulme se Natural Earth (Java 10: 28\,373).
+    \item<2-> Korça më e madhja (3720 km$^2$), Durrësi më i vogli (780 km$^2$).
+    \item<3-> \texttt{expanse()} në \texttt{terra} $\approx$ \texttt{st\_area()} në \texttt{sf}: sipërfaqe gjeodezike.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTPS111]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Raster-i i lartësisë ka 28\,296 km$^2$ qeliza, poligonet 28\,728 km$^2$. Nga vjen ndryshimi prej $\approx430$ km$^2$?
+      \item Për një bashki të vogël ($\approx30$ km$^2$), sa qeliza $30''$ ka? A mjafton për lartësinë mesatare?
+      \item Cilat të dhëna raster do të ishin të dobishme për INSTAT?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS111}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Objektivat dhe mbyllja}
+% ------------------------------------------------------------
+
+\begin{frame}{Objektivat e javës}
+  \begin{itemize}
+    \item<1-> \LO{K3} Të dallojmë modelin raster nga vektori dhe të zgjedhim të duhurin.
+    \item<2-> \LO{S4} Të lexojmë, krijojmë, presim, maskojmë dhe kombinojmë raster dhe vektor me \texttt{terra} dhe \texttt{sf}.
+    \item<3-> \LO{S1, S3} Të llogaritim statistika zonale dhe derivate të terrenit; të vlerësojmë humbjen nga agregimi.
+    \item<4-> \LO{C1} Të ndërtojmë një model regresi mbi të dhëna raster dhe të shohim strukturën hapësinore të mbetjeve.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plani i javës}
+  \small
+  \begin{tabular}{cl}
+    \toprule
+    Ora & Tema \\
+    \midrule
+    1 & Motivimi: vektor dhe raster, të dhënat e Shqipërisë \\
+    2 & Modeli raster: rrjeta, rezolucioni, algjebra \\
+    3 & Lab I: \texttt{terra} nga zero, prerje, maskë, klasifikim \\
+    4 & Vektori: shapefile, atributet, bashkimet, rasterizimi \\
+    5 & Lab II: statistika zonale, ripërzgjedhja, agregimi \\
+    6 & Rasti: DTM (pjerrësia, hija), temperatura $\sim$ lartësia \\
+    7 & Konsolidimi: kuiz, ushtrime, fletë përmbledhëse \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=cp111]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 1}
+  \begin{enumerate}
+    \item Jepni dy shembuj objektesh diskrete dhe dy fushash të vazhdueshme.
+    \item Pse qelizat e një raster-i në gradë nuk kanë sipërfaqe të barabartë?
+    \item Pse lartësia maksimale e raster-it $30''$ është më e ulët se maja e Korabit?
+  \end{enumerate}
+  \shkoTe{zgjCp111}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 1}
+  \begin{itemize}
+    \item Objekte $\to$ vektor (\texttt{sf}); fusha $\to$ raster (\texttt{terra}).
+    \item Lartësia $30''$: 43\,708 qeliza, 0.63--0.66 km$^2$ secila; max 2623 m (Korabi 2764 m).
+    \item Temperatura: 12 shtresa; janar $-8$ deri $10.4^\circ$C, korrik $8.5$--$26.1^\circ$C.
+    \item Statistikë zonale: Korça qarku më malor (1115 m), Fieri më i ulëti (86 m).
+    \item Qarqet GADM: 28\,728 km$^2$; skedari nuk rishpërndahet, krijohet me skript.
+  \end{itemize}
+  \begin{Keshille}Ora 2: anatomia e një raster-i: origjina, rezolucioni, indekset, algjebra.\end{Keshille}
+\end{frame}

@@ -26,3 +26,7 @@ Thumbs.db
 
 # Copyrighted reference PDFs stay in Dropbox only
 06_references/*.pdf
+
+# Week 11: GADM may not be redistributed; download cache
+03_weeks/week_11/week_11_data/gadm41_ALB_1.gpkg
+03_weeks/week_11/week_11_data/raw/
