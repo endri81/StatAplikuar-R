@@ -1,0 +1,323 @@
+% ============================================================
+%  Java 9 · Ora 4 — Teoria II: Bayes, LDA, QDA, KNN, ROC
+%  Rezultatet: K2, S1, S3, C1
+%  Burimi: ISLR kap. 2.2.3, 4.4--4.5; repo DS612 Lecture_4.R, Euclidean_Distance.R
+% ============================================================
+
+\section[Teoria II]{Teoria II: Bayes, LDA, QDA, KNN, ROC}
+
+\begin{frame}{Ora 4: Teoria II --- Bayes, LDA, QDA, KNN, ROC}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Klasifikuesi i Bayes-it}
+% ------------------------------------------------------------
+
+\begin{frame}{Klasifikuesi i Bayes-it \LO{K2}}
+  \begin{itemize}
+    \item<1-> Nëse do ta dinim $P(Y=k\mid X=x)$: cakto klasën me probabilitet më të madh.
+    \item<2-> Ky rregull minimizon gabimin e pritshëm të klasifikimit: \termi{gabimi i Bayes-it}{Bayes error rate}.
+    \item<3-> Asnjë metodë nuk mund ta kalojë: është ``tavani'' teorik.
+    \item<4-> Problemi: $P(Y=k\mid x)$ nuk e njohim. Dy rrugë:
+      \begin{itemize}
+        \item direkt: logjistiku, KNN;
+        \item përmes Bayes-it: modelo $f_k(x)=P(X=x\mid Y=k)$ dhe $\pi_k=P(Y=k)$ $\Rightarrow$ LDA, QDA.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Teorema e Bayes-it për klasifikim}
+  \[ P(Y=k\mid X=x)=\frac{\pi_k\,f_k(x)}{\sum_{l=1}^K\pi_l\,f_l(x)} \]
+  \pause
+  \begin{itemize}
+    \item<2-> $\pi_k$: \termi{probabiliteti apriori}{prior}, sa e shpeshtë është klasa $k$.
+    \item<3-> $f_k(x)$: dendësia e $x$ brenda klasës $k$.
+    \item<4-> Emëruesi është i njëjtë për çdo $k$: krahasojmë vetëm $\pi_kf_k(x)$.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{LDA}
+% ------------------------------------------------------------
+
+\begin{frame}{LDA me një parashikues}
+  \begin{itemize}
+    \item<1-> Supozim: $X\mid Y=k\sim N(\mu_k,\sigma^2)$, me \textbf{të njëjtën} $\sigma^2$ për çdo klasë.
+    \item<2-> $\log\big(\pi_kf_k(x)\big)$, pa termat që nuk varen nga $k$:
+      \[ \delta_k(x)=x\,\frac{\mu_k}{\sigma^2}-\frac{\mu_k^2}{2\sigma^2}+\log\pi_k. \]
+    \item<3-> Cakto klasën me $\delta_k(x)$ më të madh. $\delta_k$ është \textbf{lineare} në $x$: ``linear'' te LDA.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kufiri i vendimit}
+  Dy klasa: $\delta_1(x)=\delta_2(x)$ $\Rightarrow$
+  \[ x^*=\frac{\mu_1+\mu_2}{2}+\frac{\sigma^2\,\log(\pi_1/\pi_2)}{\mu_2-\mu_1}. \]
+  \pause
+  \begin{itemize}
+    \item<2-> $\pi_1=\pi_2$: kufiri është mesi i dy mesatareve.
+    \item<3-> Klasa më e shpeshtë ``shtyn'' kufirin drejt tjetrës: merr më shumë hapësirë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pa ndihmën e PC: kufiri i LDA}
+  $\mu_1=0$, $\mu_2=4$, $\sigma^2=4$. \; ($\log4=1.386$.)
+  \begin{itemize}
+    \item<2-> $\pi_1=\pi_2=0.5$: $x^*=2$. Gabimi i Bayes-it: $\Phi\big(-\frac{\mu_2-\mu_1}{2\sigma}\big)=\Phi(-1)=15.9\%$.
+    \item<3-> $\pi_1=0.8$, $\pi_2=0.2$: $x^*=2+\dfrac{4\log4}{4}=2+1.386=3.39$.
+    \item<4-> Kontroll te $x=3$: $\delta_1=0-0+\log0.8=-0.223$; \; $\delta_2=\frac{3\cdot4}{4}-\frac{16}{8}+\log0.2=3-2-1.609=-0.609$.\\
+      $\delta_1>\delta_2$: klasa 1. \checkmark{} (3 është majtas 3.39.)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Fotografia: dendësitë dhe kufiri}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=0.75\textwidth,height=0.42\textwidth,xmin=-5,xmax=9,ymin=0,ymax=0.17,
+        tick label style={font=\tiny},legend style={font=\tiny},legend pos=north east,
+        xlabel={\scriptsize $x$},ytick=\empty]
+      \addplot[domain=-5:9,samples=120,thick,uptblue] {0.8*exp(-x^2/8)/sqrt(8*pi)}; \addlegendentry{$\pi_1f_1$, $\pi_1=0.8$}
+      \addplot[domain=-5:9,samples=120,thick,accent] {0.2*exp(-(x-4)^2/8)/sqrt(8*pi)}; \addlegendentry{$\pi_2f_2$, $\pi_2=0.2$}
+      \draw[dashed] (axis cs:3.386,0) -- (axis cs:3.386,0.16) node[above,font=\tiny] {$x^*=3.39$};
+      \draw[dotted,gray] (axis cs:2,0) -- (axis cs:2,0.16) node[above left,font=\tiny] {2};
+    \end{axis}
+  \end{tikzpicture}
+  \begin{itemize}\small
+    \item Kufiri është aty ku $\pi_1f_1=\pi_2f_2$; me priorë të pabarabartë largohet nga 2.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vlerësimi i parametrave të LDA}
+  \begin{itemize}
+    \item<1-> $\hat\pi_k=n_k/n$.
+    \item<2-> $\hat\mu_k$ = mesatarja e $x$ në klasën $k$.
+    \item<3-> $\hat\sigma^2=\dfrac{1}{n-K}\sum_k\sum_{i:y_i=k}(x_i-\hat\mu_k)^2$: varianca e përbashkët (si te ANOVA, Java 4).
+    \item<4-> Me $p$ parashikues: $X\mid Y=k\sim N_p(\mu_k,\Sigma)$; $\delta_k(x)=x^\top\Sigma^{-1}\mu_k-\tfrac12\mu_k^\top\Sigma^{-1}\mu_k+\log\pi_k$.
+    \item<5-> Në R: \texttt{MASS::lda(y \textasciitilde{} x1 + x2)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushLDA]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(6 minuta)]
+    Klasa A: $x=(1,2,3)$; klasa B: $x=(5,6,7)$.
+    \begin{enumerate}
+      \item Llogarit $\hat\pi_A$, $\hat\pi_B$, $\hat\mu_A$, $\hat\mu_B$ dhe $\hat\sigma^2$ (pjesëto me $n-K$).
+      \item Gjej kufirin $x^*$.
+      \item Si klasifikohet $x=4.5$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjLDA}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{LDA dhe logjistiku}
+  \begin{itemize}
+    \item<1-> Me dy klasa, LDA jep $\log\frac{P(Y=2\mid x)}{P(Y=1\mid x)}=c_0+c_1x$: \textbf{e njëjta formë} si logjistiku!
+    \item<2-> Ndryshimi: si vlerësohen koeficientët.
+      \begin{itemize}
+        \item Logjistiku: maksimum i përgjasisë me kusht $P(y\mid x)$; pa supozim për $x$.
+        \item LDA: supozon $x$ normal brenda klasave; përdor edhe informacionin e $x$.
+      \end{itemize}
+    \item<3-> Nëse supozimi qëndron, LDA është më efikas (më pak variancë); nëse jo, logjistiku është më i fortë.
+    \item<4-> Kur klasat janë shumë të ndara, logjistiku mund të jetë i paqëndrueshëm; LDA jo.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{QDA}
+% ------------------------------------------------------------
+
+\begin{frame}{QDA: kovarianca e veçantë për çdo klasë}
+  \begin{itemize}
+    \item<1-> Supozim: $X\mid Y=k\sim N_p(\mu_k,\Sigma_k)$, me $\Sigma_k$ \textbf{të ndryshme}.
+    \item<2-> $\delta_k(x)=-\tfrac12(x-\mu_k)^\top\Sigma_k^{-1}(x-\mu_k)-\tfrac12\log|\Sigma_k|+\log\pi_k$.
+    \item<3-> Kuadratik në $x$ $\Rightarrow$ kufij të lakuar.
+    \item<4-> Në R: \texttt{MASS::qda()}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Numri i parametrave}
+  \centering\small
+  \begin{tabular}{@{}lccc@{}}
+    \toprule
+     & mesataret & kovarianca & $p=10,\ K=2$\\ \midrule
+    LDA & $Kp$ & $p(p+1)/2$ & $20+55=75$\\
+    QDA & $Kp$ & $K\,p(p+1)/2$ & $20+110=130$\\ \bottomrule
+  \end{tabular}
+  \pause
+  \begin{itemize}
+    \item<2-> QDA: më fleksibël, por më shumë variancë; kërkon $n_k$ të mëdha.
+    \item<3-> LDA: zhvendosje nëse kovariancat ndryshojnë, por variancë e ulët.
+    \item<4-> Përsëri kompromisi zhvendosje--variancë (Java 8).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{KNN}
+% ------------------------------------------------------------
+
+\begin{frame}{$K$ fqinjët më të afërt (KNN)}
+  \begin{itemize}
+    \item<1-> Për një pikë të re $x_0$: gjej $K$ pikat e trajnimit më të afërta, $\mathcal N_0$.
+    \item<2-> $\hat P(Y=j\mid x_0)=\dfrac1K\sum_{i\in\mathcal N_0}I(y_i=j)$: votim i shumicës.
+    \item<3-> Pa model parametrik: kufiri mund të ketë çdo formë.
+    \item<4-> Distanca euklidiane: $d(x_0,x_i)=\sqrt{\sum_j(x_{0j}-x_{ij})^2}$ (repo \texttt{Euclidean\_Distance.R}).
+    \item<5-> Në R: \texttt{class::knn(train, test, cl, k)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pa ndihmën e PC: KNN me 5 pika}
+  \centering\small
+  \begin{tabular}{ccccc}
+    \toprule $i$ & $x_1$ & $x_2$ & klasa & $d$ nga $x_0=(2,2)$\\ \midrule
+    1 & 1 & 1 & A & $\sqrt2=1.41$\\
+    2 & 2 & 3 & B & 1.00\\
+    3 & 3 & 2 & A & 1.00\\
+    4 & 4 & 4 & B & $\sqrt8=2.83$\\
+    5 & 2 & 0 & A & 2.00\\ \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item<2-> $K=1$: dy pika barazohen (2 dhe 3, $d=1$): rast barazimi (R e zgjidh rastësisht).
+    \item<3-> $K=3$: pikat 2, 3, 1 $\Rightarrow$ B, A, A: klasa \textbf{A}, $\hat P(A)=2/3$.
+    \item<4-> $K=5$: A, A, A, B, B $\Rightarrow$ A, $\hat P(A)=3/5$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Roli i $K$}
+  \begin{itemize}
+    \item<1-> $K=1$: kufi shumë i valëzuar; gabim trajnimi 0; variancë e madhe.
+    \item<2-> $K$ i madh: kufi i lëmuar, afër linear; zhvendosje.
+    \item<3-> Si span te loess (Java 8): $K$ zgjidhet me CV.
+    \item<4-> Fleksibiliteti rritet kur $1/K$ rritet.
+  \end{itemize}
+  \pause[5]
+  \begin{Gabim}KNN pa standardizuar variablat: \texttt{balance} (0--2700) dominon distancën, \texttt{student} (0/1) nuk ndikon pothuajse fare. Përdor \texttt{scale()}.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=pyetjeKNN]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Kufiri i vërtetë i Bayes-it është shumë jolinear dhe $n$ është i madh. Cila metodë pritet të funksionojë më mirë?
+    \begin{enumerate}[A)]
+      \item Logjistiku me termat lineare.
+      \item LDA.
+      \item KNN me $K$ të zgjedhur me CV.
+      \item KNN me $K=1$.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjKNN}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{ROC dhe AUC}
+% ------------------------------------------------------------
+
+\begin{frame}{Kurba ROC}
+  \begin{itemize}
+    \item<1-> Për çdo prag $t$: klasifiko ``Po'' nëse $\hat p>t$.
+    \item<2-> Shëno $(\text{FPR}(t),\ \text{TPR}(t))$, ku TPR = sensitiviteti, FPR = $1-$specifiteti.
+    \item<3-> $t=1$: (0, 0); $t=0$: (1, 1). Kurba i bashkon.
+    \item<4-> Klasifikues i rastësishëm: diagonalja. I përsosur: këndi (0, 1).
+    \item<5-> \termi{AUC}{area under the curve}: sipërfaqja nën kurbë, nga 0.5 (rastësi) deri në 1.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{AUC si probabilitet}
+  \begin{itemize}
+    \item<1-> AUC $=P(\hat p_{\text{pozitiv}}>\hat p_{\text{negativ}})$: probabiliteti që një ``Po'' i rastësishëm të ketë rezultat më të lartë se një ``Jo'' i rastësishëm.
+    \item<2-> Nuk varet nga pragu: mat \textbf{renditjen}, jo kalibrimin.
+    \item<3-> Nuk varet nga përqindja e klasës së rrallë (ndryshe nga saktësia).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[shrink=6]{Pa ndihmën e PC: ROC me 6 pika}
+  \small
+  Pozitivë: $\hat p=(0.9,\,0.7,\,0.4)$; negativë: $\hat p=(0.8,\,0.3,\,0.2)$.
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \centering
+      \begin{tabular}{ccc}
+        \toprule pragu $\ge$ & TPR & FPR\\ \midrule
+        0.9 & 1/3 & 0\\ 0.8 & 1/3 & 1/3\\ 0.7 & 2/3 & 1/3\\
+        0.4 & 1 & 1/3\\ 0.3 & 1 & 2/3\\ 0.2 & 1 & 1\\ \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[width=\textwidth,height=\textwidth,xmin=0,xmax=1,ymin=0,ymax=1,
+            xlabel={\scriptsize FPR},ylabel={\scriptsize TPR},tick label style={font=\tiny},
+            xtick={0,0.333,0.667,1},xticklabels={0,1/3,2/3,1},ytick={0,0.333,0.667,1},yticklabels={0,1/3,2/3,1}]
+          \addplot[thick,uptblue,mark=*,mark size=1.2pt] coordinates {(0,0)(0,0.333)(0.333,0.333)(0.333,0.667)(0.333,1)(0.667,1)(1,1)};
+          \addplot[dashed,gray] coordinates {(0,0)(1,1)};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{AUC për shembullin}
+  \begin{itemize}
+    \item<1-> Me sipërfaqe: $\frac13\cdot\frac13+\frac23\cdot1=\frac19+\frac69=\frac79=0.778$.
+    \item<2-> Me çifte: 9 çifte (pozitiv, negativ).
+      \begin{itemize}
+        \item 0.9 kalon të 3 negativët; 0.7 kalon 0.3 dhe 0.2; 0.4 kalon 0.3 dhe 0.2.
+        \item $3+2+2=7$ nga 9 $\Rightarrow$ AUC $=7/9$. \checkmark
+      \end{itemize}
+    \item<3-> Kontroll në R: \texttt{pROC::auc()} jep 0.7778.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushAUC]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    Pozitivë: $(0.8,\,0.6)$; negativë: $(0.7,\,0.5,\,0.1)$.
+    \begin{enumerate}
+      \item Llogarit AUC me metodën e çifteve.
+      \item Me prag 0.65: sa janë TPR dhe FPR?
+      \item Nëse $\hat p$ e pozitivit 0.6 bëhet 0.75, si ndryshon AUC?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjAUC}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Krahasimi i metodave}
+% ------------------------------------------------------------
+
+\begin{frame}{Kur fiton secila metodë?}
+  \centering\small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Kufiri i vërtetë & Supozimet & Fiton zakonisht\\ \midrule
+    Linear & $x$ normal, $\Sigma$ e përbashkët & LDA, logjistik\\
+    Linear & $x$ jo normal & logjistik\\
+    Kuadratik & $\Sigma_k$ të ndryshme & QDA\\
+    Shumë jolinear & $n$ i madh & KNN ($K$ me CV)\\
+    Jolinear, $n$ i vogël & & QDA, logjistik me \texttt{poly}/\texttt{ns}\\ \bottomrule
+  \end{tabular}
+  \pause
+  \begin{itemize}\small
+    \item Ora 5: simulim me kufi të njohur, ku shohim këtë tabelë në numra.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp94]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 4}
+  \begin{enumerate}
+    \item Shkruani $\delta_k(x)$ për LDA me një parashikues dhe kufirin për dy klasa.
+    \item Pse QDA ka më shumë parametra se LDA? Sa për $p=5$, $K=3$?
+    \item Çfarë mat AUC dhe pse nuk ndikohet nga pragu?
+  \end{enumerate}
+  \shkoTe{zgjCp94}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 4}
+  \begin{itemize}
+    \item Bayes: $P(Y=k\mid x)\propto\pi_kf_k(x)$; gabimi i Bayes-it = tavani.
+    \item LDA: normale, $\Sigma$ e përbashkët, $\delta_k$ linear; kufiri $\frac{\mu_1+\mu_2}2+\frac{\sigma^2\log(\pi_1/\pi_2)}{\mu_2-\mu_1}$.
+    \item QDA: $\Sigma_k$ të veçanta, kufij kuadratikë, $K\,p(p+1)/2$ parametra kovariance.
+    \item KNN: votim i $K$ fqinjëve; standardizo; $K$ me CV.
+    \item ROC: TPR kundrejt FPR; AUC $=P(\hat p_+>\hat p_-)$.
+  \end{itemize}
+  \begin{Keshille}Ora 5: \texttt{Smarket} (logjistik, LDA, QDA, KNN), ROC te \texttt{Default}, simulim me kufi të njohur.\end{Keshille}
+\end{frame}

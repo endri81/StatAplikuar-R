@@ -1,0 +1,41 @@
+% ============================================================
+%  Java 9 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjLDA]{Zgjidhja: Radha jote! (LDA)}
+  \begin{itemize}
+    \item $\hat\pi_A=\hat\pi_B=3/6=0.5$; \; $\hat\mu_A=2$, $\hat\mu_B=6$.
+    \item $\hat\sigma^2=\dfrac{(1+0+1)+(1+0+1)}{6-2}=\dfrac44=1$.
+    \item Priorë të barabartë: $x^*=(2+6)/2=4$.
+    \item $x=4.5>4$ $\Rightarrow$ klasa B. (Kontroll: $\delta_A=4.5\cdot2-2+\log0.5=7-0.69$, $\delta_B=4.5\cdot6-18+\log0.5=9-0.69$: B.)
+  \end{itemize}
+  \vfill\kthehu{ushLDA}
+\end{frame}
+
+\begin{frame}[label=zgjKNN]{Zgjidhja: Pyetje me zgjedhje (KNN)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}.
+    \item A, B: kufij linearë, zhvendosje e madhe kur kufiri i vërtetë është shumë jolinear.
+    \item D: $K=1$ ka variancë shumë të madhe; ndjek zhurmën.
+    \item KNN me $K$ nga CV kombinon fleksibilitetin me kontrollin e variancës; $n$ i madh e ndihmon.
+  \end{itemize}
+  \vfill\kthehu{pyetjeKNN}
+\end{frame}
+
+\begin{frame}[label=zgjAUC]{Zgjidhja: Radha jote! (AUC)}
+  \begin{itemize}
+    \item 6 çifte: 0.8 kalon 0.7, 0.5, 0.1 (3); 0.6 kalon 0.5, 0.1 (2). AUC $=5/6=0.833$.
+    \item Prag 0.65: pozitivët mbi prag: vetëm 0.8 $\Rightarrow$ TPR $=1/2$; negativët mbi prag: 0.7 $\Rightarrow$ FPR $=1/3$.
+    \item 0.6 $\to$ 0.75: tani kalon edhe 0.7: $6/6$, AUC $=1$: renditje e përsosur.
+  \end{itemize}
+  \vfill\kthehu{ushAUC}
+\end{frame}
+
+\begin{frame}[label=zgjCp94]{Përgjigjet: Checkpoint Ora 4}
+  \begin{enumerate}
+    \item $\delta_k(x)=x\mu_k/\sigma^2-\mu_k^2/(2\sigma^2)+\log\pi_k$; \; $x^*=\frac{\mu_1+\mu_2}2+\frac{\sigma^2\log(\pi_1/\pi_2)}{\mu_2-\mu_1}$.
+    \item Një matricë kovariance për çdo klasë. $p=5$, $K=3$: mesataret 15; LDA $15$ kovariancë (gjithsej 30); QDA $3\cdot15=45$ (gjithsej 60).
+    \item Probabilitetin që një pozitiv i rastësishëm të renditet mbi një negativ; përdor të gjitha pragjet njëherësh, pra mat renditjen, jo një prag të veçantë.
+  \end{enumerate}
+  \vfill\kthehu{cp94}
+\end{frame}
