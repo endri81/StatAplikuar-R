@@ -17,11 +17,7 @@ dir.create(raw, showWarnings = FALSE, recursive = TRUE)
 
 # GADM qarqe; add an ASCII name column (e-umlaut, c-cedilla removed)
 q <- gadm("ALB", level = 1, path = raw)
-asc <- function(x) {
-  x <- gsub("ë", "e", x, fixed = TRUE, useBytes = TRUE); x <- gsub("Ë", "E", x, fixed = TRUE, useBytes = TRUE)
-  x <- gsub("ç", "c", x, fixed = TRUE, useBytes = TRUE); x <- gsub("Ç", "C", x, fixed = TRUE, useBytes = TRUE)
-  x
-}
+asc <- function(x) stringi::stri_trans_general(x, "Latin-ASCII")
 q$qark <- asc(q$NAME_1)
 q <- q[, c("GID_1", "qark", "HASC_1", "NAME_1")]
 writeVector(q, file.path(out, "gadm41_ALB_1.gpkg"), overwrite = TRUE)

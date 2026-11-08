@@ -1,0 +1,82 @@
+% ============================================================
+%  Java 11 · Ora 4 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjShp114]{Zgjidhja: Parashiko (shapefile)}
+  \begin{enumerate}
+    \item Katër: \texttt{qarqe.shp}, \texttt{.shx}, \texttt{.dbf}, \texttt{.prj} (këtu pa \texttt{.cpg}).
+    \item GDAL e shkurton në 10 karaktere: \texttt{p\_\_1000}. Emri nuk mund të parashikohet lehtë: varet nga algoritmi i shkurtimit.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeShp114}
+\end{frame}
+
+\begin{frame}[label=zgjJoin114]{Zgjidhja: Parashiko (bashkimi)}
+  \begin{itemize}
+    \item 3 rreshta: përputhen vetëm Berat, Elbasan, Fier (pa ë/ç).
+    \item \texttt{merge()} bën \emph{inner join}: rreshtat pa çift hiqen pa paralajmërim.
+    \item Me \texttt{all.x = TRUE} do të kishim 12 rreshta, 9 me NA te \texttt{nuts3}: të paktën gabimi do të dukej.
+  \end{itemize}
+  \vfill\kthehu{pyetjeJoin114}
+\end{frame}
+
+\begin{frame}[label=zgjMC114]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}, 12.
+    \item \texttt{st\_join(x, y)} është \emph{left join}: mban të gjithë rreshtat e \texttt{x}.
+    \item 6 qarqe marrin qytetin e tyre; 6 të tjerë marrin NA.
+    \item Nëse një qark do të kishte 2 qytete, ai do të dilte 2 herë (rreshta $>12$).
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC114}
+\end{frame}
+
+\begin{frame}[label=zgjSimp114]{Zgjidhja: Ndrysho parametrin}
+  \small
+  \begin{tabular}{rrrr}
+    \toprule tol (m) & kulme & shuma km$^2$ & bashkimi km$^2$ \\ \midrule
+    0 & 6495 & 28\,728.4 & 28\,728.4 \\ 100 & 2960 & 28\,729.2 & 28\,727.9 \\
+    1000 & 646 & 28\,739.7 & 28\,682.4 \\ 5000 & 153 & 28\,201.1 & 27\,737.6 \\ \bottomrule
+  \end{tabular}
+  \begin{enumerate}
+    \item[2.] Kufiri i përbashkët thjeshtohet ndryshe nga dy anët: mbivendosje (numërohen dy herë në shumë, një herë në bashkim) dhe boshllëqe.
+    \item[3.] A4 $\approx$ 20 cm për $\approx$ 150 km L--P: 1 mm $\approx$ 750 m. Toleranca 100--500 m nuk duket në letër.
+  \end{enumerate}
+  \vfill\kthehu{ushSimp114}
+\end{frame}
+
+\begin{frame}[label=zgjRas114]{Zgjidhja: Rasterizimi}
+  \begin{itemize}
+    \item Qendrat janë $(i+0.5, j+0.5)$; brenda nëse $x+y<4.8$ (dhe $x,y>0.2$, gjithmonë e vërtetë).
+    \item $x+y$ për qendrat është numër i plotë: $\le4$ $\Rightarrow$ $i+j\le3$: $4+3+2+1=10$ qeliza.
+    \item Sipërfaqja e vërtetë: $4.4\cdot4.4/2=9.68$.
+    \item \texttt{touches = TRUE}: shtohen 5 qelizat në diagonalen $i+j=4$, që preken nga hipotenuza: 15.
+  \end{itemize}
+  \vfill\kthehu{pyetjeRas114}
+\end{frame}
+
+\begin{frame}[label=zgjGabim114]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item Brezat janë \textbf{klasa} (kategori të renditura), jo sasi të vazhdueshme.
+    \item Bilineari i mesatarizon: 2.37 nuk është brez.
+    \item Për klasa: \texttt{method = "near"} (ose \texttt{"mode"} kur agregojmë).
+    \item Alternativa më e mirë: ripërzgjedhni lartësinë (e vazhdueshme) me bilinear, pastaj klasifikoni.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim114}
+\end{frame}
+
+\begin{frame}[label=zgjTPS114]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Kodi është unik dhe pa shkronja shqipe; nuk ndryshon me drejtshkrimin. Dështon kur ndryshon klasifikimi (p.sh.\ reforma territoriale 2015: rrethet $\to$ bashkitë): duhet tabelë korrespondence sipas vitit.
+    \item Bashkim atributesh bashki $\to$ qark $\to$ NUTS2, pastaj \texttt{aggregate()} (dissolve).
+    \item Kur rezultati duhet bashkuar me të dhëna vektoriale, ose për ta ruajtur si kufij zonash (p.sh.\ zona mbi 1500 m për planifikim).
+  \end{enumerate}
+  \vfill\kthehu{ushTPS114}
+\end{frame}
+
+\begin{frame}[label=zgjCp114]{Përgjigjet: Checkpoint Ora 4}
+  \begin{enumerate}
+    \item Emra $\le10$ karaktere; një tip gjeometrie; $\le2$ GB; disa skedarë; kodim i paqartë i tekstit.
+    \item Bën \emph{inner join}; çelësat me ë/ç ose me drejtshkrim tjetër nuk përputhen dhe rreshtat hiqen.
+    \item $u=v=0.5$: poshtë $15$, lart $35$, në mes $25$ (mesatarja e katër vlerave).
+  \end{enumerate}
+  \vfill\kthehu{cp114}
+\end{frame}

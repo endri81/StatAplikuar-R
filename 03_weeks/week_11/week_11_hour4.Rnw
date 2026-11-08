@@ -1,0 +1,410 @@
+% ============================================================
+%  Java 11 · Ora 4 — Teori II: vektori, atributet, bashkimet, rasterizimi
+%  Rezultatet: K3, S4
+%  Burimi: Chang (GIS), kapitujt për modelin vektor, atributet dhe konvertimin;
+%          Pebesma & Bivand (2023), kap. 5, 7; INSTAT, rajonet statistikore (NUTS)
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Vektori]{Vektori: skedarët, atributet, bashkimet}
+
+\begin{frame}{Ora 4: Vektori --- skedarët, atributet, bashkimet}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shapefile dhe GeoPackage}
+% ------------------------------------------------------------
+
+\begin{frame}{Anatomia e një shapefile}
+  \begin{itemize}
+    \item<1-> \textbf{Nuk} është një skedar, por disa me të njëjtin emër:
+    \item<2-> \texttt{.shp}: gjeometritë; \texttt{.shx}: indeksi; \texttt{.dbf}: tabela e atributeve.
+    \item<3-> \texttt{.prj}: CRS-ja (WKT1); \texttt{.cpg}: kodimi i tekstit (opsional).
+    \item<4-> Pa \texttt{.dbf} nuk ka atribute; pa \texttt{.prj} nuk ka CRS (Java 10: koordinata ``jetime'').
+  \end{itemize}
+  \LO{K3}
+\end{frame}
+
+\begin{frame}{Kufizimet e shapefile-it}
+  \begin{itemize}
+    \item<1-> Emrat e kolonave: maksimumi \textbf{10 karaktere}.
+    \item<2-> Një tip gjeometrie për skedar (vetëm pika, vetëm vija ose vetëm poligone).
+    \item<3-> Madhësia: maksimumi 2 GB për \texttt{.shp} dhe \texttt{.dbf}.
+    \item<4-> Formati \texttt{.dbf} (1980-të): data, NA dhe kodimi i shkronjave (ë, ç) shpesh problematike.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}\textbf{GeoPackage} (\texttt{.gpkg}): një skedar SQLite, emra të gjatë, shumë shtresa, UTF-8, standard OGC. Përdoreni si parazgjedhje.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=pyetjeShp114]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Shtojmë te qarqet kolonën \texttt{pct\_above\_1000m} dhe i shkruajmë si shapefile.
+    \begin{enumerate}
+      \item Sa skedarë krijohen?
+      \item Si do të quhet kolona kur e lexojmë përsëri?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjShp114}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Shkrimi i një shapefile}
+<<h4-shp>>=
+library(sf)
+qarqe <- st_read(file.path(W11DATA, "gadm41_ALB_1.gpkg"), quiet = TRUE)
+qarqe$pct_above_1000m <- 0                            # placeholder column
+f <- file.path(tempdir(), "qarqe.shp")
+st_write(qarqe, f, delete_dsn = TRUE, quiet = TRUE)
+list.files(tempdir(), pattern = "^qarqe\\.")
+names(st_read(f, quiet = TRUE))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Katër skedarë: \texttt{.dbf}, \texttt{.prj}, \texttt{.shp}, \texttt{.shx}.
+    \item<2-> \texttt{pct\_above\_1000m} (15 karaktere) u bë \texttt{p\_\_1000}: i palexueshëm.
+    \item<3-> R jep paralajmërim (\emph{Field names abbreviated}), por e shkruan skedarin.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Një koleg merr shapefile-in, sheh \texttt{p\_\_1000} dhe nuk e di çfarë është. Dokumentoni ose përdorni \texttt{.gpkg}.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Atributet dhe bashkimet}
+% ------------------------------------------------------------
+
+\begin{frame}{Tabela e atributeve}
+  \begin{itemize}
+    \item<1-> Një objekt \texttt{sf} është \texttt{data.frame}: çdo rresht $=$ një objekt hapësinor.
+    \item<2-> Operacionet e zakonshme: zgjedhje rreshtash, kolonash, variabla të reja, përmbledhje.
+    \item<3-> Gjeometria ``ngjitet'' në rresht: \texttt{qarqe[qarqe\$qark == "Tirane", ]} mban poligonin.
+    \item<4-> Për analizë pa gjeometri: \texttt{st\_drop\_geometry()} (Java 10).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Të dhënat: rajonet statistikore (NUTS)}
+  \begin{itemize}
+    \item<1-> INSTAT: Shqipëria ndahet në 3 rajone statistikore niveli 2 dhe 12 niveli 3 (qarqet). VKM nr.~1037, 15.12.2010.
+    \item<2-> AL01 Veri: Dibër, Durrës, Kukës, Lezhë, Shkodër.
+    \item<3-> AL02 Qendër: Elbasan, Tiranë. \; AL03 Jug: Berat, Fier, Gjirokastër, Korçë, Vlorë.
+    \item<4-> Tabela \texttt{nuts\_al\_instat.csv}: \textbf{reale} (INSTAT, \emph{GDP by statistical regions}, 2011), me emrat zyrtarë me ë dhe ç.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bashkimi sipas atributeve (\emph{attribute join})}
+  \begin{itemize}
+    \item<1-> Dy tabela me një \textbf{çelës} të përbashkët: \texttt{merge(qarqe, nuts, by = ...)}.
+    \item<2-> Rreshtat pa çift humbasin (\emph{inner join}) ose marrin NA (\texttt{all.x = TRUE}).
+    \item<3-> Çelësi më i mirë: kod (NUTS3, ISO), jo emër.
+    \item<4-> Kontrolli i detyrueshëm: numri i rreshtave para dhe pas.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeJoin114]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Qarqet GADM kanë kolonën \texttt{qark} në ASCII (\texttt{Tirane}, \texttt{Korce}). Tabela e INSTAT ka emrat zyrtarë (\texttt{Tiranë}, \texttt{Korçë}).
+    Sa rreshta ka \texttt{merge(qarqe, nuts, by.x = "qark", by.y = "qark\_instat")}?
+  \end{Parashiko}
+  \shkoTe{zgjJoin114}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Bashkimi naiv}
+<<h4-join1>>=
+nuts <- read.csv(file.path(W11DATA, "nuts_al_instat.csv"), encoding = "UTF-8")
+m1 <- merge(qarqe, nuts, by.x = "qark", by.y = "qark_instat")
+nrow(m1)
+setdiff(qarqe$qark, m1$qark)                # lost counties
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vetëm 3 nga 12: Berat, Elbasan, Fier, emrat pa ë/ç.
+    \item<2-> \texttt{merge()} nuk jep gabim, as paralajmërim: 9 qarqe zhduken në heshtje.
+    \item<3-> Në një hartë koropletike do të dukeshin si ``pa të dhëna''.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Bashkimi sipas emrave me shkronja shqipe është burimi më i shpeshtë i gabimeve në statistikat rajonale. Kontrolloni gjithmonë \texttt{nrow()} dhe \texttt{setdiff()}.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Rregullimi: normalizimi i çelësit}
+<<h4-join2>>=
+to_ascii <- function(x) stringi::stri_trans_general(x, "Latin-ASCII")  # transliterate to ASCII
+nuts$qark <- to_ascii(nuts$qark_instat)
+qn <- merge(qarqe, nuts, by = "qark")
+c(rows = nrow(qn), missing = length(setdiff(qarqe$qark, qn$qark)))
+table(qn$nuts2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 12 rreshta, asnjë i humbur; 5 qarqe në AL01, 2 në AL02, 5 në AL03.
+    \item<2-> Tani kemi kodin \texttt{nuts3} në poligone: çelës i qëndrueshëm për çdo bashkim të ardhshëm me INSTAT/Eurostat.
+    \item<3-> Rregulli: normalizoni çelësin në \textbf{të dy} anët, pastaj bashkoni.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bashkimi hapësinor (\emph{spatial join})}
+  \begin{itemize}
+    \item<1-> Pa çelës të përbashkët: lidhja bëhet nga \textbf{gjeometria}.
+    \item<2-> \texttt{st\_join(x, y)}: çdo rresht i \texttt{x} merr atributet e \texttt{y} me të cilin ndërpritet.
+    \item<3-> Parazgjedhja: \texttt{join = st\_intersects}; mund të jetë \texttt{st\_within}, \texttt{st\_nearest\_feature}, \dots
+    \item<4-> Shembull: në cilin qark bie çdo qytet?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Qytetet dhe qarqet}
+<<h4-sjoin>>=
+cities <- st_as_sf(read.csv(file.path(W11DATA, "al_cities.csv")),
+                   coords = c("lon", "lat"), crs = 4326)
+cj <- st_join(cities, qn[, c("qark", "nuts3", "nuts2_name")])
+st_drop_geometry(cj)[, c("city", "qark", "nuts3", "nuts2_name")]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Çdo qytet bie në qarkun me të njëjtin emër, si pritej: kontroll i shpejtë i CRS-ve.
+    \item<2-> Qyteti trashëgon kodin NUTS3 dhe rajonin NUTS2 pa asnjë tabelë shtesë.
+    \item<3-> Me mijëra pika (shkolla, biznese, stacione): e njëjta thirrje.
+  \end{itemize}
+  \LO{S4}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC114]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    \texttt{st\_join(qarqe, cities)} (rendi i kundërt). Sa rreshta ka rezultati?
+    \begin{enumerate}[A.]
+      \item 6 \quad B. 12 \quad C. 18 \quad D. 72
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC114}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Editimi i gjeometrive}
+% ------------------------------------------------------------
+
+\begin{frame}{Bashkimi i poligoneve (\emph{dissolve})}
+  \begin{itemize}
+    \item<1-> \texttt{aggregate(x, by = list(grupi), FUN)}: bashkon gjeometritë sipas grupit dhe përmbledh atributet.
+    \item<2-> \texttt{st\_union(x)}: të gjitha në një gjeometri (p.sh.\ kufiri i Shqipërisë).
+    \item<3-> Kufijtë e brendshëm zhduken; sasitë ekstensive (sipërfaqja, banorët) mblidhen.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Nga 12 qarqe në 3 rajone NUTS2}
+<<h4-dissolve>>=
+qn6 <- st_transform(qn, 6870)
+qn6$km2 <- as.numeric(st_area(qn6)) / 1e6
+reg <- aggregate(qn6["km2"], by = list(nuts2 = qn6$nuts2_name), FUN = sum)
+cbind(st_drop_geometry(reg), area_of_union = as.numeric(st_area(reg)) / 1e6)
+alb <- st_union(qn6)
+c(sum_counties = sum(qn6$km2), union = as.numeric(st_area(alb)) / 1e6)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Veri 10\,970 km$^2$, Qendër 4\,804 km$^2$, Jug 12\,954 km$^2$.
+    \item<2-> Shuma e sipërfaqeve $=$ sipërfaqja e poligonit të bashkuar: qarqet GADM nuk mbivendosen dhe nuk kanë boshllëqe.
+    \item<3-> Kjo është \textbf{topologji e pastër}: çdo pikë e Shqipërisë i përket saktësisht një qarku.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Thjeshtimi i gjeometrive}
+  \begin{itemize}
+    \item<1-> \texttt{st\_simplify(x, dTolerance = d)}: algoritmi Douglas--Peucker; heq kulmet që devijojnë $<d$ nga vija.
+    \item<2-> Përdorim: harta web, figura, llogaritje më të shpejta.
+    \item<3-> Rrezik: çdo poligon thjeshtohet \textbf{veçmas} $\Rightarrow$ kufijtë e përbashkët ndahen.
+    \item<4-> Pasojë: mbivendosje dhe boshllëqe (\emph{slivers}) midis fqinjëve.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushSimp114]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(7 minuta)]
+    Me \texttt{qn6} (qarqet në metra), për \texttt{dTolerance} $=100, 1000, 5000$ m:
+    \begin{enumerate}
+      \item Numri i kulmeve; shuma e sipërfaqeve të qarqeve; sipërfaqja e bashkimit.
+      \item Pse shuma $\neq$ bashkimi pas thjeshtimit?
+      \item Cila tolerancë është e pranueshme për një figurë A4?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSimp114}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Thjeshtimi dhe topologjia}
+<<h4-simp>>=
+simp <- function(tol) {
+  s <- if (tol == 0) qn6 else st_cast(st_simplify(qn6, dTolerance = tol), "MULTIPOLYGON")
+  u <- st_union(s)
+  c(tol = tol, vertices = nrow(st_coordinates(s)),
+    sum_km2 = round(sum(as.numeric(st_area(s))) / 1e6, 1),
+    union_km2 = round(as.numeric(st_area(u)) / 1e6, 1))
+}
+t(sapply(c(0, 100, 1000, 5000), simp))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Kulmet: $6495\to2960\to646\to153$.
+    \item<2-> Me 100 m: sipërfaqet ndryshojnë $<1$ km$^2$. Me 5000 m: shuma bie në 28\,201, bashkimi në 27\,738 km$^2$.
+    \item<3-> Shuma $>$ bashkimi $\Rightarrow$ mbivendosje (deri 463 km$^2$ me 5 km): toka numërohet dy herë.
+    \item<4-> Për analiza: kurrë mbi gjeometri të thjeshtuara. Për figura: toleranca $\le$ sa një piksel.
+  \end{itemize}
+  \begin{Keshille}Thjeshtim që ruan topologjinë: paketa \texttt{rmapshaper} (\texttt{ms\_simplify}), ose thjeshtoni kufijtë e përbashkët një herë.\end{Keshille}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Vektor $\leftrightarrow$ raster}
+% ------------------------------------------------------------
+
+\begin{frame}{Rasterizimi: rregulli i qendrës}
+  \begin{itemize}
+    \item<1-> Qeliza merr vlerën e poligonit nëse \textbf{qendra} e saj është brenda (parazgjedhja).
+    \item<2-> \texttt{touches = TRUE}: çdo qelizë që preket nga poligoni (për vija: çdo qelizë që kalon vija).
+    \item<3-> Gabimi: qelizat e kufirit; relativisht më i madh për poligone të vegjël.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeRas114]{Shembull pa ndihmën e PC: rasterizimi}
+  \centering
+  \begin{tikzpicture}[scale=0.62, font=\scriptsize]
+    \foreach \i in {0,...,4} \foreach \j in {0,...,4} {
+      \draw[gray!60] (\i,\j) rectangle ++(1,1);
+      \fill[gray] (\i+0.5,\j+0.5) circle (1.5pt);
+    }
+    \draw[thick, accent, fill=accent, fill opacity=0.15] (0.2,0.2) -- (4.6,0.2) -- (0.2,4.6) -- cycle;
+    \foreach \k in {0,...,5} { \node[below] at (\k,-0.05) {\k}; \node[left] at (-0.05,\k) {\k}; }
+  \end{tikzpicture}
+  \begin{Parashiko}
+    Trekëndëshi $(0.2,0.2)$, $(4.6,0.2)$, $(0.2,4.6)$; hipotenuza $x+y=4.8$.
+    Sa qeliza merr me rregullin e qendrës? Sa është sipërfaqja e vërtetë?
+  \end{Parashiko}
+  \shkoTe{zgjRas114}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kontroll me \texttt{terra}}
+<<h4-ras>>=
+library(terra)
+g   <- rast(nrows = 5, ncols = 5, xmin = 0, xmax = 5, ymin = 0, ymax = 5, crs = "local")
+tri <- vect("POLYGON ((0.2 0.2, 4.6 0.2, 0.2 4.6, 0.2 0.2))", crs = "local")
+c(centre  = global(!is.na(rasterize(tri, g)), "sum")[1, 1],
+  touches = global(!is.na(rasterize(tri, g, touches = TRUE)), "sum")[1, 1],
+  true_area = 4.4^2 / 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Rregulli i qendrës: 10 qeliza (10 njësi$^2$) kundrejt sipërfaqes 9.68: gabim $+3\%$.
+    \item<2-> \texttt{touches = TRUE}: 15 qeliza: gabim $+55\%$.
+    \item<3-> Asnjë rregull nuk është ``i saktë'': zgjedhja varet nga qëllimi (mbulim i plotë apo sipërfaqe e paanshme).
+    \item<4-> Ora 5: \texttt{exactextractr} peshon çdo qelizë me pjesën e saj brenda poligonit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Vektorizimi: nga raster në poligone}
+<<h4-vec>>=
+elev  <- rast(file.path(W11DATA, "alb_elev_30s.tif"))
+rcl   <- matrix(c(-Inf, 200, 1,  200, 500, 2,  500, 1000, 3,
+                  1000, 1500, 4,  1500, 2000, 5,  2000, Inf, 6), ncol = 3, byrow = TRUE)
+bands <- classify(elev, rcl)
+pol   <- as.polygons(bands)                # one (multi)polygon per class
+parts <- disagg(pol)                       # one polygon per connected patch
+c(classes = nrow(pol), patches = nrow(parts))
+table(parts[[1]][, 1])
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{as.polygons()}: 6 multipoligone, një për çdo brez.
+    \item<2-> \texttt{disagg()}: 1130 copa të lidhura; brezi 200--500 m ka më shumë (312).
+    \item<3-> Kufijtë janë ``shkallë'' sipas qelizave: vektorizimi nuk shton saktësi.
+    \item<4-> Përdorim: kufijtë e zonave mbi një prag, për t'i bashkuar me të dhëna vektoriale.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Ripërzgjedhja (\emph{resampling})}
+  \begin{itemize}
+    \item<1-> Kur kalojmë raster-in në një rrjetë tjetër (rezolucion, origjinë ose CRS e re), vlerat duhen rillogaritur.
+    \item<2-> \textbf{Fqinji më i afërt} (\texttt{"near"}): merr vlerën e qelizës më të afërt; i vetmi për klasa.
+    \item<3-> \textbf{Bilineare} (\texttt{"bilinear"}): mesatare e ponderuar e 4 qendrave fqinje; për fusha të vazhdueshme.
+    \item<4-> Të tjera: \texttt{"cubic"}, \texttt{"average"}, \texttt{"mode"}, \texttt{"sum"}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Interpolimi bilinear pa ndihmën e PC}
+  \begin{itemize}
+    \item<1-> Katër qendra: $f(0,0)=10$, $f(1,0)=20$, $f(0,1)=30$, $f(1,1)=40$. Pika $(0.25, 0.4)$.
+    \item<2-> Përgjatë $x$, poshtë: $10+0.25(20-10)=12.5$; lart: $30+0.25(40-30)=32.5$.
+    \item<3-> Përgjatë $y$: $12.5+0.4(32.5-12.5)=20.5$.
+    \item<4-> Fqinji më i afërt: qendra $(0,0)$ $\Rightarrow$ 10.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Bilineari është mesatare e ponderuar: $\sum w_k f_k$ me $w=(1-u)(1-v), u(1-v), (1-u)v, uv$. Kriging (Java 12) është gjithashtu mesatare e ponderuar, por peshat vijnë nga variogrami.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=gjejGabim114]{Gjej gabimin}
+  \begin{itemize}
+    \item Një analist ripërzgjedh raster-in e brezave të lartësisë (klasa 1--6) në një rrjetë tjetër me \texttt{method = "bilinear"}.
+    \item Rezultati ka vlera si 2.37, 4.81, \dots
+  \end{itemize}
+  \begin{Ushtrim}[(Pyetje)]
+    Çfarë është gabim? Cila metodë duhet?
+  \end{Ushtrim}
+  \shkoTe{zgjGabim114}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushTPS114]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Pse kodi NUTS3 është çelës më i mirë se emri i qarkut? Kur mund të dështojë edhe ai?
+      \item Kemi poligonet e bashkive (61) dhe duam rajonet NUTS2. Cili operacion?
+      \item Kur do ta vektorizonit një raster në vend që ta përdornit si raster?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS114}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë përmbledhëse: funksionet e orës}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    Shkruaj / lexo & \texttt{st\_write}, \texttt{st\_read} (\texttt{.gpkg} $>$ \texttt{.shp}) \\
+    Bashkim atributesh & \texttt{merge(x, y, by =)}, kontroll \texttt{nrow}, \texttt{setdiff} \\
+    Bashkim hapësinor & \texttt{st\_join(x, y, join = st\_intersects)} \\
+    Dissolve & \texttt{aggregate(x, by =, FUN)}, \texttt{st\_union} \\
+    Thjeshtim & \texttt{st\_simplify(dTolerance =)}, \texttt{rmapshaper::ms\_simplify} \\
+    Vektor $\to$ raster & \texttt{rasterize(v, r, touches =)} \\
+    Raster $\to$ vektor & \texttt{as.polygons}, \texttt{disagg} \\
+    Ripërzgjedhje & \texttt{resample(method =)}, \texttt{project(method =)} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=cp114]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 4}
+  \begin{enumerate}
+    \item Përmendni tre kufizime të shapefile-it.
+    \item Pse \texttt{merge()} sipas emrave mund të humbasë rreshta pa paralajmërim?
+    \item Llogaritni bilinearin në pikën $(0.5, 0.5)$ me vlerat 10, 20, 30, 40 të shembullit.
+  \end{enumerate}
+  \shkoTe{zgjCp114}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 4}
+  \begin{itemize}
+    \item Shapefile: 4+ skedarë, emra $\le10$ karaktere (\texttt{pct\_above\_1000m}$\to$\texttt{p\_\_1000}); GeoPackage më mirë.
+    \item Bashkimi sipas emrave: 3/12 qarqe; me çelës të normalizuar: 12/12, me kodet NUTS.
+    \item \texttt{st\_join}: qytetet $\to$ qarku dhe rajoni; \texttt{aggregate}: 3 rajone (10\,970 / 4\,804 / 12\,954 km$^2$).
+    \item Thjeshtimi i pavarur prish topologjinë: 463 km$^2$ mbivendosje me 5 km.
+    \item Rasterizimi (qendra: 10 qeliza për 9.68), vektorizimi (1130 copa), bilineari (20.5).
+  \end{itemize}
+  \begin{Keshille}Ora 5 (Lab II): statistika zonale të sakta, popullsia GPW sipas qarqeve, ripërzgjedhja në 6870.\end{Keshille}
+\end{frame}
