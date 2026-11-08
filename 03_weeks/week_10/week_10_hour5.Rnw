@@ -1,0 +1,412 @@
+% ============================================================
+%  Java 10 · Ora 5 — Lab II: st_transform dhe matja e shtrembërimeve
+%  Rezultatet: K3, S3, S4, C1
+%  Burimi: dokumentacioni i sf (st_transform, st_crs); Pebesma & Bivand (2023), kap. 2, 8;
+%          Lovelace et al., Geocomputation with R, kap. 7
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Lab II: CRS]{Lab II: \texttt{st\_transform} dhe shtrembërimet}
+
+\begin{frame}{Ora 5: Lab II --- \texttt{st\_transform} dhe shtrembërimet}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Transformimi i CRS-së}
+% ------------------------------------------------------------
+
+\begin{frame}{Dy funksione, dy kuptime}
+  \begin{itemize}
+    \item<1-> \texttt{st\_set\_crs(x, crs)}: ``këto koordinata \textbf{janë} në \texttt{crs}''. Numrat nuk ndryshojnë.
+    \item<2-> \texttt{st\_transform(x, crs)}: ``\textbf{shprehi} këto pika në \texttt{crs}''. Numrat ndryshojnë, pikat në terren jo.
+    \item<3-> E para rregullon etiketën; e dyta llogarit (PROJ: datum + projeksion).
+    \item<4-> \texttt{st\_transform} kërkon që CRS-ja burimore të jetë e njohur.
+  \end{itemize}
+  \LO{S4}
+\end{frame}
+
+\begin{frame}[fragile]{Transformimi i qyteteve në Albania TM}
+<<h5-tr>>=
+library(sf)
+cities <- read.csv(file.path(W10DATA, "al_cities.csv"))
+pts    <- st_as_sf(cities, coords = c("lon", "lat"), crs = 4326)
+pts_tm <- st_transform(pts, 6870)
+round(cbind(st_coordinates(pts), st_coordinates(pts_tm)), 3)[1:4, ]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Tirana: $(19.819^\circ, 41.328^\circ)$ $\to$ $(484\,847, 4\,577\,016)$ m.
+    \item<2-> $x<500\,000$: Tirana është në perëndim të $\lambda_0=20^\circ$ (rreth 15 km).
+    \item<3-> $y\approx4\,577$ km: distanca nga ekuatori përgjatë meridianit.
+    \item<4-> Elbasani ($20.082^\circ$) ka $x>500\,000$: në lindje të meridianit qendror.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeRT105]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Transformojmë qytetet $4326\to6870\to4326$. Sa larg do të jenë pikat e kthyera nga ato fillestare?
+    \begin{enumerate}[A.]
+      \item disa metra \quad B. disa centimetra \quad C. praktikisht zero (nanometra)
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjRT105}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kontroll: vajtje-ardhje}
+<<h5-rt>>=
+back <- st_transform(pts_tm, 4326)
+max(abs(st_coordinates(back) - st_coordinates(pts)))   # degrees
+max(as.numeric(st_distance(back, pts, by_element = TRUE)))  # metres
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Ndryshimi në gradë: $\approx10^{-14}$, në metra: $\approx10^{-9}$ (nanometër).
+    \item<2-> Transformimi TM është i kthyeshëm me saktësi makine kur datumi është i njëjtë (ETRS89 $\approx$ WGS 84 këtu).
+    \item<3-> Me ndryshim datumi të vjetër (p.sh.\ 4191), saktësia varet nga parametrat Helmert, jo nga aritmetika.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGabim105]{Gjej gabimin: etiketa e gabuar}
+<<h5-bug>>=
+meuse <- read.csv(file.path(W10DATA, "meuse.csv"))
+wrong <- st_as_sf(meuse[1, ], coords = c("x", "y"), crs = 6870)  # label!
+right <- st_as_sf(meuse[1, ], coords = c("x", "y"), crs = 28992)
+rbind(wrong = st_coordinates(st_transform(wrong, 4326)),
+      right = st_coordinates(st_transform(right, 4326)))
+@
+  Ku përfundon pika ``wrong''? Pse R nuk jep gabim?
+  \shkoTe{zgjGabim105}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> E njëjta palë numrash, dy etiketa: Holandë $(5.76^\circ, 50.99^\circ)$ ose Afrikë Qendrore $(17.13^\circ, 3.01^\circ)$.
+    \item<2-> Numrat \texttt{x, y} në metra janë të vlefshëm në shumë CRS; R nuk ka si ta dijë.
+    \item<3-> Mbrojtja e vetme: \textbf{metadata} (dokumentacioni i burimit) dhe kontrolli vizual në hartë.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Mos e ``rregulloni'' një hartë që del në vend të gabuar me \texttt{st\_transform}. Fillimisht verifikoni CRS-në burimore me \texttt{st\_set\_crs}.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{CRS të ndryshëm në një operacion}
+<<h5-crsmix, error=TRUE>>=
+balk <- st_read(file.path(W10DATA, "balkans_ne50.gpkg"), quiet = TRUE)
+alb  <- balk[balk$admin == "Albania", ]
+st_intersects(pts, st_transform(alb, 6870))
+st_crs(pts) == st_crs(alb)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{sf} refuzon operacione binare me CRS të ndryshme: gabim i qartë.
+    \item<2-> Krahasimi \texttt{st\_crs(a) == st\_crs(b)} kontrollon para se të llogaritim.
+    \item<3-> Zgjidhja: transformoni njërën shtresë në CRS-në e tjetrës.
+  \end{itemize}
+  \begin{Keshille}\texttt{geom\_sf()} i transformon vetë shtresat në CRS-në e parë; \texttt{st\_intersects()} jo. Harta e saktë nuk garanton llogaritje të sakta.\end{Keshille}
+\end{frame}
+
+\begin{frame}[fragile]{Si duket një CRS i plotë: WKT2}
+<<h5-wkt>>=
+wkt <- strsplit(st_crs(6870)$wkt, "\n")[[1]]
+length(wkt)
+key <- grep("^ *(PROJCRS|DATUM|ELLIPSOID|METHOD)|natural origin|Scale|False easting", wkt)
+cat(substr(trimws(wkt[key]), 1, 60), sep = "\n")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> WKT2 (ISO 19162): përshkrimi i plotë: datumi, elipsoidi, metoda, parametrat, njësitë, boshtet.
+    \item<2-> Kjo është ajo që \texttt{sf} ruan në \texttt{.gpkg}; proj4-ja është përmbledhje me humbje informacioni.
+    \item<3-> Kodi EPSG (6870) është çelësi; WKT2 është përmbajtja.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Matja e shtrembërimit të distancave}
+% ------------------------------------------------------------
+
+\begin{frame}{Eksperimenti: 500 çifte pikash të rastësishme}
+  \begin{itemize}
+    \item<1-> Zgjedhim 500 çifte pikash uniformisht brenda Shqipërisë (\texttt{st\_sample}, \texttt{set.seed}).
+    \item<2-> ``E vërteta'': distanca gjeodezike mbi elipsoidin GRS80/WGS 84.
+    \item<3-> Për çdo CRS: distanca Euklidiane në plan, pastaj gabimi relativ në ppm ($10^{-6}$).
+    \item<4-> Është një studim simulimi: vlerësim kundrejt së vërtetës, si në javët e regresit.
+  \end{itemize}
+  \LO{S3}
+\end{frame}
+
+\begin{frame}[fragile]{Simulimi}
+<<h5-sim>>=
+set.seed(2026)
+n <- 500
+A <- st_sample(alb, n); B <- st_sample(alb, n)
+sf_use_s2(FALSE)                      # geodesic distance on the ellipsoid
+d_true <- as.numeric(st_distance(A, B, by_element = TRUE))
+sf_use_s2(TRUE)
+d_plane <- function(crs) as.numeric(st_distance(st_transform(A, crs),
+                                    st_transform(B, crs), by_element = TRUE))
+summary(d_true / 1000)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Distancat: nga 1.6 km deri në 289 km; mediana 96 km.
+    \item<2-> \texttt{sf\_use\_s2(FALSE)} + CRS gjeografik $\Rightarrow$ distancë gjeodezike në elipsoid (biblioteka GeographicLib).
+    \item<3-> \texttt{d\_plane()}: distancë Euklidiane pas transformimit në çdo CRS.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Gabimi relativ sipas CRS-së}
+<<h5-err>>=
+d_s2 <- as.numeric(st_distance(A, B, by_element = TRUE))       # sphere
+D <- cbind(s2_sphere = d_s2, sapply(c(TM6870 = 6870, UTM34 = 32634,
+                                       LAEA3035 = 3035, WebMerc = 3857), d_plane))
+ppm <- (D / d_true - 1) * 1e6
+round(apply(ppm, 2, function(z) c(mean = mean(z), min = min(z), max = max(z))), 0)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Albania TM: 0 deri 52 ppm (5 cm në 1 km). Gjithmonë $\ge0$: $k_0=1$, shkalla rritet larg $\lambda_0$.
+    \item<2-> UTM 34N: $-396$ deri $-177$ ppm: $k_0=0.9996$ dhe Shqipëria është në perëndim të $21^\circ$.
+    \item<3-> Sfera (\texttt{s2}): $-0.26\%$ deri $+0.14\%$; varet nga drejtimi (Ora 2).
+    \item<4-> LAEA 3035: $\pm0.7\%$! Ekuivalent për sipërfaqet, jo për distancat.
+    \item<5-> Web Mercator: $+31\%$ deri $+35\%$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Shpërndarja e gabimeve}
+<<h5-box, fig.height=2.2, fig.width=6.5, out.width="0.7\\textwidth">>=
+library(ggplot2)
+long <- data.frame(crs = rep(colnames(ppm)[1:4], each = n), ppm = c(ppm[, 1:4]))
+ggplot(long, aes(crs, ppm)) + geom_boxplot(outlier.size = 0.5) +
+  geom_hline(yintercept = 0, linetype = 2) + coord_flip() +
+  labs(x = NULL, y = "relative distance error (ppm)") + theme_bw(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Web Mercator mungon: me $\approx330\,000$ ppm do ta bënte grafikun të palexueshëm.
+    \item<2-> Albania TM: kuti e ngushtë pranë zeros. Fituesi për distancat brenda Shqipërisë.
+    \item<3-> LAEA: shpërndarja më e gjerë midis atyre ``të mira'': $\pm7\,000$ ppm sipas drejtimit.
+  \end{itemize}
+  \LO{C1}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC105]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Pse gabimet e LAEA 3035 ndryshojnë nga $-0.7\%$ në $+0.7\%$, ndërsa sipërfaqet janë të sakta?
+    \begin{enumerate}[A.]
+      \item Sepse LAEA ka gabim numerik në PROJ.
+      \item Sepse në pikat larg qendrës ($52^\circ$V, $10^\circ$L) $h<1<k$ me $hk=1$: shtrin në një drejtim, ngjesh në tjetrin.
+      \item Sepse LAEA përdor sferë dhe jo elipsoid.
+      \item Sepse \texttt{st\_sample} nuk është uniform.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC105}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Gabimi si funksion i vendndodhjes}
+<<h5-loc, fig.height=2.2, fig.width=6, out.width="0.66\\textwidth">>=
+mid_lon <- (st_coordinates(A)[, 1] + st_coordinates(B)[, 1]) / 2
+df <- rbind(data.frame(lon = mid_lon, crs = "TM6870", ppm = ppm[, "TM6870"]),
+            data.frame(lon = mid_lon, crs = "UTM34",  ppm = ppm[, "UTM34"]))
+ggplot(df, aes(lon, ppm, colour = crs)) + geom_point(size = 0.6, alpha = 0.6) +
+  geom_vline(xintercept = c(20, 21), linetype = 2) + theme_bw(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Boshti $x$: gjatësia e mesit të segmentit.
+    \item<2-> TM 6870: parabolë me minimum në $20^\circ$ ($\lambda_0$): $k\approx1+x^2/(2R^2)$ nga Ora 4.
+    \item<3-> UTM 34: e njëjta parabolë, me minimum në $21^\circ$ dhe e zhvendosur poshtë me $-400$ ppm ($k_0=0.9996$).
+    \item<4-> Teoria (Ora 4) dhe simulimi përputhen.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Një CRS i ndërtuar nga ne}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{CRS me parametra të zgjedhur}
+<<h5-custom>>=
+tm <- function(lon0, k0 = 1)
+  sprintf("+proj=tmerc +lon_0=%s +k=%s +x_0=500000 +ellps=GRS80 +units=m", lon0, k0)
+err <- function(crs) { e <- (d_plane(crs) / d_true - 1) * 1e6
+                       c(mean = mean(e), min = min(e), max = max(e)) }
+round(rbind(lon19.5 = err(tm(19.5)), lon20 = err(tm(20)),
+            lon20.15 = err(tm(20.15)), lon21 = err(tm(21))), 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $\lambda_0=20^\circ$ (Albania TM) dhe $20.15^\circ$ (mesi i Shqipërisë): max $\approx50$ ppm.
+    \item<2-> $\lambda_0=19.5^\circ$: 142 ppm; $21^\circ$: 223 ppm. Meridiani qendror duhet në mes të territorit.
+    \item<3-> \texttt{tm(20)} jep të njëjtat numra si EPSG:6870: e rindërtuam projeksionin zyrtar nga parametrat e tij.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushK105]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(7 minuta)]
+    \begin{enumerate}
+      \item Me \texttt{lon0 = 20.15}, provoni \texttt{k0} $=1$, $0.99997$ dhe $0.99995$.
+      \item Cili jep vlerën absolute maksimale më të vogël të gabimit?
+      \item Pse UTM-ja zgjodhi $k_0<1$, ndërsa Albania TM $k_0=1$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjK105}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shtrembërimi i sipërfaqeve në hartë}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Rrjetë qelizash $0.25^\circ$}
+<<h5-grid>>=
+cells <- st_make_grid(alb, cellsize = 0.25)
+cells <- st_sf(geometry = cells[lengths(st_intersects(cells, alb)) > 0])
+cells$ratio <- as.numeric(st_area(st_transform(cells, 3857))) /
+               as.numeric(st_area(cells))      # Web Mercator / sphere
+nrow(cells); round(range(cells$ratio), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 69 qeliza $0.25^\circ\times0.25^\circ$ prekin Shqipërinë.
+    \item<2-> Raporti i sipërfaqes Web Mercator / e vërtetë: nga 1.70 në jug deri 1.85 në veri.
+    \item<3-> I njëjti hartim i bën qarqet e veriut 9\% ``më të mëdha'' relativisht se ato të jugut.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Harta e shtrembërimit}
+<<h5-gridmap, fig.height=3.4, fig.width=3.8, out.width="0.33\\textwidth">>=
+ggplot() +
+  geom_sf(data = cells, aes(fill = ratio), colour = "white", linewidth = 0.2) +
+  geom_sf(data = alb, fill = NA, colour = "black") +
+  scale_fill_viridis_c(name = "3857 / true") + theme_bw(base_size = 8)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Ngjyra ndryshon vetëm sipas gjerësisë: $\sec^2\varphi$ nuk varet nga $\lambda$.
+    \item<2-> Shiritat horizontalë janë ``gjurmët e gishtave'' të një projeksioni cilindrik normal.
+    \item<3-> Për një hartë koropletike me dendësi, kjo do të ishte një shtrembërim sistematik veri--jug.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Shqipëria në katër projeksione}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Katër harta, një shtresë}
+<<h5-four, eval=FALSE>>=
+library(patchwork)
+grat <- st_graticule(alb, lon = seq(19, 21.5, 0.5), lat = seq(39.5, 42.5, 0.5))
+one <- function(crs, title) ggplot() +
+  geom_sf(data = grat, colour = "grey75", linewidth = 0.2) +
+  geom_sf(data = alb, fill = "#cfe3f5") +
+  coord_sf(crs = crs, datum = NA) + ggtitle(title) + theme_void(base_size = 9) +
+  theme(plot.title = element_text(hjust = 0.5))
+one(4326, "4326") + one(3857, "3857") + one(6870, "6870") + one(3035, "3035") +
+  plot_layout(nrow = 1)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati}
+<<h5-four-fig, ref.label="h5-four", echo=FALSE, fig.height=2.6, fig.width=8, out.width="0.98\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{coord\_sf(crs = )}: e njëjta shtresë vizatohet në çdo projeksion pa e transformuar ne.
+    \item<2-> 4326 dhe 3857: rrjeta drejtkëndëshe; Mercator e ``zgjat'' vertikalisht.
+    \item<3-> 6870: meridianët pak të përkulur, konvergjojnë drejt veriut.
+    \item<4-> 3035: rrjeta e rrotulluar: Shqipëria është në juglindje të qendrës $(10^\circ, 52^\circ)$.
+  \end{itemize}
+  \begin{Keshille}Me sy, të katra duken ``mirë''. Vetëm matjet (simulimi, raportet) i dallojnë.\end{Keshille}
+\end{frame}
+
+\begin{frame}[label=ushTPS105]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Simulimi ynë përdori 500 çifte. Si do të vlerësonit pasigurinë e gabimit mesatar? (Ndihmë: bootstrap.)
+      \item Pse zgjodhëm pika uniforme brenda Shqipërisë dhe jo në drejtkëndëshin rrethues?
+      \item Çfarë do të ndryshonte nëse pikat do të ishin vetëm në qytete?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS105}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Ruajtja: CRS-ja udhëton me skedarin}
+<<h5-write>>=
+f <- file.path(tempdir(), "cities_tm.gpkg")
+st_write(pts_tm, f, delete_dsn = TRUE, quiet = TRUE)
+back_tm <- st_read(f, quiet = TRUE)
+st_crs(back_tm) == st_crs(6870)
+st_crs(back_tm)$epsg
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> GeoPackage ruan WKT-në e plotë; leximi rikthen të njëjtin CRS.
+    \item<2-> CSV nuk ruan CRS: duhet ta dokumentoni (emri i kolonave, README).
+    \item<3-> Shapefile ruan CRS në skedarin \texttt{.prj} (WKT1): mos e humbni kur e kopjoni.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Fletë përmbledhëse: funksionet e orës}
+  \small
+  \begin{tabular}{ll}
+    \toprule
+    Detyra & Funksioni \\
+    \midrule
+    Vendos / ndrysho etiketën & \texttt{st\_set\_crs}, \texttt{st\_crs<-} \\
+    Transformo & \texttt{st\_transform(x, crs)} \\
+    Krahaso CRS & \texttt{st\_crs(a) == st\_crs(b)} \\
+    CRS me parametra & \texttt{"+proj=tmerc +lon\_0=... +k=..."} \\
+    Distancë gjeodezike & \texttt{sf\_use\_s2(FALSE)}; \texttt{st\_distance} \\
+    Rrjeta / graticule & \texttt{st\_make\_grid}, \texttt{st\_graticule} \\
+    Hartë në CRS tjetër & \texttt{coord\_sf(crs = )} \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp105]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Cili është ndryshimi midis \texttt{st\_set\_crs()} dhe \texttt{st\_transform()}?
+    \item Pse LAEA 3035 jep sipërfaqe të sakta, por distanca me gabim deri 0.7\%?
+    \item Si do të zgjidhnit $\lambda_0$ për një TM lokal të një vendi tjetër?
+  \end{enumerate}
+  \shkoTe{zgjCp105}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item \texttt{st\_set\_crs}: etiketë; \texttt{st\_transform}: llogaritje. Etiketa e gabuar e çon meuse në Afrikë.
+    \item Simulim me 500 çifte: Albania TM 0--52 ppm; UTM $-396$ deri $-177$; LAEA $\pm0.7\%$; Web Mercator $+33\%$.
+    \item Gabimi ndjek parabolën $x^2/2R^2$ rreth $\lambda_0$: teoria e Orës 4 u konfirmua.
+    \item Web Mercator: sipërfaqja $\times1.70$ në jug deri $\times1.85$ në veri.
+    \item \texttt{.gpkg} ruan CRS-në; CSV jo.
+  \end{itemize}
+  \begin{Keshille}Ora 6: rasti studimor: hartë tematike e Shqipërisë në EPSG:6870, nga të dhënat te figura për botim.\end{Keshille}
+\end{frame}

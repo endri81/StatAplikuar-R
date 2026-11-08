@@ -1,0 +1,58 @@
+% ============================================================
+%  Java 10 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjRT105]{Zgjidhja: Parashiko (vajtje-ardhje)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}. Gabimi maksimal $\approx1.6\cdot10^{-9}$ m.
+    \item Formulat e TM në PROJ janë seri me saktësi nën milimetër brenda zonës; kthimi është anasjellta e tyre.
+    \item Gabimi i mbetur vjen nga aritmetika me 64 bit (\emph{double}).
+  \end{itemize}
+  \vfill\kthehu{pyetjeRT105}
+\end{frame}
+
+\begin{frame}[label=zgjGabim105]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item Me etiketën 6870, $(181\,072, 333\,611)$ m lexohen si $\approx319$ km në perëndim të $20^\circ$ dhe 334 km në veri të ekuatorit: $(17.13^\circ, 3.01^\circ)$, në Afrikën Qendrore.
+    \item R nuk jep gabim: çdo palë numrash brenda kufijve të projeksionit është e vlefshme.
+    \item Burimi (\texttt{?meuse}) thotë RD New, EPSG:28992: me të del Holanda.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim105}
+\end{frame}
+
+\begin{frame}[label=zgjMC105]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item Ekuivalent do të thotë $hk=1$, jo $h=k=1$. Larg qendrës, rrethi i Tissot bëhet elipsë me $a'>1>b'$.
+    \item Një segment në drejtimin e $a'$ zgjatet, në drejtimin e $b'$ shkurtohet: prandaj $\pm$.
+    \item A, C, D: jo; PROJ përdor elipsoidin GRS80 dhe \texttt{st\_sample} është uniform.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC105}
+\end{frame}
+
+\begin{frame}[label=zgjK105]{Zgjidhja: Ndrysho parametrin}
+  \begin{enumerate}
+    \item $k_0=1$: 0 deri 50 ppm; \; $0.99997$: $-30$ deri $+20$; \; $0.99995$: $-50$ deri 0.
+    \item $k_0=0.99997$: max $|e|\approx30$ ppm, më e vogla nga të treja.
+    \item UTM mbulon $6^\circ$ (deri $\approx330$ km nga $\lambda_0$): pa $k_0<1$ gabimi në skaje do të ishte $\approx+0.14\%$. Shqipëria është e ngushtë ($\pm70$ km), gabimi është i vogël edhe me $k_0=1$, dhe $k=1$ te $\lambda_0$ është më i thjeshtë.
+  \end{enumerate}
+  \vfill\kthehu{ushK105}
+\end{frame}
+
+\begin{frame}[label=zgjTPS105]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Bootstrap: rimostroni 500 çiftet me zëvendësim, llogaritni mesataren e ppm-ve shumë herë, merrni kuantilet 2.5\% dhe 97.5\%. Ose gabimi standard $s/\sqrt{500}$.
+    \item Na interesojnë gabimet aty ku ka të dhëna: drejtkëndëshi përfshin det dhe shtete fqinje.
+    \item Rezultati do të varej nga 6 pika dhe 15 çifte: mostër e vogël dhe jo përfaqësuese për territorin.
+  \end{enumerate}
+  \vfill\kthehu{ushTPS105}
+\end{frame}
+
+\begin{frame}[label=zgjCp105]{Përgjigjet: Checkpoint Ora 5}
+  \begin{enumerate}
+    \item \texttt{st\_set\_crs}: ndërron etiketën, numrat mbeten; \texttt{st\_transform}: rillogarit koordinatat në CRS-në e re.
+    \item $hk=1$ por $h\neq k$ larg qendrës: elipsat e Tissot kanë sipërfaqe të saktë, formë të shtrembëruar.
+    \item Në mes të territorit (gjatësia mesatare ose ajo që minimizon $\max|x|$); pastaj, nëse territori është i gjerë, $k_0<1$.
+  \end{enumerate}
+  \vfill\kthehu{cp105}
+\end{frame}
