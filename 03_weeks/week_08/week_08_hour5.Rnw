@@ -1,0 +1,327 @@
+% ============================================================
+%  Java 8 · Ora 5 — R Lab II: ns, smoothing spline, loess, GAM, regresi i fortë
+%  Rezultatet: S4, S2, S3, C1
+%  Burimi: repo DS612 Lecture_7.2.R (ns, smooth.spline, loess, gam); ISLR kap. 7.8.2--7.8.3;
+%          regresi i fortë: material plotësues (dokumentacioni i MASS::rlm, robustbase::lmrob)
+% ============================================================
+
+\section{R Lab II: zbutja dhe regresi i fortë}
+
+\begin{frame}{Ora 5: R Lab II --- zbutja dhe regresi i fortë}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Splines natyrore dhe smoothing}
+% ------------------------------------------------------------
+
+\begin{frame}{Plani i laboratorit \LO{S4} \LO{S2} \LO{S3}}
+  \begin{itemize}
+    \item<1-> \texttt{Wage} (reale, ISLR; pa kolonën e racës): \texttt{ns}, \texttt{smooth.spline}, \texttt{loess}, \texttt{gam}.
+    \item<2-> \texttt{Auto} (reale, ISLR): \texttt{rlm} (Huber, bisquare), \texttt{lmrob} (MM), peshat.
+    \item<3-> Simulim kontaminimi (sintetike): OLS, Huber, MM kundrejt pjerrësisë së vërtetë 2.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{ns()} kundrejt \texttt{bs()}}
+<<h5-ns>>=
+library(splines)
+wage_df <- read.csv(file.path(W08DATA, "Wage.csv"), stringsAsFactors = TRUE)
+fit_ns <- lm(wage ~ ns(age, df = 4), data = wage_df)
+fit_bs <- lm(wage ~ bs(age, knots = c(25, 40, 60)), data = wage_df)
+attr(ns(wage_df$age, df = 4), "knots")          # 3 interior knots
+grid <- data.frame(age = 18:80)
+p_ns <- predict(fit_ns, grid, se.fit = TRUE); p_bs <- predict(fit_bs, grid, se.fit = TRUE)
+round(rbind(ns = p_ns$se.fit[c(1, 30, 63)], bs = p_bs$se.fit[c(1, 30, 63)]), 2)
+@
+  \footnotesize Kolonat: SE në moshat 18, 47, 80.
+\end{frame}
+
+\begin{frame}[fragile,shrink=10]{Brezat IB: \texttt{ns} kundrejt \texttt{bs}}
+<<h5-ns-plot, fig.height=3, fig.width=6.5, out.width="0.5\\textwidth">>=
+plot(wage_df$age, wage_df$wage, pch = 16, cex = 0.5,
+     col = rgb(0.6, 0.6, 0.6, 0.3), xlab = "age", ylab = "wage")
+for (p in list(list(p_bs, "#D97706"), list(p_ns, "#2C5AA0"))) {
+  lines(grid$age, p[[1]]$fit, col = p[[2]], lwd = 2)
+  matlines(grid$age, p[[1]]$fit + outer(p[[1]]$se.fit, c(-2, 2)),
+           col = p[[2]], lty = 2) }
+legend("topright", c("bs, 3 knots", "ns, df = 4"), lwd = 2,
+       col = c("#D97706", "#2C5AA0"), bty = "n")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Në mes (47 vjeç) të dyja kanë SE të ngjashme.
+    \item<2-> Në skaje (18 dhe 80 vjeç), \texttt{ns} ka SE më të vogël: lineariteti në skaje ul variancën.
+    \item<3-> \texttt{ns(df = 4)} përdor 5 parametra, \texttt{bs} me 3 nyje 7: më pak parametra, kurbë pothuajse e njëjtë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Smoothing spline: df e dhënë dhe LOOCV}
+<<h5-ss, warning=FALSE>>=
+ss16 <- smooth.spline(wage_df$age, wage_df$wage, df = 16)
+ss_cv <- smooth.spline(wage_df$age, wage_df$wage, cv = TRUE)
+round(c(df_cv = ss_cv$df, lambda_cv = ss_cv$lambda,
+        lambda_df16 = ss16$lambda), 5)
+@
+  \begin{itemize}
+    \item<2-> LOOCV zgjedh $\text{df}\approx6.8$: shumë më pak se 16.
+    \item<3-> $\lambda$ më i madh $\Rightarrow$ më pak df $\Rightarrow$ kurbë më e lëmuar.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=10]{Dy smoothing splines}
+<<h5-ss-plot, fig.height=3, fig.width=6.5, out.width="0.5\\textwidth">>=
+plot(wage_df$age, wage_df$wage, pch = 16, cex = 0.5,
+     col = rgb(0.6, 0.6, 0.6, 0.3), xlab = "age", ylab = "wage")
+lines(ss16, col = "#B91C1C", lwd = 2)
+lines(ss_cv, col = "#2C5AA0", lwd = 2)
+legend("topright", c("df = 16", sprintf("LOOCV, df = %.1f", ss_cv$df)),
+       col = c("#B91C1C", "#2C5AA0"), lwd = 2, bty = "n")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{df = 16}: kurbë e valëzuar, ndjek zhurmën (sidomos pas 65).
+    \item<2-> LOOCV: kurbë e lëmuar, forma e njohur: rritje, rrafsh, rënie.
+    \item<3-> R paralajmëron: me vlera $x$ të përsëritura (mosha është numër i plotë), LOOCV ``seems doubtful''. Rezultati mbetet i arsyeshëm, por kontrolloni me $K$-fold CV.
+  \end{itemize}
+  \begin{Gabim}Injorimi i paralajmërimeve të R. Lexojini: këtu tregojnë që LOOCV supozon $x$ unikë.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Loess}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile,shrink=10]{Loess me dy span}
+<<h5-loess, fig.height=3, fig.width=6.5, out.width="0.5\\textwidth">>=
+lo2 <- loess(wage ~ age, span = 0.2, data = wage_df)
+lo5 <- loess(wage ~ age, span = 0.5, data = wage_df)
+plot(wage_df$age, wage_df$wage, pch = 16, cex = 0.5,
+     col = rgb(0.6, 0.6, 0.6, 0.3), xlab = "age", ylab = "wage")
+lines(grid$age, predict(lo2, grid), col = "#B91C1C", lwd = 2)
+lines(grid$age, predict(lo5, grid), col = "#2C5AA0", lwd = 2)
+legend("topright", c("span 0.2", "span 0.5"), col = c("#B91C1C", "#2C5AA0"),
+       lwd = 2, bty = "n")
+@
+\end{frame}
+
+\begin{frame}[fragile]{Çfarë na tregon?}
+<<h5-enp>>=
+round(c(enp_span0.2 = lo2$enp, enp_span0.5 = lo5$enp), 1)
+@
+  \begin{itemize}
+    \item<2-> Parametrat ekuivalentë: 16.4 (span 0.2) kundrejt 7.1 (span 0.5).
+    \item<3-> Span 0.2: valëzime pas 65 vjeç, aty ku ka pak të dhëna.
+    \item<4-> Span 0.5: pothuajse si smoothing spline-i me LOOCV ($\text{df}\approx6.8$).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushLoess]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Provo \texttt{span = 0.1} dhe \texttt{span = 0.9}. Shëno \texttt{\$enp}.
+      \item Provo \texttt{degree = 1} me \texttt{span = 0.5}. Çfarë ndryshon në skaje?
+      \item Cili span jep \texttt{enp} afër 7?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjLoess}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\Zgjerim GAM}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{\Zgjerim Tri GAM dhe ANOVA}
+<<h5-gam>>=
+library(gam)
+gam1 <- gam(wage ~ s(age, 5) + education, data = wage_df)
+gam2 <- gam(wage ~ year + s(age, 5) + education, data = wage_df)
+gam3 <- gam(wage ~ s(year, 4) + s(age, 5) + education, data = wage_df)
+anova(gam1, gam2, gam3, test = "F")
+@
+\end{frame}
+
+\begin{frame}{\Zgjerim Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{gam1} $\to$ \texttt{gam2}: $F=14.5$, $p=0.0001$: \texttt{year} duhet.
+    \item<2-> \texttt{gam2} $\to$ \texttt{gam3}: $p=0.35$: \texttt{year} \textbf{linear} mjafton.
+    \item<3-> Koeficienti i \texttt{year} në \texttt{gam2}: $+1.20$ mijë \$ në vit (me moshë dhe arsim fiks).
+    \item<4-> Si në ISLR: modeli i preferuar ka \texttt{year} linear dhe \texttt{age} jolinear.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\Zgjerim Grafikët e GAM-it}
+<<h5-gam-plot, fig.height=2.5, fig.width=8, out.width="0.92\\textwidth">>=
+par(mfrow = c(1, 3), mar = c(3.6, 3.6, 1, 0.8), cex = 0.7)
+plot(gam2, se = TRUE, col = "#2C5AA0")
+@
+  \footnotesize Çdo panel: kontributi $f_j(x_j)$ i një parashikuesi, me të tjerët fiks.
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Regresi i fortë te \texttt{Auto}}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{OLS, Huber, bisquare, MM \hfill\small Material plotësues}
+<<h5-rlm>>=
+library(MASS); library(robustbase)
+auto <- na.omit(read.csv(file.path(W08DATA, "Auto.csv"),
+                         na.strings = "?", stringsAsFactors = TRUE))
+fm <- mpg ~ horsepower + weight + year
+fits <- list(ols = lm(fm, auto), huber = rlm(fm, auto),
+             bisquare = rlm(fm, auto, psi = psi.bisquare), mm = lmrob(fm, auto))
+round(t(sapply(fits, coef)), 5)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{weight} dhe \texttt{year}: pothuajse të njëjtë në të katër metodat.
+    \item<2-> \texttt{horsepower}: $-0.005$ (OLS) $\to$ $+0.003$ (Huber) $\to$ $+0.006$ (MM). Shenja ndryshon!
+    \item<3-> Java 7: SE e \texttt{horsepower} në OLS është 0.009: koeficienti nuk dallohet nga 0 në asnjë metodë.
+    \item<4-> Mësimi: efekti i \texttt{horsepower}, me peshë dhe vit fiks, \textbf{nuk është i qëndrueshëm}; mos e interpretoni.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Peshat e Huber-it: kush u ul?}
+<<h5-weights>>=
+fh <- fits$huber
+c(converged = fh$converged, n_downweighted = sum(fh$w < 1),
+  scale_huber = round(fh$s, 3), sigma_ols = round(sigma(fits$ols), 3))
+o <- order(fh$w)[1:5]
+data.frame(row = rownames(auto)[o], weight = round(fh$w[o], 3),
+           mpg = auto$mpg[o], name = auto$name[o])
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 72 makina me peshë $<1$; pesha minimale 0.28.
+    \item<2-> E njëjta \texttt{mazda glc} (323) që \texttt{outlierTest} gjeti në Javën 7, plus 4 makina diesel/ekonomike 1980--81.
+    \item<3-> Shkalla e fortë 3.11 kundrejt $\hat\sigma_{\text{OLS}}=3.43$.
+    \item<4-> Peshat janë diagnostikim: ato tregojnë një \textbf{grup} makinash ekonomike që modeli linear nuk e kap (Java 7: forma e gabuar; zgjidhja: log).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=10]{Peshat sipas vlerave të përshtatura}
+<<h5-wplot, fig.height=2.9, fig.width=6.5, out.width="0.5\\textwidth">>=
+plot(fitted(fh), fh$w, pch = 16, col = rgb(0.17, 0.35, 0.63, 0.6),
+     xlab = "fitted mpg (Huber)", ylab = "Huber weight", ylim = c(0, 1))
+abline(h = 1, lty = 2, col = "gray50")
+text(fitted(fh)[o], fh$w[o], rownames(auto)[o], pos = 4, cex = 0.7)
+@
+\end{frame}
+
+\begin{frame}[label=ushRlm]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    \begin{enumerate}
+      \item Përshtat \texttt{rlm(log(mpg) \textasciitilde{} horsepower + weight + year, data = auto)}.
+      \item Sa makina kanë peshë $<1$? Cila është pesha minimale?
+      \item Krahaso me modelin për \texttt{mpg}. Çfarë tregon kjo për rolin e transformimit?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjRlm}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab85]{Gjej gabimin}
+<<h5-bug>>=
+fit_r <- rlm(mpg ~ horsepower + weight + year, data = auto, maxit = 2)
+fit_r$converged
+@
+  \begin{itemize}
+    \item Një student raporton koeficientët e \texttt{fit\_r} pa e parë këtë rresht. Çfarë nuk shkon?
+  \end{itemize}
+  \shkoTe{zgjGab85}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulim kontaminimi}
+% ------------------------------------------------------------
+
+\begin{frame}{Plani i simulimit \hfill\small(sintetike)}
+  \begin{itemize}
+    \item<1-> $n=100$, $x\sim U(0,10)$, $y=1+2x+\varepsilon$, $\varepsilon\sim N(0,1)$: pjerrësia e vërtetë \textbf{2}.
+    \item<2-> Kontaminim $\epsilon\in\{0,\,10\%,\,20\%,\,30\%\}$, dy skenarë:
+      \begin{itemize}
+        \item \textbf{vertikal}: $y\leftarrow y+20$ për pika me $x>5$;
+        \item \textbf{leverage}: $x\leftarrow U(18,22)$, $y\leftarrow N(0,1)$.
+      \end{itemize}
+    \item<3-> 200 përsëritje; mesatarja e $\hat\beta_1$ për OLS, Huber (\texttt{rlm}), MM (\texttt{lmrob}).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=6]{Kodi}
+<<h5-sim, warning=FALSE>>=
+set.seed(2026)
+one_rep <- function(eps, leverage) {
+  x <- runif(100, 0, 10); y <- 1 + 2 * x + rnorm(100); m <- round(eps * 100)
+  if (m > 0) {
+    if (leverage) { i <- sample(100, m); x[i] <- runif(m, 18, 22); y[i] <- rnorm(m) }
+    else { i <- sample(which(x > 5), m); y[i] <- y[i] + 20 } }
+  d <- data.frame(x, y)
+  c(ols = coef(lm(y ~ x, d))[[2]], huber = coef(rlm(y ~ x, d, maxit = 50))[[2]],
+    mm = coef(lmrob(y ~ x, d))[[2]]) }
+for (lev in c(FALSE, TRUE)) {
+  res <- sapply(c(0, 0.1, 0.2, 0.3), function(e) rowMeans(replicate(200, one_rep(e, lev))))
+  colnames(res) <- c("0%", "10%", "20%", "30%")
+  cat(if (lev) "leverage:\n" else "vertical:\n"); print(round(res, 3)) }
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon? (vlerësimi kundrejt së vërtetës)}
+  \begin{itemize}
+    \item<1-> Pa kontaminim: të tria $\approx2$. Regresi i fortë nuk humbet gjë.
+    \item<2-> \textbf{Vertikal}: OLS $2\to3.8$; Huber mban deri në 20\% (2.29), \textbf{thyhet} në 30\% (3.93); MM mbetet $\approx2$.
+    \item<3-> \textbf{Leverage}: me 10\% OLS dhe Huber japin $\approx0$; me 30\% bëhen negativë. MM: $\approx2$.
+    \item<4-> Kjo është pika e thyerjes në praktikë (Ora 4): M (Huber) nuk mbron në $x$; MM po.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=10]{Grafiku i një përsëritjeje me leverage 10\%}
+<<h5-sim-plot, fig.height=2.9, fig.width=6.5, out.width="0.5\\textwidth", warning=FALSE>>=
+set.seed(7)
+x <- runif(100, 0, 10); y <- 1 + 2 * x + rnorm(100)
+i <- sample(100, 10); x[i] <- runif(10, 18, 22); y[i] <- rnorm(10)
+plot(x, y, pch = 16, col = ifelse(seq_along(x) %in% i, "#B91C1C", "gray50"))
+abline(1, 2, lwd = 3); abline(lm(y ~ x), col = "#D97706", lwd = 2)
+abline(rlm(y ~ x, maxit = 50), col = "#2C5AA0", lwd = 2, lty = 2)
+abline(lmrob(y ~ x), col = "#15803D", lwd = 2)
+legend("topleft", c("truth", "OLS", "Huber", "MM"), lwd = 2, lty = c(1, 1, 2, 1),
+       col = c("black", "#D97706", "#2C5AA0", "#15803D"), bty = "n", cex = 0.7)
+@
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabime të zakonshme në laborator}
+  \begin{Gabim}\texttt{rlm} pa kontrolluar \texttt{\$converged}; parazgjedhja \texttt{maxit = 20} ndonjëherë nuk mjafton.\end{Gabim}
+  \pause
+  \begin{Gabim}Krahasimi i \texttt{summary(rlm)} me $p$-vlera: \texttt{rlm} jep vetëm $t$; SE janë asimptotike.\end{Gabim}
+  \pause
+  \begin{Gabim}\texttt{loess} për parashikim jashtë intervalit: \texttt{predict()} kthen \texttt{NA} (nuk ekstrapolon).\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=cp85]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Pse \texttt{ns(df = 4)} ka SE më të vogla se \texttt{bs} në moshën 80?
+    \item Çfarë tregon ANOVA midis \texttt{gam2} dhe \texttt{gam3}?
+    \item Në simulimin me leverage, pse Huber dështon por MM jo?
+  \end{enumerate}
+  \shkoTe{zgjCp85}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item \texttt{ns}: më pak parametra, SE më të vogla në skaje.
+    \item \texttt{smooth.spline(cv = TRUE)}: $\text{df}\approx6.8$; \texttt{loess} span 0.5: \texttt{enp} 7.1.
+    \item GAM: \texttt{year} linear mjafton ($p=0.35$).
+    \item \texttt{rlm} te \texttt{Auto}: \texttt{horsepower} ndryshon shenjë; peshat tregojnë makinat ekonomike të 1980--81.
+    \item Simulimi: Huber thyhet në 30\% vertikal dhe me çdo leverage; MM mbetet $\approx2$.
+  \end{itemize}
+  \begin{Keshille}Ora 6: \texttt{Boston}: krahasimi i formave me CV, modeli përfundimtar me \texttt{ns} dhe \texttt{poly}, \texttt{rlm} si ndjeshmëri.\end{Keshille}
+\end{frame}

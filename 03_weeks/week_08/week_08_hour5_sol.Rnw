@@ -1,0 +1,41 @@
+% ============================================================
+%  Java 8 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjLoess]{Zgjidhja: Ndrysho parametrin (loess)}
+  \begin{itemize}
+    \item \texttt{enp} sipas span: 0.1 $\to$ 33.5; 0.3 $\to$ 11.0; 0.5 $\to$ 7.1; 0.7 $\to$ 5.3; 0.9 $\to$ 4.2.
+    \item Span 0.1: kurbë shumë e valëzuar; 0.9: pothuajse kuadratik i thjeshtë.
+    \item \texttt{degree = 1}, span 0.5: \texttt{enp} 4.3; kurbë më e ngurtë, dhe në skaje lineare lokale (më pak ``përkulje'').
+    \item \texttt{enp} $\approx7$: span $\approx0.5$, njësoj si smoothing spline-i me LOOCV.
+  \end{itemize}
+  \vfill\kthehu{ushLoess}
+\end{frame}
+
+\begin{frame}[label=zgjRlm]{Zgjidhja: Radha jote! (\texttt{rlm} me \texttt{log(mpg)})}
+  \begin{itemize}
+    \item 87 makina me peshë $<1$; pesha minimale 0.33 (\texttt{ford mustang ii}, pastaj \texttt{maxda rx3}, \texttt{oldsmobile omega}).
+    \item Makinat ekonomike diesel të 1980--81 \textbf{nuk} janë më ndër më të ulëtat: transformimi e kapi formën e tyre.
+    \item Pikat ``ekstreme'' të modelit për \texttt{mpg} ishin kryesisht pasojë e formës së gabuar (si në Javën 7).
+    \item Regresi i fortë nuk zëvendëson zgjedhjen e formës; ndihmon ta diagnostikojmë.
+  \end{itemize}
+  \vfill\kthehu{ushRlm}
+\end{frame}
+
+\begin{frame}[label=zgjGab85]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item \texttt{converged = FALSE}: IRLS u ndal pas 2 iteracionesh, para konvergjencës (R jep edhe paralajmërim).
+    \item Koeficientët janë një hap i ndërmjetëm, jo M-vlerësuesi.
+    \item Zgjidhja: \texttt{maxit} më i madh (p.sh.\ 50), kontrolli i \texttt{\$converged}; nëse ende jo, provo \texttt{lmrob}.
+  \end{itemize}
+  \vfill\kthehu{gjejGab85}
+\end{frame}
+
+\begin{frame}[label=zgjCp85]{Përgjigjet: Checkpoint Ora 5}
+  \begin{enumerate}
+    \item \texttt{ns} detyron linearitet përtej nyjeve kufitare: më pak parametra lirë në skaj $\Rightarrow$ më pak variancë aty ku ka pak të dhëna.
+    \item $p=0.35$: termi jolinear për \texttt{year} nuk përmirëson modelin; \texttt{year} linear mjafton.
+    \item M-vlerësuesit ulin peshën sipas mbetjes; një pikë me leverage të lartë e tërheq vijën drejt vetes, kështu mbetja e saj del e vogël dhe pesha mbetet 1. MM nis nga një vlerësues S me pikë thyerjeje 50\%, që nuk tërhiqet nga pikat në $x$.
+  \end{enumerate}
+  \vfill\kthehu{cp85}
+\end{frame}
