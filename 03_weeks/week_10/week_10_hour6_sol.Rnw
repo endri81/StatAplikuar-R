@@ -1,0 +1,89 @@
+% ============================================================
+%  Java 10 · Ora 6 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjDens106]{Zgjidhja: Radha jote! (dendësia)}
+  \begin{enumerate}
+    \item $2\,854\,191/28\,373\approx2\,850\,000/28\,400\approx100.4$; me R: 100.6 banorë/km$^2$.
+    \item $2\,854\,191/28\,748\approx99.3$ banorë/km$^2$.
+  \end{enumerate}
+  \begin{itemize}
+    \item Ndryshimi 1.3\% vjen nga përgjithësimi i kufirit 1:50m, jo nga projeksioni.
+  \end{itemize}
+  \vfill\kthehu{ushDens106}
+\end{frame}
+
+\begin{frame}[label=zgjRank106]{Zgjidhja: Parashiko (renditja)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item Faktori i Web Mercator ndryshon nga 1.67 (Greqia, jug) deri 2.17 (Hungaria, veri).
+    \item Dendësia ndahet me faktorë të ndryshëm $\Rightarrow$ shtetet veriore ``humbasin'' më shumë.
+    \item Hungaria 3 $\to$ 6, Shqipëria 5 $\to$ 3, Greqia 7 $\to$ 5.
+  \end{itemize}
+  \vfill\kthehu{pyetjeRank106}
+\end{frame}
+
+\begin{frame}[label=zgjGabim106]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item Harta ngjyros \textbf{numrin} e banorëve. Shtetet e mëdha (Italia, Rumania) dalin ``të errëta'' thjesht sepse janë të mëdha.
+    \item Harta koropletike kërkon sasi të normalizuara: dendësi, norma, përqindje, për frymë.
+    \item Rregullimi: \texttt{fill = pop\_est / area\_3035}; ose për numra absolutë: simbole proporcionale (rrathë në qendër).
+    \item Edhe CRS-ja: \texttt{bk} është në 4326; për hartën përdorni 3035.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim106}
+\end{frame}
+
+\begin{frame}[label=zgjMC106]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item Shkalla lineare e Mercatorit është $\sec\varphi$: në $60^\circ$ një km në terren zë dyfishin e hapësirës së një km në ekuator.
+    \item Një shirit i vetëm vlen vetëm për gjerësinë e tij; harta web e ndryshon shiritin sipas zmadhimit dhe gjerësisë së qendrës.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC106}
+\end{frame}
+
+\begin{frame}[label=zgjNN106]{Zgjidhja: Parashiko ($r_{nn}$)}
+  \begin{itemize}
+    \item Nën pavarësi: rreth 0 (permutacionet japin 95\% në $[-0.20, 0.18]$ me $n=155$).
+    \item Në \texttt{meuse}: $r_{nn}=0.365$, qartë jashtë këtij intervali.
+    \item Intervali është i gjerë sepse 155 çifte japin vlerësim me pasiguri $\approx1/\sqrt{155}\approx0.08$ gabim standard.
+  \end{itemize}
+  \vfill\kthehu{pyetjeNN106}
+\end{frame}
+
+\begin{frame}[label=zgjPar106]{Zgjidhja: Ndrysho parametrin}
+  \small
+  \begin{tabular}{lrrr}
+    \toprule
+    Modeli & $R^2$ & $r_{nn}$ & $r$ (fqinji i dytë) \\
+    \midrule
+    $\sqrt{\text{dist}}$ & 0.639 & 0.365 & 0.265 \\
+    $\text{dist}$ & 0.547 & 0.445 & 0.329 \\
+    $\sqrt{\text{dist}}+\text{elev}$ & 0.723 & 0.451 & 0.312 \\
+    \bottomrule
+  \end{tabular}
+  \begin{enumerate}
+    \item \texttt{dist} linear: $R^2$ bie, $r_{nn}$ rritet: forma e gabuar e trendit ``rrjedh'' në mbetje.
+    \item \texttt{elev}: $R^2$ rritet, por $r_{nn}$ nuk bie (0.451): pjesa e shpjeguar nga \texttt{elev} nuk e hoqi strukturën hapësinore lokale.
+    \item Fqinji i dytë është më larg $\Rightarrow$ korrelacion më i ulët (0.265): korrelacioni bie me distancën. Kjo është ideja e variogramit.
+  \end{enumerate}
+  \vfill\kthehu{ushPar106}
+\end{frame}
+
+\begin{frame}[label=zgjTPS106]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Poligonet e qarqeve (ASIG / INSTAT / Eurostat GISCO NUTS-3) dhe tabela e popullsisë sipas qarqeve (INSTAT).
+    \item Që çelësi i bashkimit (kodi ose emri i qarkut) përputhet: drejtshkrimi (ë/e, ç/c), numri i rreshtave, viti i të dhënave dhe i kufijve.
+    \item Albania TM (6870) ose LAEA (3035): të dyja japin sipërfaqe brenda 0.1\%.
+  \end{enumerate}
+  \vfill\kthehu{ushTPS106}
+\end{frame}
+
+\begin{frame}[label=zgjCp106]{Përgjigjet: Checkpoint Ora 6}
+  \begin{enumerate}
+    \item Faktori $\sec^2\varphi$ varet nga gjerësia: shtetet veriore fryhen më shumë, prandaj dendësia e tyre ulet më shumë.
+    \item CRS i përshtatshëm, shkallë, shigjetë veriu, kontekst/\emph{inset}, legjendë, burim, CRS dhe vit.
+    \item Mbetjet e fqinjëve janë të korreluara: pavarësia shkelet, gabimet standarde të \texttt{lm()} janë optimiste; struktura mund të përdoret për parashikim (Kriging).
+  \end{enumerate}
+  \vfill\kthehu{cp106}
+\end{frame}

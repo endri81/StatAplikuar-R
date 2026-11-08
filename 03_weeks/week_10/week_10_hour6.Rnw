@@ -1,0 +1,433 @@
+% ============================================================
+%  Java 10 · Ora 6 — Rasti studimor: harta tematike dhe CRS
+%  Rezultatet: K1, K3, S2, S3, S4, C1
+%  Burimi: Natural Earth (pop_est 2019); paketa sp (meuse, meuse.riv);
+%          Pebesma & Bivand (2023), kap. 1, 5; Lovelace et al., kap. 9
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Rasti studimor]{Rasti studimor: harta tematike dhe CRS}
+
+\begin{frame}{Ora 6: Rasti studimor --- harta tematike dhe CRS}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi}
+% ------------------------------------------------------------
+
+\begin{frame}{Tri pyetje reale, një mjet}
+  \begin{enumerate}
+    \item<1-> \textbf{Rasti A}: cili vend i Ballkanit ka dendësinë më të lartë të popullsisë? A ndikon CRS-ja në përgjigje?
+    \item<2-> \textbf{Rasti B}: si përgatitet një hartë e Shqipërisë për botim (raport, tezë, INSTAT)?
+    \item<3-> \textbf{Rasti C}: a mjafton distanca nga lumi për të shpjeguar zinkun në \texttt{meuse}? Çfarë mbetet në mbetje?
+  \end{enumerate}
+  \onslide<4->{\begin{Keshille}Rasti C është ura drejt Javës 12: mbetjet hapësinore të korreluara $\Rightarrow$ Kriging.\end{Keshille}}
+  \LO{K3, S3, C1}
+\end{frame}
+
+\begin{frame}{Të dhënat e rastit}
+  \begin{itemize}
+    \item<1-> \texttt{balkans13\_ne50.gpkg}: 13 shtete, Natural Earth 1:50m, \textbf{reale}; \texttt{pop\_est} dhe \texttt{gdp\_md} për vitin 2019 (burimi i Natural Earth: Banka Botërore).
+    \item<2-> Kodi i Kosovës: Natural Earth jep $-99$; e zëvendësuam me \texttt{XKX} (kod jo-ISO, i përdorur nga BE).
+    \item<3-> \texttt{meuse.csv} dhe \texttt{meuse\_riv.csv}: 155 mostra dhe kufiri i lumit, paketa \texttt{sp}, \textbf{reale}.
+    \item<4-> \texttt{al\_cities.csv}, \texttt{world\_ne110.gpkg}: si në orët e mëparshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Një kufizim i ndershëm}
+  \begin{itemize}
+    \item<1-> Kufijtë e qarqeve dhe bashkive nuk janë në paketat e hapura që kemi këtu.
+    \item<2-> Nuk shpikim kufij ose shifra INSTAT. Përdorim nivelin e shteteve.
+    \item<3-> Kur të keni shtresën zyrtare (ASIG, INSTAT, Eurostat GISCO), \textbf{i njëjti kod} punon: ndryshon vetëm \texttt{st\_read()}.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Një hartë me të dhëna të shpikura duket po aq bindëse sa një me të dhëna reale. Kjo është arsyeja pse burimi shkruhet në çdo hartë.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rasti A: dendësia në Ballkan}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Leximi dhe sipërfaqet në tri mënyra}
+<<h6-read>>=
+library(sf); library(ggplot2)
+bk <- st_read(file.path(W10DATA, "balkans13_ne50.gpkg"), quiet = TRUE)
+bk$area_true <- as.numeric(st_area(bk)) / 1e6                      # s2, sphere
+bk$area_3035 <- as.numeric(st_area(st_transform(bk, 3035))) / 1e6  # equal-area
+bk$area_3857 <- as.numeric(st_area(st_transform(bk, 3857))) / 1e6  # Web Mercator
+bk$dens      <- bk$pop_est / bk$area_3035
+bk$dens_3857 <- bk$pop_est / bk$area_3857
+nrow(bk); unique(bk$pop_year)
+@
+\end{frame}
+
+\begin{frame}[label=ushDens106]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(3 minuta)]
+    Natural Earth jep për Shqipërinë $2\,854\,191$ banorë (2019) dhe ne matëm $28\,373$ km$^2$ në LAEA.
+    \begin{enumerate}
+      \item Llogaritni dendësinë (banorë/km$^2$), përafërsisht.
+      \item Sa do të dilte me sipërfaqen e cituar zakonisht, $28\,748$ km$^2$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjDens106}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=pyetjeRank106]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Renditim 13 shtetet sipas dendësisë, njëherë me sipërfaqe LAEA dhe njëherë me Web Mercator.
+    \begin{enumerate}[A.]
+      \item Renditja nuk ndryshon: të gjitha dendësitë ndahen me afërsisht të njëjtin faktor.
+      \item Renditja ndryshon: faktori $\sec^2\varphi$ varet nga gjerësia e secilit shtet.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjRank106}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Tabela e dendësive}
+<<h6-tab>>=
+tab <- st_drop_geometry(bk)[, c("iso_a3", "area_3035", "dens", "dens_3857")]
+tab$rank      <- rank(-tab$dens)
+tab$rank_3857 <- rank(-tab$dens_3857)
+tab <- tab[order(tab$rank), ]
+print(tab[1:8, ], digits = 4, row.names = FALSE)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Italia (201) dhe Kosova (164) kryesojnë; Shqipëria e 5-ta me 100.6 banorë/km$^2$.
+    \item<2-> Në Web Mercator: Hungaria bie nga vendi 3 në 6, Shqipëria ngjitet nga 5 në 3, Greqia nga 7 në 5.
+    \item<3-> Pse? Hungaria ($\approx47^\circ$V) fryhet $\times2.2$, Shqipëria ($\approx41^\circ$V) vetëm $\times1.77$.
+    \item<4-> Një gabim teknik (CRS) ndryshon një përfundim statistikor (renditjen).
+  \end{itemize}
+  \LO{S3, C1}
+\end{frame}
+
+\begin{frame}[fragile]{Sa ndryshon? Krahasimi i plotë}
+<<h6-cmp>>=
+c(spearman = cor(tab$dens, tab$dens_3857, method = "spearman"),
+  max_rel_diff_3035_vs_true = max(abs(bk$area_3035 / bk$area_true - 1)),
+  ratio_3857_min = min(bk$area_3857 / bk$area_true),
+  ratio_3857_max = max(bk$area_3857 / bk$area_true))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> LAEA kundrejt sferës: ndryshim maksimal $\approx0.3\%$ (sfera kundrejt elipsoidit, jo projeksioni).
+    \item<2-> Web Mercator: sipërfaqet $\times1.67$ (Greqia) deri $\times2.17$ (Hungaria) sipas shtetit.
+    \item<3-> Spearman $=0.945$: ``i lartë'', por mjaftueshëm i ulët për të ndërruar tre vende në renditje.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Harta koropletike në LAEA}
+<<h6-choro, eval=FALSE>>=
+bk_laea <- st_transform(bk, 3035)
+ggplot(bk_laea) +
+  geom_sf(aes(fill = dens), colour = "white", linewidth = 0.3) +
+  geom_sf_text(aes(label = iso_a3), size = 2.2, colour = "black") +
+  scale_fill_distiller(name = "pop / km2", palette = "YlOrRd", direction = 1) +
+  coord_sf(xlim = c(4.5e6, 6.0e6), ylim = c(1.6e6, 2.95e6), crs = 3035) +
+  labs(caption = "Source: Natural Earth 1:50m, pop_est 2019. CRS: EPSG:3035") +
+  theme_bw(base_size = 8) + labs(x = NULL, y = NULL)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: dendësia e popullsisë, 2019}
+<<h6-choro-fig, ref.label="h6-choro", echo=FALSE, warning=FALSE, fig.height=3.6, fig.width=4.6, out.width="0.48\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Ngjyra pasqyron \textbf{dendësinë} (raport), jo numrin e banorëve.
+    \item<2-> \texttt{coord\_sf(crs = 3035)}: dritarja jepet në metra LAEA.
+    \item<3-> Burimi, viti dhe CRS-ja janë në hartë (\texttt{caption}): lexuesi mund ta verifikojë.
+    \item<4-> Ngjyra e Italisë ndikohet nga e gjithë Italia, jo vetëm nga pjesa e dukshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGabim106,fragile]{Gjej gabimin}
+<<h6-bug, eval=FALSE>>=
+ggplot(bk) + geom_sf(aes(fill = pop_est)) +
+  scale_fill_viridis_c(name = "population")
+@
+  \begin{itemize}
+    \item Çfarë tregon kjo hartë? Pse është e rrezikshme si hartë koropletike?
+    \item Si do ta rregullonit pa ndryshuar ngjyrat?
+  \end{itemize}
+  \shkoTe{zgjGabim106}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rasti B: harta për botim}
+% ------------------------------------------------------------
+
+\begin{frame}{Elementet e një harte për botim}
+  \begin{itemize}
+    \item<1-> CRS i përshtatshëm (këtu Albania TM, EPSG:6870) dhe rrjetë koordinatash.
+    \item<2-> Shiriti i shkallës dhe shigjeta e veriut.
+    \item<3-> Kontekst: shtetet fqinje dhe një hartë e vogël vendndodhjeje (\emph{inset}).
+    \item<4-> Burimi, CRS-ja dhe data në tekst të vogël; formati vektorial (PDF) për botim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Shtresat në 6870}
+<<h6-layers>>=
+balk   <- st_read(file.path(W10DATA, "balkans_ne50.gpkg"), quiet = TRUE)
+world  <- st_read(file.path(W10DATA, "world_ne110.gpkg"), quiet = TRUE)
+cities <- read.csv(file.path(W10DATA, "al_cities.csv"))
+balk_tm <- st_transform(balk, 6870)
+alb_tm  <- balk_tm[balk_tm$admin == "Albania", ]
+pts_tm  <- st_transform(st_as_sf(cities, coords = c("lon", "lat"), crs = 4326), 6870)
+round(st_bbox(alb_tm))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Harta kryesore}
+<<h6-main, eval=FALSE>>=
+library(ggspatial)
+main_map <- ggplot() +
+  geom_sf(data = balk_tm, fill = "grey93", colour = "grey65") +
+  geom_sf(data = alb_tm, fill = "#cfe3f5", colour = "grey25") +
+  geom_sf(data = pts_tm, size = 1.4) +
+  geom_sf_text(data = pts_tm, aes(label = city), size = 2.3, nudge_y = 9000) +
+  coord_sf(crs = 6870, xlim = c(390000, 600000), ylim = c(4380000, 4740000)) +
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  annotation_north_arrow(location = "tr", height = unit(0.7, "cm"),
+                         width = unit(0.5, "cm"), style = north_arrow_minimal) +
+  labs(x = NULL, y = NULL,
+       caption = "Natural Earth 1:50m; GeoNames. EPSG:6870") +
+  theme_bw(base_size = 7)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Harta e vendndodhjes (\emph{inset}) dhe bashkimi}
+<<h6-inset, eval=FALSE>>=
+library(patchwork)
+eur <- st_transform(world, 3035)
+inset_map <- ggplot() +
+  geom_sf(data = eur, fill = "grey85", colour = NA) +
+  geom_sf(data = st_transform(alb_tm, 3035), fill = "red", colour = NA) +
+  coord_sf(xlim = c(2.5e6, 6.5e6), ylim = c(1.3e6, 5.0e6), datum = NA) +
+  theme_void() + theme(panel.border = element_rect(fill = NA))
+main_map + (inset_map / plot_spacer()) +
+  plot_layout(widths = c(3, 1.4))           # inset to the right, top
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: Shqipëria në Albania TM 2010}
+<<h6-pub-fig, ref.label=c("h6-main","h6-inset"), echo=FALSE, warning=FALSE, fig.height=4.0, fig.width=4.6, out.width="0.48\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Rrjeta e koordinatave është në gradë, por harta është në 6870: \texttt{coord\_sf} i vizaton meridianët e vërtetë.
+    \item<2-> Shiriti i shkallës është i saktë: 6870 ka gabim $<0.01\%$ në Shqipëri (Ora 5).
+    \item<3-> \emph{Inset}: LAEA Europe, që Europa të duket me sipërfaqe të sakta.
+    \item<4-> Dy CRS në një figurë: secila hartë në CRS-në e vet, të bashkuara me \texttt{patchwork}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Ruajtja për botim}
+<<h6-save, eval=FALSE>>=
+ggsave("albania_tm.pdf", width = 12, height = 15, units = "cm")   # vector
+ggsave("albania_tm.png", width = 12, height = 15, units = "cm", dpi = 300)
+@
+  \begin{itemize}
+    \item PDF: vektorial, pa humbje në zmadhim; për revista dhe tezë.
+    \item PNG 300 dpi: për Word, prezantime, web.
+    \item Gjithmonë: përmasat në cm, që shkronjat të dalin në madhësinë e duhur.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC106]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Shiriti i shkallës në një hartë në Web Mercator (EPSG:3857) të Europës:
+    \begin{enumerate}[A.]
+      \item është i saktë kudo në hartë.
+      \item është i saktë vetëm afër gjerësisë ku është llogaritur; në veri e zvogëlon distancën reale.
+      \item është i saktë vetëm në ekuator, prandaj nuk vizatohet kurrë.
+      \item varet vetëm nga madhësia e figurës.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC106}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Rasti C: zinku dhe lumi}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Pikat dhe lumi në RD New}
+<<h6-meuse>>=
+meuse <- read.csv(file.path(W10DATA, "meuse.csv"))
+riv   <- read.csv(file.path(W10DATA, "meuse_riv.csv"))
+ms    <- st_as_sf(meuse, coords = c("x", "y"), crs = 28992)
+river <- st_sfc(st_polygon(list(as.matrix(rbind(riv, riv[1, ])))), crs = 28992)
+st_is_valid(river)
+d_river <- as.numeric(st_distance(ms, river))           # metres
+c(cor_with_dist = cor(d_river, meuse$dist), max_m = max(d_river))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Lumi është poligon (sipërfaqja e ujit), i mbyllur me rreshtin e parë.
+    \item<2-> Distanca jonë në metra me \texttt{st\_distance()} ka korrelacion 0.974 me \texttt{dist} e paketës (e normalizuar 0--1).
+    \item<3-> Rikrijuam një kovariat të publikuar nga gjeometria: kontroll i mirë i CRS-së.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Regresi: zinku sipas distancës}
+<<h6-lm>>=
+fit <- lm(log(zinc) ~ sqrt(dist), data = meuse)
+round(summary(fit)$coefficients, 4)
+round(summary(fit)$r.squared, 3)
+ms$res <- resid(fit)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $\widehat{\log(\text{zinc})}=6.994-2.549\sqrt{\text{dist}}$: rënie e fortë pranë lumit (Java 8: transformime).
+    \item<2-> $R^2=0.639$: distanca shpjegon rreth 64\% të variancës së $\log$-zinkut.
+    \item<3-> Pyetje: a janë mbetjet e pavarura, siç supozon \texttt{lm()} (Java 7)?
+  \end{itemize}
+  \LO{K2}
+\end{frame}
+
+\begin{frame}[fragile]{Harta e mbetjeve}
+<<h6-resmap, eval=FALSE>>=
+ggplot() +
+  geom_sf(data = river, fill = "lightblue", colour = NA) +
+  geom_sf(data = ms, aes(colour = res, size = abs(res))) +
+  scale_colour_gradient2(low = "blue", mid = "grey85", high = "red") +
+  scale_size_continuous(range = c(0.4, 2.5), guide = "none") +
+  coord_sf(datum = 28992) + theme_bw(base_size = 7)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: mbetjet në hartë}
+<<h6-resmap-fig, ref.label="h6-resmap", echo=FALSE, fig.height=3.4, fig.width=4.4, out.width="0.46\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mbetjet pozitive (të kuqe) dhe negative (blu) formojnë \textbf{grupe}, jo pika të shpërndara rastësisht.
+    \item<2-> Fqinjët kanë shenjë të njëjtë më shpesh se sa do të prisnim nga rastësia.
+    \item<3-> Kjo është autokorrelacioni hapësinor i mbetjeve: informacion që \texttt{lm()} nuk e përdor.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeNN106]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Për çdo pikë gjejmë fqinjin më të afërt dhe llogaritim korrelacionin midis mbetjes së pikës dhe mbetjes së fqinjit.
+    Nëse mbetjet do të ishin të pavarura, rreth sa do të ishte ky korrelacion?
+    Po në \texttt{meuse}?
+  \end{Parashiko}
+  \shkoTe{zgjNN106}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Korrelacioni me fqinjin më të afërt}
+<<h6-nn>>=
+D <- units::drop_units(st_distance(ms))
+diag(D) <- Inf
+nn <- apply(D, 1, which.min)                 # nearest neighbour index
+r_nn <- cor(ms$res, ms$res[nn])
+c(r_nn = r_nn, median_nn_m = median(apply(D, 1, min)))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Testi i permutacionit}
+<<h6-perm>>=
+set.seed(2026)
+r_perm <- replicate(999, { r <- sample(ms$res); cor(r, r[nn]) })
+p_value <- (sum(r_perm >= r_nn) + 1) / (999 + 1)
+c(p_value = p_value, round(quantile(r_perm, c(0.025, 0.975)), 3))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $r_{nn}=0.365$; fqinji më i afërt është mesatarisht $\approx107$ m larg.
+    \item<2-> $H_0$: mbetjet janë të shkëmbyeshme (pa strukturë hapësinore). Përziejmë mbetjet 999 herë.
+    \item<3-> Nën $H_0$, 95\% e korrelacioneve janë në $[-0.20, 0.18]$; asnjë nuk arrin 0.365: $p=0.001$.
+    \item<4-> Përfundim: gabimet standarde të \texttt{lm()} janë optimiste; ka strukturë hapësinore për t'u modeluar.
+  \end{itemize}
+  \LO{S3, C1}
+\end{frame}
+
+\begin{frame}{Pse ka rëndësi kjo?}
+  \begin{itemize}
+    \item<1-> \texttt{lm()} supozon gabime të pavarura (Java 7): këtu supozimi shkelet.
+    \item<2-> Por korrelacioni është edhe \textbf{mundësi}: mbetja e fqinjit ndihmon të parashikojmë mbetjen në një pikë të re.
+    \item<3-> Java 12: variogrami mat sa shpejt bie korrelacioni me distancën; Kriging e përdor për parashikim.
+    \item<4-> Universal Kriging: trendi $6.99-2.55\sqrt{\text{dist}}$ + mbetje të korreluara.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushPar106]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(7 minuta)]
+    \begin{enumerate}
+      \item Zëvendësoni \texttt{sqrt(dist)} me \texttt{dist}. Si ndryshojnë $R^2$ dhe $r_{nn}$?
+      \item Shtoni \texttt{elev} (lartësia) si parashikues. A bie $r_{nn}$?
+      \item Përdorni fqinjin e \textbf{dytë} më të afërt. Çfarë prisni për $r$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjPar106}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushTPS106]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    Doni ta përsërisni Rastin A për 12 qarqet e Shqipërisë.
+    \begin{enumerate}
+      \item Cilat dy shtresa/skedarë ju duhen dhe nga cili institucion?
+      \item Çfarë duhet kontrolluar para bashkimit (\texttt{merge}) të tabelës me poligonet?
+      \item Në cilin CRS do të llogarisnit sipërfaqet?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS106}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Rrjedha e punës e rastit}
+  \centering
+  \begin{tikzpicture}[font=\scriptsize, node distance=0.35cm,
+      box/.style={draw, rounded corners, fill=uptlight, minimum width=1.9cm, minimum height=0.75cm, align=center}]
+    \node[box] (r) {\texttt{st\_read}\\ kontrollo CRS};
+    \node[box, right=of r] (t) {\texttt{st\_transform}\\ CRS i përshtatshëm};
+    \node[box, right=of t] (m) {mat:\\ sipërfaqe, distanca};
+    \node[box, right=of m] (s) {statistikë:\\ dendësi, \texttt{lm}};
+    \node[box, right=of s] (p) {hartë + burim\\ \texttt{ggsave}};
+    \draw[->] (r) -- (t); \draw[->] (t) -- (m); \draw[->] (m) -- (s); \draw[->] (s) -- (p);
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Çdo hap ka një kontroll: CRS-ja, vlefshmëria, njësitë, burimi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=cp106]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Pse renditja e dendësive ndryshon në Web Mercator, edhe pse të gjitha sipërfaqet fryhen?
+    \item Cilat elemente i shtoni çdo harte për botim?
+    \item Çfarë tregon $r_{nn}=0.365$ me $p=0.001$ për modelin \texttt{lm} të zinkut?
+  \end{enumerate}
+  \shkoTe{zgjCp106}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item Rasti A: dendësia me sipërfaqe LAEA; Web Mercator ndërron 3 vende në renditje (Spearman 0.945).
+    \item Rasti B: hartë në 6870 me shkallë, veri, \emph{inset} në 3035, burim; PDF për botim.
+    \item Rasti C: $\log(\text{zinc})=6.99-2.55\sqrt{\text{dist}}$, $R^2=0.64$.
+    \item Mbetjet: $r_{nn}=0.365$, test permutacioni $p=0.001$ $\Rightarrow$ autokorrelacion hapësinor.
+    \item Kufijtë e qarqeve: kur të vijnë nga burimi zyrtar, i njëjti kod punon.
+  \end{itemize}
+  \begin{Keshille}Ora 7: konsolidimi --- kuiz në stilin e provimit, ushtrime, gabime të zakonshme, fletë përmbledhëse.\end{Keshille}
+\end{frame}
