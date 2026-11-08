@@ -1,0 +1,51 @@
+% ============================================================
+%  Java 9 · Ora 1 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjBal]{Zgjidhja: Parashiko (\texttt{lm} mbi 0/1)}
+  \begin{itemize}
+    \item Balancë 0: $\hat y=-0.075$: ``probabilitet'' negativ.
+    \item Balancë 2500: $\hat y=0.25$, ndërsa në të dhëna rreth 76\% e klientëve mbi 2000 \$ nuk paguajnë.
+    \item Vija e drejtë është kompromis i keq: shumë e lartë për balanca të vogla, shumë e ulët për të mëdha.
+  \end{itemize}
+  \vfill\kthehu{pyetjeBal}
+\end{frame}
+
+\begin{frame}[label=zgjOdds]{Zgjidhja: Radha jote! (shanset)}
+  \small
+  \begin{itemize}
+    \item $p=0.1$: odds $=0.111$, log-odds $=-2.197$; \; $p=0.5$: 1 dhe 0; \; $p=0.9$: 9 dhe $2.197$.
+    \item Simetri: $\text{logit}(1-p)=-\text{logit}(p)$.
+    \item 1500--2000: $177/(805-177)=177/628=0.282$.
+    \item 2000--3000: $81/25=3.24$; raporti $3.24/0.282\approx11.5$: shansi është 11.5 herë më i madh.
+  \end{itemize}
+  \vfill\kthehu{ushOdds}
+\end{frame}
+
+\begin{frame}[label=zgjTPS91]{Zgjidhja: Think--pair--share (pragu)}
+  \begin{enumerate}
+    \item $p^*=0.5$: refuzohen vetëm klientët shumë të rrezikshëm; shumë default kalojnë. $p^*=0.1$: refuzohen më shumë, edhe disa që do të paguanin.
+    \item Zakonisht kredia e pashlyer kushton më shumë (humbet kapitali) se fitimi i humbur nga një refuzim.
+    \item Kosto e lartë e default-it $\Rightarrow$ $p^*$ më i ulët se 0.5. Ora 6: pragu sipas kostove.
+  \end{enumerate}
+  \vfill\kthehu{ushTPS91}
+\end{frame}
+
+\begin{frame}[label=zgjMC91]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item A: \texttt{lm()} e pranon pa problem; problemi është interpretimi.
+    \item C: $R^2$ nuk është kriteri; edhe me $R^2$ të lartë parashikimet dalin jashtë $[0,1]$.
+    \item D: s'ka lidhje me kolinearitetin.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC91}
+\end{frame}
+
+\begin{frame}[label=zgjCp91]{Përgjigjet: Checkpoint Ora 1}
+  \begin{enumerate}
+    \item 96.7\% është thjesht përqindja e klasës ``jo''; modeli nuk identifikon asnjë default (sensitivitet 0).
+    \item Parashikime jashtë $[0,1]$; forma lineare në vend të S; variancë $p(1-p)$ jo konstante.
+    \item Odds $=0.75/0.25=3$; log-odds $=\log3=1.099$.
+  \end{enumerate}
+  \vfill\kthehu{cp91}
+\end{frame}

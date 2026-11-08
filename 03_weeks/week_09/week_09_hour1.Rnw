@@ -1,0 +1,286 @@
+% ============================================================
+%  Java 9 · Ora 1 — Motivimi: kur $y$ është kategori
+%  Rezultatet: K2, S3, C1
+%  Burimi: ISLR kap. 4.1--4.2; repo DS612 Lecture_4.R
+% ============================================================
+
+\section[Motivimi]{Motivimi: kur $y$ është kategori}
+
+\begin{frame}{Ora 1: Motivimi --- kur $y$ është kategori}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi}
+% ------------------------------------------------------------
+
+\begin{frame}{Nga ``sa?'' te ``cila?''}
+  \begin{itemize}
+    \item<1-> Javët 5--8: $y$ sasior (paga, çmimi, \texttt{mpg}) $\Rightarrow$ \termi{regres}{regression}.
+    \item<2-> Sot: $y$ kategorik (po/jo, lart/poshtë, defekt/në rregull) $\Rightarrow$ \termi{klasifikim}{classification}.
+    \item<3-> Synimi: vlerësojmë $P(Y=1\mid X=x)$, pastaj vendosim një klasë.
+    \item<4-> Shembuj: a do ta shlyejë klienti kredinë? A do të ngrihet tregu nesër? A është pjesa me defekt?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Ku përdoret në praktikë?}
+  \begin{itemize}
+    \item<1-> \textbf{Banka}: vlerësimi i rrezikut të kredisë (\emph{credit scoring}).
+    \item<2-> \textbf{Inxhinieri}: kontrolli i cilësisë, pjesë me defekt sipas parametrave të prodhimit.
+    \item<3-> \textbf{Statistikë zyrtare}: klasifikimi i përgjigjeve, imputimi i statusit (p.sh.\ i punësuar / jo, në anketat e forcave të punës).
+    \item<4-> \textbf{Mjekësi, mjedis}: diagnoza, tejkalimi i pragut të ndotjes.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Të dhënat \texttt{Default}}
+% ------------------------------------------------------------
+
+\begin{frame}{Të dhënat: \texttt{Default}}
+  \begin{itemize}
+    \item<1-> 10\,000 klientë të kartave të kreditit; \texttt{default} (po/jo), \texttt{student}, \texttt{balance}, \texttt{income}.
+    \item<2-> \textbf{Sintetike}: të simuluara nga autorët e ISLR (dokumentacioni i paketës); parametrat e vërtetë nuk publikohen.
+    \item<3-> Skedari: repo DS612, \texttt{Data/Textbook\_Data/Default.csv}.
+    \item<4-> Pse i përdorim: struktura realiste e problemit të kredisë dhe një klasë e rrallë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Leximi dhe frekuencat}
+<<h1-read>>=
+default_df <- read.csv(file.path(W09DATA, "Default.csv"), stringsAsFactors = TRUE)
+dim(default_df)
+table(default_df$default)
+round(prop.table(table(default_df$default)), 4)
+round(tapply(default_df$balance, default_df$default, mean), 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Vetëm 333 nga 10\,000 (3.33\%) nuk e shlyejnë: klasë e \textbf{rrallë}.
+    \item<2-> Balanca mesatare: 804 \$ për ``jo'', 1748 \$ për ``po''.
+    \item<3-> Balanca është kandidati kryesor për parashikim.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Një ``model'' që thotë gjithmonë ``jo'' ka saktësi 96.7\%. Saktësia e vetme mashtron kur klasat janë të pabalancuara.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Default sipas intervalit të balancës}
+<<h1-tab>>=
+bal_grp <- cut(default_df$balance, c(-1, 500, 1000, 1500, 2000, 3000))
+tab <- table(bal_grp, default_df$default)
+cbind(tab, rate = round(tab[, "Yes"] / rowSums(tab), 3))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Deri në 500 \$: asnjë default. 1000--1500: 2.5\%.
+    \item<2-> 1500--2000: 22\%. Mbi 2000: 76\%.
+    \item<3-> Probabiliteti rritet në formë \textbf{S}: i ulët, pastaj rritje e shpejtë, pastaj afër 1.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeBal]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Kodojmë $y=1$ për default, 0 ndryshe, dhe përshtatim \texttt{lm(y \textasciitilde{} balance)}.
+    \begin{enumerate}
+      \item Çfarë ``probabiliteti'' pret për një klient me balancë 0?
+      \item Po për balancë 2500 \$? (Nga tabela: rreth 76\% mbi 2000.)
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjBal}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pse jo regresi linear?}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Regresi linear mbi 0/1}
+<<h1-lm>>=
+default_df$y <- as.numeric(default_df$default == "Yes")
+fit_lm <- lm(y ~ balance, data = default_df)
+round(coef(fit_lm), 7)
+round(range(fitted(fit_lm)), 3)
+sum(fitted(fit_lm) < 0)
+round(predict(fit_lm, data.frame(balance = c(0, 2000, 2500))), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 3123 klientë marrin ``probabilitet'' \textbf{negativ}.
+    \item<2-> Për 2500 \$, \texttt{lm} jep 0.25; tabela tregon rreth 0.76.
+    \item<3-> Vija e drejtë nuk mund ta ndjekë formën S.
+    \item<4-> Gjithashtu: $\operatorname{Var}(Y\mid x)=p(1-p)$ ndryshon me $x$; gabimet nuk janë normale.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=10]{Vija e drejtë kundrejt kurbës logjistike}
+<<h1-plot, fig.height=3, fig.width=6.5, out.width="0.5\\textwidth">>=
+fit_glm <- glm(y ~ balance, data = default_df, family = binomial)
+gb <- data.frame(balance = seq(0, 2700, length.out = 300))
+plot(default_df$balance, default_df$y, pch = "|", col = rgb(0.4, 0.4, 0.4, 0.3),
+     xlab = "balance", ylab = "P(default)", ylim = c(-0.1, 1.05))
+abline(fit_lm, col = "#D97706", lwd = 2); abline(h = c(0, 1), lty = 3)
+lines(gb$balance, predict(fit_glm, gb, type = "response"), col = "#2C5AA0", lwd = 2)
+legend("topleft", c("lm", "logistic"), col = c("#D97706", "#2C5AA0"),
+       lwd = 2, bty = "n")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Kurba logjistike (blu) qëndron gjithmonë në $[0,1]$.
+    \item<2-> Afër 0 deri rreth 1200 \$, rritet shpejt midis 1500 dhe 2300 \$, afrohet te 1.
+    \item<3-> Kjo është forma S që pamë në tabelë.
+    \item<4-> Ora 2: si ndërtohet kjo kurbë dhe si vlerësohen parametrat.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Probabilitetet e parashikuara}
+<<h1-pred>>=
+round(predict(fit_glm, data.frame(balance = c(1000, 1500, 2000, 2500)),
+              type = "response"), 3)
+round(coef(fit_glm), 6)
+@
+  \begin{itemize}
+    \item<2-> 1000 \$: 0.6\%; 1500 \$: 8.3\%; 2000 \$: 58.6\%; 2500 \$: 95.7\%.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Po kur ka më shumë se dy klasa?}
+  \begin{itemize}
+    \item<1-> Kodimi $1,2,3$ për ``i lehtë, i mesëm, i rëndë'' supozon distanca të barabarta.
+    \item<2-> Për kategori pa renditje (p.sh.\ lloji i aksidentit), kodimi numerik nuk ka kuptim.
+    \item<3-> Zgjidhje: logjistiku multinomial ose LDA (Ora 4).
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Regres linear mbi kode $1,2,3$ për klasa pa renditje: rezultati varet nga kodimi i zgjedhur.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Objektivat dhe plani}
+% ------------------------------------------------------------
+
+\begin{frame}{Objektivat e javës}
+  Në fund të ditës do të dini:
+  \begin{itemize}
+    \item \LO{K2} të formuloni regresin logjistik dhe ta interpretoni me raporte shansesh;
+    \item \LO{S2} ta vlerësoni me maksimumin e përgjasisë (IRLS) dhe ta përshtatni me \texttt{glm()};
+    \item \LO{S3} të vlerësoni klasifikuesit me matricën e konfuzionit, ROC, AUC dhe CV;
+    \item \LO{K2} të kuptoni LDA, QDA dhe KNN dhe kur fiton secili;
+    \item \LO{C1} të zgjidhni modelin dhe pragun sipas kostos së gabimeve.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plani i ditës}
+  \centering
+  \begin{tikzpicture}[node distance=0.25cm,
+      h/.style={draw,rounded corners,minimum width=1.55cm,minimum height=1.05cm,align=center,font=\tiny}]
+    \node[h,fill=uptlight] (h1) {Ora 1\\Motivimi};
+    \node[h,fill=uptlight,right=of h1] (h2) {Ora 2\\Logjistiku};
+    \node[h,fill=orange!15,right=of h2] (h3) {Ora 3\\Lab I};
+    \node[h,fill=uptlight,right=of h3] (h4) {Ora 4\\LDA, QDA,\\KNN, ROC};
+    \node[h,fill=orange!15,right=of h4] (h5) {Ora 5\\Lab II};
+    \node[h,fill=green!12,right=of h5] (h6) {Ora 6\\Rast\\studimi};
+    \node[h,fill=gray!15,right=of h6] (h7) {Ora 7\\Konsolidim};
+    \foreach \a/\b in {h1/h2,h2/h3,h3/h4,h4/h5,h5/h6,h6/h7} \draw[->,thick] (\a) -- (\b);
+  \end{tikzpicture}
+  \vspace{8pt}
+  \begin{itemize}\small
+    \item Repo DS612: \texttt{Lecture\_4.R} (logjistik, LDA, QDA, KNN), \texttt{Lecture\_5.R} (CV), \texttt{Euclidean\_Distance.R}.
+    \item Zgjerim: pemët, bagging, random forests (\texttt{Lecture\_6.x.R}, \texttt{TreeModel\_Review.R}).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kujtesë e njohurive paraprake}
+% ------------------------------------------------------------
+
+\begin{frame}{Bernoulli dhe përgjasia}
+  \begin{itemize}
+    \item<1-> $Y\sim\text{Bernoulli}(p)$: $P(Y=y)=p^y(1-p)^{1-y}$, $y\in\{0,1\}$.
+    \item<2-> $E[Y]=p$, \; $\operatorname{Var}(Y)=p(1-p)$.
+    \item<3-> Për $n$ vëzhgime të pavarura: $L(p)=\prod_i p^{y_i}(1-p)^{1-y_i}$.
+    \item<4-> $\log L=\sum_i\big[y_i\log p+(1-y_i)\log(1-p)\big]$; maksimumi: $\hat p=\bar y$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pa ndihmën e PC: përgjasia e një proporcioni}
+  10 klientë, 2 default: $y=(0,0,1,0,0,0,1,0,0,0)$.
+  \begin{itemize}
+    \item<2-> $\log L(p)=2\log p+8\log(1-p)$.
+    \item<3-> $\dfrac{d\log L}{dp}=\dfrac2p-\dfrac{8}{1-p}=0$ $\Rightarrow$ $2(1-p)=8p$ $\Rightarrow$ $\hat p=0.2$.
+    \item<4-> $\log L(0.2)=2\log0.2+8\log0.8=2(-1.609)+8(-0.223)=-5.00$.
+    \item<5-> $\log L(0.5)=10\log0.5=-6.93$: më e ulët. \checkmark
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shansi (\emph{odds})}
+  \begin{itemize}
+    \item<1-> $\text{odds}=\dfrac{p}{1-p}$: sa herë më e mundshme ``po'' se ``jo''.
+    \item<2-> $p=0.2$ $\Rightarrow$ odds $=0.25$ (``1 me 4''); $p=0.5$ $\Rightarrow$ 1; $p=0.8$ $\Rightarrow$ 4.
+    \item<3-> Odds $\in[0,\infty)$; $\log(\text{odds})\in(-\infty,\infty)$: kjo është ideja e logjistikut!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushOdds]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Llogarit odds dhe log-odds për $p=0.1,\ 0.5,\ 0.9$. ($\log9=2.197$.)
+      \item Nga tabela e balancës: grupi 1500--2000 ka 177 default nga 805. Cili është shansi?
+      \item Grupi 2000--3000 ka 81 nga 106. Sa herë më i madh është shansi këtu?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjOdds}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushTPS91]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    Një bankë (hipotetike) refuzon kredinë kur $\hat P(\text{default})>p^*$.
+    \begin{enumerate}
+      \item Çfarë ndodh me $p^*=0.5$? Po me $p^*=0.1$?
+      \item Cili gabim kushton më shumë për bankën: t'i japësh kredi dikujt që nuk paguan, apo ta refuzosh dikë që do të paguante?
+      \item Si duhet të ndikojë kjo te $p^*$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS91}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC91]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Cila është arsyeja \textbf{kryesore} pse nuk përdorim \texttt{lm()} për $y\in\{0,1\}$?
+    \begin{enumerate}[A)]
+      \item \texttt{lm()} nuk pranon variabla 0/1.
+      \item Parashikimet mund të dalin jashtë $[0,1]$ dhe forma S nuk kapet.
+      \item \texttt{lm()} jep gjithmonë $R^2$ të ulët.
+      \item Koeficientët e \texttt{lm()} janë të zhvendosur nga multikolineariteti.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC91}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp91]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 1}
+  \begin{enumerate}
+    \item Pse saktësia 96.7\% e ``gjithmonë jo'' nuk është arritje te \texttt{Default}?
+    \item Jepni dy probleme të \texttt{lm()} me $y$ binar.
+    \item Sa është odds për $p=0.75$? Po log-odds?
+  \end{enumerate}
+  \shkoTe{zgjCp91}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 1}
+  \begin{itemize}
+    \item Klasifikim: vlerëso $P(Y=1\mid x)$, pastaj vendos.
+    \item \texttt{Default} (sintetike, ISLR): 3.33\% default; probabiliteti rritet në formë S me balancën.
+    \item \texttt{lm} mbi 0/1: 3123 ``probabilitete'' negative; 0.25 kundrejt 0.76.
+    \item Logjistiku: kurbë S brenda $[0,1]$; 2000 \$ $\Rightarrow$ 58.6\%.
+    \item Odds $=p/(1-p)$; log-odds në $(-\infty,\infty)$.
+  \end{itemize}
+  \begin{Keshille}Ora 2: modeli logjistik, raporti i shanseve, maksimumi i përgjasisë, IRLS, testet Wald dhe LR.\end{Keshille}
+\end{frame}
