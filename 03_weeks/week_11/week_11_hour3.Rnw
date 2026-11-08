@@ -1,0 +1,401 @@
+% ============================================================
+%  Java 11 · Ora 3 — Lab I: terra në praktikë
+%  Rezultatet: K3, S4, S1
+%  Burimi: Hijmans, dokumentacioni i terra (rast, crop, mask, classify, zonal);
+%          Lovelace et al., Geocomputation with R, kap. 3--5
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Lab I: terra]{Lab I: \texttt{terra} në praktikë}
+
+\begin{frame}{Ora 3: Lab I --- \texttt{terra} në praktikë}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Raster nga zero}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Krijimi i një raster-i me dorë të R}
+<<h3-new>>=
+library(terra)
+set.seed(2026)
+toy <- rast(nrows = 5, ncols = 8, xmin = 19, xmax = 21, ymin = 40, ymax = 41,
+            crs = "EPSG:4326")
+values(toy) <- round(runif(ncell(toy), 0, 100))
+toy
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 5 rreshta $\times$ 8 kolona; rezolucioni $2/8=0.25^\circ$ në $x$, $1/5=0.2^\circ$ në $y$: qelizat nuk janë katrore.
+    \item<2-> \texttt{runif()} me \texttt{set.seed()}: vlera sintetike, të riprodhueshme.
+    \item<3-> \texttt{source: memory}: raster-i jeton në RAM; \texttt{writeRaster()} e çon në disk.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Shkrimi dhe leximi: vajtje-ardhje}
+<<h3-write>>=
+f <- file.path(tempdir(), "toy.tif")
+writeRaster(toy, f, overwrite = TRUE, datatype = "INT1U")
+back <- rast(f)
+c(same_values = all(values(back) == values(toy)),
+  same_grid   = compareGeom(back, toy),
+  same_crs    = crs(back) == crs(toy))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{INT1U} (0--255) mjafton për vlera 0--100: 1 bajt për qelizë.
+    \item<2-> \texttt{compareGeom()}: kontrollon që dy raster-a kanë të njëjtën rrjetë (shtrirje, rezolucion, CRS).
+    \item<3-> GeoTIFF ruan gjithçka: vlerat, rrjetën, CRS-në.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}\texttt{datatype = "INT1U"} me lartësi deri 2623 m: vlerat mbi 255 bëhen NA ose ``mbështillen''. Zgjidhni tipin sipas diapazonit.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Prerja dhe maska}
+% ------------------------------------------------------------
+
+\begin{frame}{\texttt{crop()} kundrejt \texttt{mask()}}
+  \centering
+  \begin{tikzpicture}[scale=0.42, font=\scriptsize]
+    \foreach \i in {0,...,6} \foreach \j in {0,...,5} \draw[gray!50] (\i,\j) rectangle ++(1,1);
+    \draw[thick, accent] (1.4,0.6) -- (5.3,1.2) -- (4.7,4.6) -- (2.0,4.2) -- cycle;
+    \node at (3.5,-0.8) {origjinali + poligoni};
+    \begin{scope}[xshift=9cm]
+      \foreach \i in {1,...,5} \foreach \j in {0,...,4} \fill[uptblue!40] (\i,\j) rectangle ++(1,1);
+      \foreach \i in {1,...,5} \foreach \j in {0,...,4} \draw[gray!50] (\i,\j) rectangle ++(1,1);
+      \draw[thick, accent] (1.4,0.6) -- (5.3,1.2) -- (4.7,4.6) -- (2.0,4.2) -- cycle;
+      \node at (3.5,-0.8) {\texttt{crop}: drejtkëndëshi};
+    \end{scope}
+    \begin{scope}[xshift=18cm]
+      \foreach \c in {{2,1},{3,1},{4,1},{2,2},{3,2},{4,2},{2,3},{3,3},{4,3},{1,1},{4,0}}
+        { \fill[uptblue!40] (\c) rectangle ++(1,1); }
+      \foreach \i in {1,...,5} \foreach \j in {0,...,4} \draw[gray!50] (\i,\j) rectangle ++(1,1);
+      \draw[thick, accent] (1.4,0.6) -- (5.3,1.2) -- (4.7,4.6) -- (2.0,4.2) -- cycle;
+      \node at (3.5,-0.8) {\texttt{mask}: qendrat brenda};
+    \end{scope}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item \texttt{crop}: zvogëlon rrjetën në drejtkëndëshin rrethues; vlerat mbeten.
+    \item \texttt{mask}: e njëjta rrjetë, qelizat jashtë poligonit bëhen NA.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Qarku i Tiranës}
+<<h3-crop>>=
+elev  <- rast(file.path(W11DATA, "alb_elev_30s.tif"))
+qarqe <- vect(file.path(W11DATA, "gadm41_ALB_1.gpkg"))
+tir   <- qarqe[qarqe$qark == "Tirane"]
+e_crop <- crop(elev, tir)
+e_mask <- mask(e_crop, tir)
+dim(e_crop)
+c(crop = global(!is.na(e_crop), "sum")[1, 1],
+  mask = global(!is.na(e_mask), "sum")[1, 1])
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{crop}: 60 $\times$ 96 $=5760$ qeliza; 5500 me vlerë (pjesa tjetër jashtë Shqipërisë ose në det).
+    \item<2-> \texttt{mask}: 2663 qeliza, vetëm ato me qendër brenda qarkut.
+    \item<3-> Rendi i zakonshëm: së pari \texttt{crop} (më e shpejtë), pastaj \texttt{mask}.
+    \item<4-> \texttt{qarqe[qarqe\$qark == "Tirane"]}: zgjedhje rreshtash si te \texttt{data.frame}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Tirana: harta e prerë}
+<<h3-tirmap, fig.height=2.8, fig.width=4.2, out.width="0.5\\textwidth">>=
+library(ggplot2)
+dt <- as.data.frame(e_mask, xy = TRUE, na.rm = TRUE); names(dt)[3] <- "elev"
+ggplot(dt, aes(x, y, fill = elev)) + geom_raster() +
+  scale_fill_viridis_c(option = "turbo", name = "m") +
+  coord_sf(crs = 4326) + labs(x = NULL, y = NULL) + theme_bw(base_size = 8)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Fusha e Tiranës (blu) dhe malet e Dajtit në lindje (të verdha--kuqe).
+    \item<2-> Kufiri është ``i shkallëzuar'': qelizat hyjnë ose dalin të plota.
+    \item<3-> Me qeliza 0.65 km$^2$ dhe një qark 1636 km$^2$, gabimi i kufirit është i vogël; për bashki të vogla jo (Ora 5).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC113]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Duam lartësinë mesatare \textbf{vetëm brenda} qarkut të Tiranës. Cila thirrje është e saktë?
+    \begin{enumerate}[A.]
+      \item \texttt{global(crop(elev, tir), "mean", na.rm = TRUE)}
+      \item \texttt{global(mask(crop(elev, tir), tir), "mean", na.rm = TRUE)}
+      \item \texttt{global(mask(elev, ext(tir)), "mean", na.rm = TRUE)}
+      \item \texttt{mean(values(elev))}
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC113}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Klasifikimi}
+% ------------------------------------------------------------
+
+\begin{frame}{Klasifikimi me matricë}
+  \begin{itemize}
+    \item<1-> \texttt{classify(r, rcl)}: \texttt{rcl} është matricë me 3 kolona: \textbf{nga}, \textbf{deri}, \textbf{klasa}.
+    \item<2-> Intervalet si parazgjedhje: $(\text{nga}, \text{deri}]$ (\texttt{right = TRUE}).
+    \item<3-> Brezat tanë: $\le200$, 200--500, 500--1000, 1000--1500, 1500--2000, $>2000$ m.
+    \item<4-> Për klasat e pastra (0/1) mjafton krahasimi: \texttt{elev > 1000}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeCls113]{Parashiko (pa ndihmën e PC)}
+  \begin{Parashiko}
+    Me brezat $(-\infty,200]\to1$, $(200,500]\to2$, $(500,1000]\to3$, $(1000,1500]\to4$, $(1500,2000]\to5$, $(2000,\infty)\to6$, klasifikoni:
+    \begin{center}
+      \begin{tabular}{ccc} 150 & 480 & 1020 \\ 200 & 999 & 1500 \\ 2050 & 640 & $-5$ \end{tabular}
+    \end{center}
+  \end{Parashiko}
+  \shkoTe{zgjCls113}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kontroll dhe kufijtë e intervaleve}
+<<h3-cls>>=
+rcl <- matrix(c(-Inf,  200, 1,   200,  500, 2,   500, 1000, 3,
+                1000, 1500, 4,  1500, 2000, 5,  2000,  Inf, 6),
+              ncol = 3, byrow = TRUE)
+x <- rast(matrix(c(150, 480, 1020,  200, 999, 1500,  2050, 640, -5), 3,
+                 byrow = TRUE))
+as.matrix(classify(x, rcl), wide = TRUE)
+as.matrix(classify(x, rcl, right = FALSE), wide = TRUE)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Me \texttt{right = TRUE}: 200 $\to$ 1 dhe 1500 $\to$ 4 (kufiri i sipërm i përket intervalit).
+    \item<2-> Me \texttt{right = FALSE}: 200 $\to$ 2 dhe 1500 $\to$ 5.
+    \item<3-> Vetëm vlerat \textbf{në kufi} ndryshojnë. Me lartësi në metra të plota, kjo ndodh shpesh!
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Raporti thotë ``mbi 1500 m'', kodi numëron $\ge1500$. Shkruani gjithmonë në tabelë si janë mbyllur intervalet.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Brezat e lartësisë në Shqipëri}
+<<h3-bands>>=
+bands <- classify(elev, rcl)
+area  <- mask(cellSize(elev, unit = "km"), elev)
+tab   <- zonal(area, bands, fun = "sum")
+names(tab) <- c("band", "km2")
+tab$pct <- round(100 * tab$km2 / sum(tab$km2), 1)
+tab$km2 <- round(tab$km2)
+tab
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Brezi më i madh: 500--1000 m (29.0\%); vetëm 22.6\% e territorit është nën 200 m.
+    \item<2-> Mbi 1000 m: $5771+2108+289=8\,167$ km$^2$, pra $28.9\%$.
+    \item<3-> \texttt{zonal(area, bands, "sum")}: zonat janë vetë klasat e raster-it.
+    \item<4-> Kemi mbledhur \textbf{sipërfaqe} qelizash, jo numër qelizash: e saktë edhe në raster gjeografik.
+  \end{itemize}
+  \LO{S1, S4}
+\end{frame}
+
+\begin{frame}[fragile]{Harta e brezave}
+<<h3-bandmap, eval=FALSE>>=
+db <- as.data.frame(bands, xy = TRUE, na.rm = TRUE); names(db)[3] <- "band"
+labs6 <- c("<=200", "200-500", "500-1000", "1000-1500", "1500-2000", ">2000")
+db$band <- factor(db$band, levels = 1:6, labels = labs6)
+ggplot(db, aes(x, y, fill = band)) + geom_raster() +
+  scale_fill_brewer(palette = "YlOrBr", name = "m") +
+  coord_sf(crs = 4326) + labs(x = NULL, y = NULL) + theme_bw(base_size = 7)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: brezat e lartësisë}
+<<h3-bandmap-fig, ref.label="h3-bandmap", echo=FALSE, fig.height=3.6, fig.width=3.4, out.width="0.36\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}[label=ushFr113]{Radha jote!}
+  \begin{Ushtrim}[(7 minuta)]
+    Me raster-in e temperaturës \texttt{tavg\$Jan}:
+    \begin{enumerate}
+      \item Krijoni raster-in logjik ``mesatarja e janarit $<0^\circ$C''.
+      \item Çfarë përqindje e qelizave e plotëson? Sa km$^2$?
+      \item Vizatojeni mbi qarqet. Cilët qarqe preken më shumë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjFr113}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Raster dhe qarqet}
+% ------------------------------------------------------------
+
+\begin{frame}[label=pyetjeHi113]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Renditëm qarqet sipas lartësisë mesatare (Ora 1): Korça, Dibra, Kukësi \dots
+    A do të jetë e njëjtë renditja sipas \textbf{përqindjes së territorit mbi 1000 m}? Cili qark ka 0\%?
+  \end{Parashiko}
+  \shkoTe{zgjHi113}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Përqindja mbi 1000 m sipas qarkut}
+<<h3-hi>>=
+rq <- rasterize(qarqe, elev, field = "qark")     # zones as a raster
+hi <- zonal(elev > 1000, rq, fun = "mean", na.rm = TRUE)
+names(hi) <- c("qark", "pct_above_1000")
+hi$pct_above_1000 <- round(100 * hi$pct_above_1000, 1)
+hi[order(-hi$pct_above_1000), ]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Korça (58.8\%), Dibra (49.9\%), Kukësi (44.6\%): e njëjta treshe si me mesataren.
+    \item<2-> Gjashtë të parët në të njëjtin rend si me mesataren. Ndryshimi: Tirana (11.8\%) kalon Lezhën dhe Vlorën, ndonëse ka mesatare më të ulët (377 m): masivi i Dajtit.
+    \item<3-> Fieri: 0\%; Durrësi 2.7\%.
+    \item<4-> \texttt{rasterize()}: poligonet $\to$ raster zonash; \texttt{zonal(elev > 1000, \dots, "mean")}: përqindja (mesatarja e 0/1).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesatarja e një variabli 0/1 është përqindje}
+  \begin{itemize}
+    \item<1-> $I_i=1$ nëse qeliza $i$ është mbi 1000 m, ndryshe 0.
+    \item<2-> $\bar I=\frac1n\sum I_i=$ përqindja e qelizave mbi 1000 m.
+    \item<3-> E njëjta ide si te regresi logjistik (Java 9): $E[Y]=P(Y=1)$.
+    \item<4-> Kujdes: kjo është përqindje e \textbf{qelizave}. Përqindja e \textbf{sipërfaqes} kërkon peshat \texttt{cellSize} (ndryshimi këtu: $\le0.06$ pikë përqindjeje).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kurba hipsometrike}
+% ------------------------------------------------------------
+
+\begin{frame}{Kurba hipsometrike: CDF e lartësisë}
+  \begin{itemize}
+    \item<1-> Për çdo lartësi $h$: çfarë pjese e territorit është mbi $h$?
+    \item<2-> $S(h)=\sum_i a_i\,\mathbb{1}(z_i>h)\big/\sum_i a_i$, ku $a_i$ është sipërfaqja e qelizës.
+    \item<3-> Është funksioni i mbijetesës $1-F(h)$ i ponderuar me sipërfaqe.
+    \item<4-> Mediana e ponderuar: $h$ ku $S(h)=0.5$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Llogaritja}
+<<h3-hyps>>=
+z <- values(elev)[, 1]; a <- values(area)[, 1]
+ok <- !is.na(z); z <- z[ok]; a <- a[ok]
+o  <- order(z)
+cum_area <- cumsum(a[o]) / sum(a)
+c(weighted_median = z[o][which(cum_area >= 0.5)[1]],
+  median = median(z),
+  weighted_mean = round(weighted.mean(z, a), 1), mean = round(mean(z), 1))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Kurba}
+<<h3-hypsplot, fig.height=2.4, fig.width=5, out.width="0.6\\textwidth">>=
+hy <- data.frame(h = z[o], above = 1 - cum_area)
+ggplot(hy, aes(above * 100, h)) + geom_line(colour = "steelblue") +
+  geom_hline(yintercept = 1000, linetype = 2) +
+  labs(x = "% of territory above h", y = "h (m)") + theme_bw(base_size = 9)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mediana e ponderuar 635 m: gjysma e Shqipërisë është mbi 635 m.
+    \item<2-> Mesatarja 697 m $>$ mediana: shpërndarje e anuar djathtas (pak male shumë të larta).
+    \item<3-> Me pesha apo pa pesha: ndryshim 1 m, sepse qelizat ndryshojnë vetëm 0.63--0.66 km$^2$.
+    \item<4-> Vija 1000 m pret kurbën në $\approx29\%$, si në tabelën e brezave.
+  \end{itemize}
+  \LO{S1}
+\end{frame}
+
+\begin{frame}[label=ushAgg113]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(7 minuta)]
+    \begin{enumerate}
+      \item Agregoni lartësinë me \texttt{fact} $=2,4,8$ (\texttt{fun = mean}).
+      \item Për secilin: sipërfaqja mbi 2000 m (km$^2$) dhe lartësia maksimale.
+      \item A bie sipërfaqja mbi 2000 m gjithmonë kur rritet \texttt{fact}?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjAgg113}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Agregimi dhe zona mbi 2000 m}
+<<h3-agg>>=
+above2000 <- function(k) {
+  r <- if (k == 1) elev else aggregate(elev, fact = k, fun = mean, na.rm = TRUE)
+  c(fact = k, km2_above_2000 = round(global(cellSize(r, unit = "km") * (r > 2000),
+                                         "sum", na.rm = TRUE)[1, 1], 1),
+    max = round(global(r, "max", na.rm = TRUE)[1, 1]))
+}
+t(sapply(c(1, 2, 4, 8), above2000))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Sipërfaqja mbi 2000 m: 288.5 $\to$ 246.0 $\to$ 153.6 $\to$ 164.6 km$^2$.
+    \item<2-> Jo monotone: me \texttt{fact = 8} një qelizë ka $\approx41$ km$^2$; një bllok që kalon pragun ndryshon totalin me dhjetëra km$^2$.
+    \item<3-> Maksimumi: $2623\to2476\to2431\to2431$ m.
+    \item<4-> Statistikat e pragut (sa sipërfaqe mbi $h$) janë shumë të ndjeshme ndaj rezolucionit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTPS113]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Një raport thotë: ``29\% e Shqipërisë është mbi 1000 m''. Çfarë informacioni duhet të shoqërojë këtë shifër?
+      \item Pse \texttt{mask()} me poligonet e qarqeve dhe \texttt{rasterize()} japin të njëjtat qeliza?
+      \item Si do të llogarisnit lartësinë mesatare të qytetit të Tiranës (zona urbane)?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS113}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë përmbledhëse: funksionet e orës}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    Krijo / shkruaj / lexo & \texttt{rast()}, \texttt{writeRaster(datatype=)}, \texttt{rast(file)} \\
+    Krahaso rrjetat & \texttt{compareGeom()} \\
+    Prit / maskë & \texttt{crop(r, v)}, \texttt{mask(r, v)} \\
+    Klasifiko & \texttt{classify(r, rcl, right=)}, \texttt{r > h}, \texttt{ifel()} \\
+    Sipërfaqe & \texttt{cellSize(unit = "km")}, \texttt{expanse()} \\
+    Zona & \texttt{rasterize(v, r, field=)}, \texttt{zonal(r, z, fun)} \\
+    Vlera & \texttt{values()}, \texttt{as.data.frame(xy = TRUE)} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=cp113]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Cili është ndryshimi midis \texttt{crop()} dhe \texttt{mask()}?
+    \item Ku shkon vlera 1000 me \texttt{rcl} të brezave dhe \texttt{right = TRUE}? Po me \texttt{FALSE}?
+    \item Pse mesatarja e raster-it \texttt{elev > 1000} është përqindje?
+  \end{enumerate}
+  \shkoTe{zgjCp113}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item \texttt{rast()}, \texttt{writeRaster(datatype=)}, \texttt{compareGeom()}: rrjeta dhe tipi kanë rëndësi.
+    \item \texttt{crop} (drejtkëndësh) + \texttt{mask} (poligon): qarku i Tiranës, 2663 qeliza.
+    \item \texttt{classify}: brezat; 28.9\% e Shqipërisë mbi 1000 m; kujdes \texttt{right =}.
+    \item Qarqet: Korça 58.8\% mbi 1000 m; Fieri 0\%.
+    \item Kurba hipsometrike: mediana 635 m, mesatarja 697 m; pragjet varen nga rezolucioni.
+  \end{itemize}
+  \begin{Keshille}Ora 4: modeli vektor në thellësi: shapefile, atributet, bashkimet, rasterizimi.\end{Keshille}
+\end{frame}

@@ -1,0 +1,76 @@
+% ============================================================
+%  Java 11 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjMC113]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item A: \texttt{crop} mban të gjithë drejtkëndëshin, përfshirë Durrësin, Elbasanin, Dibrën.
+    \item C: \texttt{ext(tir)} është drejtkëndësh, jo poligon: njësoj si A.
+    \item D: e gjithë Shqipëria; dhe pa \texttt{na.rm} jep NA.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC113}
+\end{frame}
+
+\begin{frame}[label=zgjCls113]{Zgjidhja: Parashiko (klasifikimi)}
+  \centering
+  \begin{tabular}{ccc} 1 & 2 & 4 \\ 1 & 3 & 4 \\ 6 & 3 & 1 \end{tabular}
+  \begin{itemize}
+    \item 200 $\in(-\infty,200]\to1$; 1500 $\in(1000,1500]\to4$; 1020 $\to4$; 999 $\to3$.
+    \item $-5\to1$ (intervali i parë fillon nga $-\infty$).
+    \item Me \texttt{right = FALSE}: 200 $\to$ 2, 1500 $\to$ 5.
+  \end{itemize}
+  \vfill\kthehu{pyetjeCls113}
+\end{frame}
+
+\begin{frame}[label=zgjFr113,fragile]{Zgjidhja: Radha jote! (janari nën zero)}
+  \small
+  \begin{enumerate}
+    \item \texttt{frost <- tavg\$Jan < 0}.
+    \item \texttt{global(frost, "mean", na.rm = TRUE)} $=0.211$: 21.1\% e qelizave;
+      \texttt{global(cellSize(frost, unit = "km") * frost, "sum", na.rm = TRUE)} $\approx6\,087$ km$^2$.
+    \item Sipas qarkut (\texttt{zonal} me \texttt{rasterize(qarqe, tavg)}): Kukësi 53.6\%, Dibra 48.9\%, Korça 37.0\%, Shkodra 27.0\%; Fieri 0\%, Durrësi 0.1\%.
+  \end{enumerate}
+  \vfill\kthehu{ushFr113}
+\end{frame}
+
+\begin{frame}[label=zgjHi113]{Zgjidhja: Parashiko (mbi 1000 m)}
+  \begin{itemize}
+    \item Treshja e parë mbetet: Korça, Dibra, Kukësi.
+    \item Gjashtë të parët mbeten në të njëjtin rend; ndryshon fundi: Tirana (mesatare 377 m) del para Lezhës (429 m) dhe Vlorës (417 m) sipas përqindjes mbi 1000 m.
+    \item Fieri: 0\%: asnjë qelizë mbi 1000 m.
+    \item Mesatarja dhe përqindja mbi prag matin gjëra të ndryshme: niveli kundrejt bishtit të shpërndarjes.
+  \end{itemize}
+  \vfill\kthehu{pyetjeHi113}
+\end{frame}
+
+\begin{frame}[label=zgjAgg113]{Zgjidhja: Ndrysho parametrin}
+  \small
+  \begin{tabular}{rrr}
+    \toprule \texttt{fact} & km$^2$ mbi 2000 m & max (m) \\ \midrule
+    1 & 288.5 & 2623 \\ 2 & 246.0 & 2476 \\ 4 & 153.6 & 2431 \\ 8 & 164.6 & 2431 \\ \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item Jo gjithmonë: mesatarja e bllokut mund të kalojë pragun edhe kur disa qeliza të saj nuk e kalonin, dhe e kundërta. Qelizat e mëdha e bëjnë totalin ``me hapa'' të mëdhenj.
+    \item Maksimumi nuk rritet kurrë me agregimin me mesatare.
+  \end{itemize}
+  \vfill\kthehu{ushAgg113}
+\end{frame}
+
+\begin{frame}[label=zgjTPS113]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Burimi i DEM-it, rezolucioni ($30''\approx0.65$ km$^2$), kufiri i përdorur, si është trajtuar pragu ($>$ apo $\ge$), sipërfaqe apo numër qelizash.
+    \item Të dyja përdorin rregullin ``qendra e qelizës brenda poligonit''.
+    \item Poligoni i zonës urbane (p.sh.\ nga OpenStreetMap ose Copernicus Urban Atlas) + \texttt{extract()}; me qeliza 1 km zona urbane ka pak qeliza: përdorni SRTM 90 m (Ora 6).
+  \end{enumerate}
+  \vfill\kthehu{ushTPS113}
+\end{frame}
+
+\begin{frame}[label=zgjCp113]{Përgjigjet: Checkpoint Ora 3}
+  \begin{enumerate}
+    \item \texttt{crop}: pret rrjetën në drejtkëndëshin rrethues; \texttt{mask}: mban rrjetën, vendos NA jashtë poligonit.
+    \item \texttt{right = TRUE}: $(500,1000]\to3$; \texttt{right = FALSE}: $[1000,1500)\to4$.
+    \item Vlerat janë 0/1; mesatarja $=\#\{1\}/n$.
+  \end{enumerate}
+  \vfill\kthehu{cp113}
+\end{frame}
