@@ -1,0 +1,548 @@
+% ============================================================
+%  Java 12 · Ora 2 — Teori I: metodat deterministe
+%  Rezultatet: K3, S1
+%  Burimi: Chang (GIS), kapitulli për interpolimin hapësinor
+%          (Thiessen, sipërfaqet e trendit, IDW);
+%          Pebesma & Bivand (2023), kap. 12; Thiessen (1911)
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Metodat deterministe]{Metodat deterministe}
+
+\begin{frame}{Ora 2: Metodat deterministe}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Thiessen / Voronoi}
+% ------------------------------------------------------------
+
+\begin{frame}{Ideja: merr vlerën e fqinjit më të afërt}
+  \begin{Definicion}[(\emph{Voronoi cell / Thiessen polygon})]
+    Për pikat $s_1,\dots,s_n$, qeliza e pikës $s_i$ është
+    \[ V_i=\{\,s:\ d(s,s_i)\le d(s,s_j)\ \text{për çdo } j\,\}. \]
+  \end{Definicion}
+  \pause
+  \begin{itemize}
+    \item Parashikimi: $\hat z(s_0)=z(s_i)$ kur $s_0\in V_i$.
+    \item Në formulën e përgjithshme: $\lambda_i=1$ për fqinjin, $\lambda_j=0$ për të tjerët.
+  \end{itemize}
+  \LO{K3}
+\end{frame}
+
+\begin{frame}{Ndërtimi: përgjysmoret pingule}
+  \centering
+  \begin{tikzpicture}[scale=0.62, font=\scriptsize]
+    \fill[uptlight] (-0.5,-0.5) rectangle (2,2);
+    \fill[accent!15] (2,-0.5) rectangle (4.5,2);
+    \fill[okgreen!15] (-0.5,2) rectangle (2,4.5);
+    \fill[uptblue!12] (2,2) rectangle (4.5,4.5);
+    \draw[dashed, thick] (2,-0.5) -- (2,4.5);
+    \draw[dashed, thick] (-0.5,2) -- (4.5,2);
+    \foreach \x/\y/\l in {0/0/{A: 10}, 4/0/{B: 20}, 0/4/{C: 30}, 4/4/{D: 36}}
+      \fill[uptblue] (\x,\y) circle (3pt) node[above right]{\l};
+    \draw[->, gray] (-0.7,0) -- (5,0) node[right]{$x$};
+    \draw[->, gray] (0,-0.7) -- (0,5) node[above]{$y$};
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Kufiri mes dy pikave: përgjysmorja pingule e segmentit që i bashkon.
+    \item Katër pika në kulmet e katrorit $4\times4$: kufijtë $x=2$ dhe $y=2$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeVor122]{Parashiko (pa ndihmën e PC)}
+  \begin{Parashiko}
+    Me të dhënat e katrorit (A: 10, B: 20, C: 30, D: 36), sa jep Thiessen në:
+    \begin{enumerate}
+      \item $s_0=(1,3)$?
+      \item $s_0=(3,1)$?
+      \item $s_0=(2,1)$?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjVor122}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Vetitë e Thiessen}
+  \begin{itemize}
+    \item<1-> \textbf{E saktë}: në $s_i$ jep pikërisht $z(s_i)$.
+    \item<2-> Konstante pjesë-pjesë: kërcime në kufijtë e poligoneve.
+    \item<3-> Nuk ka parametra për të zgjedhur; nuk jep pasiguri.
+    \item<4-> I përshtatshëm për variabla kategorike (lloji i tokës) ose kur nuk ka arsye për zbutje.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Përdorimi klasik: reshjet mesatare në një pellg}
+  \begin{itemize}
+    \item<1-> Thiessen (1911): çdo stacion përfaqëson poligonin e vet.
+    \item<2-> Mesatarja e pellgut:
+      \[ \bar R=\sum_{i=1}^n\frac{A_i}{A}\,R_i,\qquad A=\sum_i A_i. \]
+    \item<3-> $A_i$: sipërfaqja e poligonit $i$ brenda pellgut; $R_i$: reshjet e stacionit.
+    \item<4-> Stacionet e grumbulluara marrin poligone të vogla, pra peshë të vogël.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushBasin122]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(3 minuta)]
+    Një pellg ka tre stacione. Poligonet Thiessen brenda pellgut:
+    \begin{center}
+      \begin{tabular}{lccc}
+        \toprule
+        Stacioni & 1 & 2 & 3 \\ \midrule
+        $A_i$ (km$^2$) & 12 & 30 & 18 \\
+        $R_i$ (mm) & 40 & 25 & 60 \\ \bottomrule
+      \end{tabular}
+    \end{center}
+    \begin{enumerate}
+      \item Llogaritni $\bar R$ me Thiessen.
+      \item Krahasojeni me mesataren e thjeshtë. Pse ndryshojnë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjBasin122}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Dualja: triangulimi Delaunay}
+  \centering
+  \begin{tikzpicture}[scale=0.55, font=\scriptsize]
+    \draw[dashed, gray] (2,-0.5) -- (2,4.5);
+    \draw[dashed, gray] (-0.5,2) -- (4.5,2);
+    \draw[thick, accent] (0,0) -- (4,0) -- (0,4) -- cycle;
+    \draw[thick, accent] (4,0) -- (4,4) -- (0,4);
+    \foreach \x/\y/\l in {0/0/A, 4/0/B, 0/4/C, 4/4/D}
+      \fill[uptblue] (\x,\y) circle (3pt) node[above right]{\l};
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Lidhim dy pika kur poligonet e tyre kanë kufi të përbashkët: \termi{triangulimi Delaunay}{Delaunay triangulation}.
+    \item Rrjeti i trekëndëshave: \termi{TIN}{Triangulated Irregular Network}, forma vektoriale e DTM-së (Java 11).
+    \item Te katrori, diagonalja mund të jetë AD ose BC (rast i barabartë); këtu zgjodhëm BC.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Interpolimi linear në trekëndësh}
+  \begin{itemize}
+    \item<1-> Pika $s_0$ brenda trekëndëshit me kulme $s_1,s_2,s_3$.
+    \item<2-> Koordinatat baricentrike $\lambda_1,\lambda_2,\lambda_3\ge0$:
+      \[ s_0=\lambda_1s_1+\lambda_2s_2+\lambda_3s_3,\qquad \lambda_1+\lambda_2+\lambda_3=1. \]
+    \item<3-> Parashikimi: $\hat z(s_0)=\lambda_1z_1+\lambda_2z_2+\lambda_3z_3$.
+    \item<4-> I saktë, i vazhdueshëm, por me ``thyerje'' në brinjët e trekëndëshave.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull: TIN në pikën $(1,1)$}
+  Trekëndëshi ABC: $A=(0,0)$, $B=(4,0)$, $C=(0,4)$; $z=10,20,30$.
+  \begin{enumerate}
+    \item<2-> $x$: $1=4\lambda_B$ $\Rightarrow$ $\lambda_B=0.25$.
+    \item<3-> $y$: $1=4\lambda_C$ $\Rightarrow$ $\lambda_C=0.25$.
+    \item<4-> Shuma: $\lambda_A=1-0.25-0.25=0.5$.
+    \item<5-> $\hat z=0.5\cdot10+0.25\cdot20+0.25\cdot30=5+5+7.5=17.5$.
+  \end{enumerate}
+  \onslide<6->{\begin{Keshille}D (36) nuk merr pjesë: TIN-i përdor vetëm 3 kulmet e trekëndëshit që e përmban $s_0$.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Gabim i zakonshëm: Thiessen në gradë}
+  \begin{Gabim}
+    Poligonet Thiessen ndërtohen me distancë euklidiane. Në gradë (lon/lat) një gradë gjatësie në $41^\circ$ V është $\approx 84$ km, kurse një gradë gjerësie $\approx 111$ km.
+  \end{Gabim}
+  \begin{itemize}
+    \item Kufijtë dalin të zhvendosur; poligonet nuk janë ``zonat më të afërta''.
+    \item Zgjidhja: projektoni më parë (EPSG:6870 për Shqipërinë, Java 10).
+    \item \texttt{st\_voronoi()} në gradë nuk ndalet: jep vetëm paralajmërim (``does not correctly triangulate longitude/latitude data'').
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Polinomi global}
+% ------------------------------------------------------------
+
+\begin{frame}{Ideja: një sipërfaqe trendi për të gjithë zonën}
+  \begin{itemize}
+    \item<1-> Modelojmë $z$ si funksion të koordinatave:
+      \[ z(s)=\beta_0+\beta_1x+\beta_2y+\varepsilon\qquad\text{(rendi 1: plan)} \]
+    \item<2-> Rendi 2 shton $x^2,\ xy,\ y^2$: sipërfaqe e lakuar.
+    \item<3-> \termi{Sipërfaqe trendi}{trend surface}: regres linear (Java 5--6) me koordinatat si parashikues.
+    \item<4-> \textbf{Global}: një ekuacion për të gjithë hartën.
+  \end{itemize}
+  \LO{K3, S1}
+\end{frame}
+
+\begin{frame}{Sa terma ka polinomi i rendit $p$?}
+  \begin{itemize}
+    \item Termat $x^ay^b$ me $a+b\le p$: numri është $\dfrac{(p+1)(p+2)}{2}$.
+  \end{itemize}
+  \begin{center}
+    \begin{tabular}{ccl}
+      \toprule
+      Rendi $p$ & Terma & Shembull \\ \midrule
+      1 & 3 & $1,\ x,\ y$ \\
+      2 & 6 & $+\ x^2,\ xy,\ y^2$ \\
+      3 & 10 & $+\ x^3,\ x^2y,\ xy^2,\ y^3$ \\
+      4 & 15 & \dots \\ \bottomrule
+    \end{tabular}
+  \end{center}
+  \begin{itemize}
+    \item Me 155 mostra, rendi 4 ka ende shumë shkallë lirie; por rreziku është tjetër (më poshtë).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vlerësimi: katrorët më të vegjël}
+  \begin{itemize}
+    \item<1-> Matrica e modelit: rreshti $i$ është $(1,\ x_i,\ y_i,\ \dots)$.
+    \item<2-> Si në Javën 5--6:
+      \[ \hat{\boldsymbol\beta}=(X^\top X)^{-1}X^\top\mathbf z. \]
+    \item<3-> Parashikimi në $s_0$: $\hat z(s_0)=\mathbf x_0^\top\hat{\boldsymbol\beta}$.
+    \item<4-> Edhe ky është $\sum\lambda_iz_i$: $\boldsymbol\lambda^\top=\mathbf x_0^\top(X^\top X)^{-1}X^\top$. Peshat mund të jenë \textbf{negative}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull 1: tre pika, plan i saktë}
+  A, B, C: $(0,0)\to10$, $(4,0)\to20$, $(0,4)\to30$.
+  \begin{enumerate}
+    \item<2-> Në A: $\beta_0=10$.
+    \item<3-> Në B: $10+4\beta_1=20\Rightarrow\beta_1=2.5$.
+    \item<4-> Në C: $10+4\beta_2=30\Rightarrow\beta_2=5$.
+    \item<5-> $\hat z(1,1)=10+2.5+5=17.5$.
+  \end{enumerate}
+  \onslide<6->{\begin{Keshille}Pse e njëjtë me TIN-in? Me 3 pika, plani kalon nëpër të tria: interpolimi linear në trekëndësh \emph{është} ky plan.\end{Keshille}}
+\end{frame}
+
+\begin{frame}{Shembull 2: katër pika, OLS (hapi 1)}
+  Shtojmë D: $(4,4)\to36$. Tani 4 ekuacione, 3 të panjohura.
+  \begin{enumerate}
+    \item<2-> $\bar x=\bar y=2$, $\bar z=(10+20+30+36)/4=24$.
+    \item<3-> $x-\bar x=(-2,2,-2,2)$, \quad $\sum(x-\bar x)^2=16$.
+    \item<4-> $\hat\beta_1=\dfrac{\sum(x-\bar x)z}{16}=\dfrac{-20+40-60+72}{16}=2$.
+    \item<5-> Dizajni është simetrik: $x$ dhe $y$ janë të pakorreluar, kështu që çdo koeficient llogaritet veç.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Shembull 2: katër pika, OLS (hapi 2)}
+  \begin{enumerate}
+    \item<1-> $y-\bar y=(-2,-2,2,2)$: $\hat\beta_2=\dfrac{-20-40+60+72}{16}=4.5$.
+    \item<2-> $\hat\beta_0=\bar z-2\hat\beta_1-2\hat\beta_2=24-4-9=11$.
+    \item<3-> Vlerat e përshtatura: $11,\ 19,\ 29,\ 37$.
+    \item<4-> Mbetjet: $-1,\ +1,\ +1,\ -1$.
+  \end{enumerate}
+  \onslide<5->{\begin{Gabim}Polinomi global \textbf{nuk} është i saktë: në A jep 11, jo 10. Është zbutës (Ora 1).\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli në R: formula me matrica kundrejt \texttt{lm()}}
+<<h2-ols>>=
+toy <- data.frame(x = c(0, 4, 0, 4), y = c(0, 0, 4, 4),
+                  z = c(10, 20, 30, 36))          # synthetic toy data
+X <- cbind(1, toy$x, toy$y)
+beta_hand <- solve(t(X) %*% X, t(X) %*% toy$z)
+fit <- lm(z ~ x + y, data = toy)
+cbind(hand = drop(beta_hand), lm = coef(fit))
+resid(fit)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Formula $(X^\top X)^{-1}X^\top\mathbf z$ dhe \texttt{lm()} japin $11,\ 2,\ 4.5$: si pa ndihmën e PC.
+    \item<2-> Mbetjet $\pm1$: plani nuk kalon nëpër asnjë pikë.
+    \item<3-> Të dhënat janë \textbf{sintetike}; i zgjodhëm që llogaritjet të dalin të plota.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Rendi më i lartë, $R^2$ më i lartë?}
+<<h2-r2>>=
+meuse <- read.csv(file.path(W12DATA, "meuse.csv"))   # real (Burrough & McDonnell)
+grid  <- read.csv(file.path(W12DATA, "meuse_grid.csv"))
+t(sapply(1:4, function(p) {
+  f <- lm(log(zinc) ~ poly(x, y, degree = p), data = meuse)
+  c(order = p, R2 = summary(f)$r.squared, range(predict(f, grid)))
+}))
+range(log(meuse$zinc))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $R^2$: $0.267\to0.508\to0.554\to0.599$. Rritet \textbf{gjithmonë} me rendin.
+    \item<2-> Rendi 1 jep në rrjetë minimum 4.22, nën minimumin e të dhënave (4.727).
+    \item<3-> Rendi 3 del jashtë nga të dy anët: 4.38 dhe 7.60 (të dhënat: 4.727--7.517).
+    \item<4-> $R^2$ nuk zgjedh rendin; e zgjedh cross-validation (Ora 3).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGabim122]{Gjej gabimin}
+<<h2-raw>>=
+f_raw <- lm(log(zinc) ~ poly(x, y, degree = 3, raw = TRUE), data = meuse)
+sum(is.na(coef(f_raw)))
+summary(f_raw)$r.squared
+@
+  \begin{itemize}
+    \item Pse humbën 4 koeficientë dhe pse $R^2$ është ai i rendit 2?
+  \end{itemize}
+  \shkoTe{zgjGabim122}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Kufizimet e polinomit global}
+  \begin{itemize}
+    \item<1-> \textbf{Efekti i skajeve}: polinomi ``ikën'' jashtë zonës me të dhëna.
+    \item<2-> \textbf{Global}: një pikë e re në cep ndryshon të gjithë koeficientët.
+    \item<3-> Rendet e larta lëkunden (si polinomet e Runge-s në 1D).
+    \item<4-> Mirë për \emph{trendin} e madh, jo për detajet lokale.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Ideja e Orës 4: trend (polinom ose kovariat) $+$ mbetje të korreluara hapësinore $=$ Kriging universal.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC122]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Shtojmë një mostër të re në cepin verior të zonës. Te cila metodë ndryshon me siguri parashikimi në qendër të hartës?
+    \begin{enumerate}[A.]
+      \item Thiessen.
+      \item IDW me \texttt{nmax = 5}.
+      \item Polinomi global i rendit 2.
+      \item TIN (interpolimi në trekëndësha).
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC122}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{IDW: distanca e anasjelltë}
+% ------------------------------------------------------------
+
+\begin{frame}{Formula e IDW}
+  \begin{Definicion}[(\emph{Inverse Distance Weighting})]
+    \[ \hat z(s_0)=\sum_{i=1}^n\lambda_i\,z(s_i),\qquad
+       \lambda_i=\frac{d_i^{-p}}{\sum_{j=1}^n d_j^{-p}},\qquad d_i=\|s_0-s_i\|. \]
+  \end{Definicion}
+  \begin{itemize}
+    \item $p>0$: \termi{fuqia}{power}; zakonisht $p=2$ (Shepard, 1968).
+    \item Vetëm një parametër, por zgjedhja e tij ka rëndësi.
+  \end{itemize}
+  \LO{K3, S1}
+\end{frame}
+
+\begin{frame}{Tri veti të peshave}
+  \begin{enumerate}
+    \item<1-> Pozitive: $\lambda_i>0$.
+    \item<2-> Shuma 1: $\sum_i\lambda_i=\dfrac{\sum_i d_i^{-p}}{\sum_j d_j^{-p}}=1$.
+    \item<3-> Zbritëse me distancën: $d_i<d_k\Rightarrow\lambda_i>\lambda_k$.
+  \end{enumerate}
+  \onslide<4->{
+  \begin{Teoreme}[(kufijtë)]
+    Nga 1 dhe 2: $\hat z(s_0)$ është mesatare e ponderuar, pra
+    $\min_i z_i\le\hat z(s_0)\le\max_i z_i$.
+  \end{Teoreme}}
+\end{frame}
+
+\begin{frame}{Pse IDW është e saktë?}
+  Le të afrohet $s_0$ te mostra $s_k$, pra $d_k\to0$.
+  \begin{enumerate}
+    \item<2-> Shumëzojmë numëruesin dhe emëruesin me $d_k^p$:
+      \[ \lambda_k=\frac{1}{1+\sum_{j\ne k}(d_k/d_j)^p}. \]
+    \item<3-> Për $j\ne k$: $d_j$ mbetet pozitive, $d_k/d_j\to0$.
+    \item<4-> Pra $\lambda_k\to1$ dhe $\hat z(s_0)\to z(s_k)$.
+  \end{enumerate}
+  \onslide<5->{\begin{Gabim}Në $s_0=s_k$ formula ka $d_k^{-p}=1/0$. Programet (si \texttt{gstat}) e trajtojnë veçmas: kthejnë $z(s_k)$.\end{Gabim}}
+\end{frame}
+
+\begin{frame}{Roli i fuqisë $p$}
+  Krahasojmë dy pika me $d_i>d_k$:
+  \[ \frac{\lambda_i}{\lambda_k}=\Big(\frac{d_k}{d_i}\Big)^p,\qquad 0<\frac{d_k}{d_i}<1. \]
+  \begin{itemize}
+    \item<2-> $p\to0$: raporti $\to1$, të gjitha peshat të barabarta: \textbf{mesatarja}.
+    \item<3-> $p\to\infty$: raporti $\to0$, vetëm fqinji më i afërt: \textbf{Thiessen}.
+    \item<4-> IDW ndodhet mes dy ekstremeve; $p$ e rregullon sa ``lokale'' është.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shembull: IDW me $p=2$ në $(1,1)$}
+  \small
+  Katrori: A $(0,0)$: 10, B $(4,0)$: 20, C $(0,4)$: 30, D $(4,4)$: 36.
+  \begin{enumerate}
+    \item<2-> $d^2$: A: $1+1=2$; B: $9+1=10$; C: $1+9=10$; D: $9+9=18$.
+    \item<3-> $d^{-2}$: $\tfrac12,\ \tfrac1{10},\ \tfrac1{10},\ \tfrac1{18}$; shuma $=\tfrac{45+9+9+5}{90}=\tfrac{68}{90}$.
+    \item<4-> Numëruesi: $\tfrac{10}{2}+\tfrac{20}{10}+\tfrac{30}{10}+\tfrac{36}{18}=5+2+3+2=12$.
+    \item<5-> $\hat z=12\cdot\tfrac{90}{68}=\tfrac{1080}{68}\approx15.88$.
+  \end{enumerate}
+  \onslide<6->{\begin{Keshille}Me $p=2$ nuk na duhen rrënjë katrore: $d^{-2}=1/(\Delta x^2+\Delta y^2)$.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=ushIdw122]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    Po me të njëjtat katër pika dhe $s_0=(1,1)$:
+    \begin{enumerate}
+      \item Llogaritni $\hat z$ me IDW, $p=1$ (përdorni $\sqrt2\approx1.414$, $\sqrt{10}\approx3.162$, $\sqrt{18}\approx4.243$).
+      \item A del më afër ose më larg nga 10 (vlera e A) se me $p=2$? Pse?
+      \item Çfarë jep $p\to\infty$? Po $p=0$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjIdw122}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=pyetje1D122]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Në 1D: tri pika $x=0,2,5$ me $z=1,3,2$. Vlerësojmë IDW në $x_0=1$ me $p=1$, $p=2$ dhe $p=8$.
+    \begin{enumerate}
+      \item Cila $p$ jep vlerën më të madhe në $x_0=1$?
+      \item Si do të duket kurba afër pikave të matura për $p=1$ dhe për $p=8$?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgj1D122}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{IDW në 1D: kodi}
+<<h2-1d, eval=FALSE>>=
+library(ggplot2)
+x <- c(0, 2, 5); z <- c(1, 3, 2)                   # synthetic toy data
+idw1d <- function(x0, p) {
+  d <- abs(x - x0)
+  if (any(d == 0)) return(z[d == 0])               # exact at data points
+  w <- d^-p; sum(w * z) / sum(w)
+}
+xs <- seq(-0.5, 5.5, by = 0.01)
+curves <- do.call(rbind, lapply(c(1, 2, 8), function(p)
+  data.frame(x = xs, z = sapply(xs, idw1d, p = p), p = factor(p))))
+ggplot(curves, aes(x, z, colour = p)) + geom_line() +
+  geom_point(data = data.frame(x, z), aes(x, z), inherit.aes = FALSE, size = 2) +
+  theme_minimal(base_size = 9)
+@
+\end{frame}
+
+\begin{frame}[fragile]{IDW në 1D: rezultati}
+  \centering
+<<h2-1d-fig, ref.label="h2-1d", echo=FALSE, fig.height=2.6, fig.width=5, out.width="0.8\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}[fragile]{Çfarë na tregon?}
+<<h2-1d-val>>=
+sapply(c(p1 = 1, p2 = 2, p8 = 8), function(p) c(at1 = idw1d(1, p), at3.5 = idw1d(3.5, p)))
+@
+  \begin{itemize}
+    \item<2-> $p=1$: maja të mprehta te pikat; $p=2$: ``shkallë'' të sheshta te pikat; $p=8$: pothuajse Thiessen.
+    \item<3-> Larg pikave, të gjitha kurbat priren drejt mesatares 2.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lagjja e kërkimit}
+  \begin{itemize}
+    \item<1-> Në praktikë përdorim vetëm pikat afër $s_0$:
+      \begin{itemize}
+        \item \texttt{nmax}: $k$ fqinjët më të afërt;
+        \item \texttt{maxdist}: vetëm pikat brenda rrezes $r$.
+      \end{itemize}
+    \item<2-> Përfitimi: më shpejt, më lokale.
+    \item<3-> Kostoja: kërcime kur një pikë hyn ose del nga lagjja.
+    \item<4-> \texttt{nmax = 1}: Thiessen (Ora 1).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabim i zakonshëm: grumbullimi i stacioneve}
+  \begin{columns}[T]
+    \begin{column}{0.42\textwidth}
+      \centering
+      \begin{tikzpicture}[x=1.2cm, font=\scriptsize]
+        \draw[->, gray] (-1.6,0) -- (1.6,0);
+        \fill[accent] (0,0) circle (2.5pt) node[below=3pt]{$s_0$};
+        \fill[uptblue] (1,0) circle (2.5pt) node[above]{10};
+        \foreach \x in {-1.05,-1,-0.95} \fill[okgreen] (\x,0) circle (2pt);
+        \node[above, okgreen] at (-1,0.05) {$3\times20$};
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.56\textwidth}
+      \begin{itemize}
+        \item Një pikë në $x=1$; tri pika pothuajse në të njëjtin vend, $x\approx-1$.
+        \item IDW ($p=2$): $\hat z\approx17.5$; grupi merr $\approx75\%$ të peshës.
+        \item Tri stacione aty ngjitur sjellin pak më shumë informacion se një.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \begin{Gabim}IDW nuk e ``di'' që pikat e grumbulluara janë të tepërta. Kriging-u (Ora 4) i ul peshat e tyre përmes kovariancës.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli në R: IDW pa ndihmën e PC kundrejt \texttt{gstat}}
+<<h2-idwcheck>>=
+library(sf); library(gstat)
+pts <- st_as_sf(toy, coords = c("x", "y"))
+s0  <- st_as_sf(data.frame(x = 1, y = 1), coords = c("x", "y"))
+w   <- 1 / ((toy$x - 1)^2 + (toy$y - 1)^2)          # p = 2: no sqrt needed
+c(hand = sum(w * toy$z) / sum(w), exact = 1080 / 68,
+  gstat = idw(z ~ 1, pts, s0, idp = 2, debug.level = 0)$var1.pred)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të tria vlerat përputhen: $15.88$.
+    \item<2-> \texttt{gstat::idw()} punon edhe pa CRS (koordinata të thjeshta).
+    \item<3-> Argumenti \texttt{idp} është fuqia $p$ (parazgjedhja: 2); shkruajeni gjithmonë në mënyrë eksplicite, që kodi të lexohet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\Zgjerim Spline me plakë të hollë (\emph{thin plate spline})}
+  \begin{itemize}
+    \item<1-> Kërkojmë funksionin $f$ që minimizon
+      \[ \sum_i\big(z_i-f(s_i)\big)^2+\rho\iint\big(f_{xx}^2+2f_{xy}^2+f_{yy}^2\big)\,dx\,dy. \]
+    \item<2-> $\rho=0$: interpolim i saktë dhe i lëmuar; $\rho\to\infty$: plani (rendi 1).
+    \item<3-> Në R: \texttt{fields::Tps()}; $\rho$ zgjidhet me GCV.
+    \item<4-> Lidhja: spline-et janë ``kusheri'' i Kriging-ut (Wahba, 1990).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Krahasimi dhe zgjedhja}
+% ------------------------------------------------------------
+
+\begin{frame}{Krahasimi i metodave deterministe}
+  \small
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    & Thiessen & TIN & Polinom & IDW \\ \midrule
+    E saktë & po & po & jo & po \\
+    E vazhdueshme & jo & po & po & po \\
+    Lokale & po & po & jo & po \\
+    Brenda [min, max] & po & po & jo & po \\
+    Parametra & -- & -- & rendi $p$ & fuqia $p$, lagjja \\
+    Pasiguri & jo & jo & po (regres) & jo \\ \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item Asnjëra nuk ka model statistikor për korrelacionin hapësinor.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Si e zgjedhim metodën dhe parametrat?}
+  \begin{itemize}
+    \item<1-> Jo me $R^2$ dhe jo me ``harta duket bukur''.
+    \item<2-> \termi{LOOCV}{leave-one-out cross-validation}: heqim mostrën $i$, e parashikojmë nga të tjerat:
+      \[ \text{RMSE}_{\text{CV}}=\sqrt{\frac1n\sum_{i=1}^n\big(z_i-\hat z_{(-i)}(s_i)\big)^2}. \]
+    \item<3-> Si në Javën 6, por ``vëzhgimi'' tani është një vend në hartë.
+    \item<4-> Ora 3: \texttt{krige.cv()} për IDW me $p=1,2,3$ dhe polinomet e rendit 1--3.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTPS122]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    Bashkia ka 12 piezometra (niveli i ujërave nëntokësore), 9 prej të cilave pranë qendrës.
+    \begin{enumerate}
+      \item Cilën metodë deterministe do të zgjidhnit për hartën? Pse?
+      \item Çfarë rreziku ka IDW në këtë rast?
+      \item Si do ta kontrollonit zgjedhjen me të dhënat që keni?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS122}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=cp122]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 2}
+  \begin{enumerate}
+    \item Pse IDW nuk mund të japë vlerë mbi maksimumin e të dhënave, ndërsa polinomi mundet?
+    \item Çfarë ndodh me IDW kur $p\to0$ dhe kur $p\to\infty$?
+    \item Pse $R^2$ nuk është kriter i mirë për rendin e polinomit?
+  \end{enumerate}
+  \shkoTe{zgjCp122}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 2}
+  \begin{itemize}
+    \item Thiessen: fqinji më i afërt; poligonet Voronoi; dualja Delaunay jep TIN-in.
+    \item TIN: koordinata baricentrike; toy $(1,1)\to17.5$.
+    \item Polinomi global: OLS me koordinatat; jo i saktë; ikën në skaje; $R^2$ rritet gjithmonë.
+    \item IDW: $\lambda_i\propto d_i^{-p}$; i saktë, brenda [min, max]; toy $p=2\to15.88$.
+    \item $p\to0$: mesatarja; $p\to\infty$: Thiessen. Zgjedhja me LOOCV.
+  \end{itemize}
+  \begin{Keshille}Ora 3 (Lab I): Voronoi me \texttt{sf}, sipërfaqet e trendit, IDW nga zero dhe me \texttt{gstat}, LOOCV.\end{Keshille}
+\end{frame}

@@ -1,0 +1,85 @@
+% ============================================================
+%  Java 12 · Ora 2 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjVor122]{Zgjidhja: Parashiko (Thiessen)}
+  \begin{enumerate}
+    \item $(1,3)$: $x<2$, $y>2$ $\Rightarrow$ poligoni i C: $\hat z=30$.
+    \item $(3,1)$: $x>2$, $y<2$ $\Rightarrow$ poligoni i B: $\hat z=20$.
+    \item $(2,1)$: ndodhet mbi kufirin $x=2$; $d_A=d_B=\sqrt5$. Barazim: rezultati (10 ose 20) varet nga rregulli i programit. Thiessen në kufi nuk është i përcaktuar në mënyrë unike.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeVor122}
+\end{frame}
+
+\begin{frame}[label=zgjBasin122]{Zgjidhja: Radha jote! (reshjet në pellg)}
+  \begin{enumerate}
+    \item $A=12+30+18=60$ km$^2$.\\
+      $\bar R=\dfrac{12\cdot40+30\cdot25+18\cdot60}{60}=\dfrac{480+750+1080}{60}=\dfrac{2310}{60}=38.5$ mm.
+    \item Mesatarja e thjeshtë: $(40+25+60)/3\approx41.67$ mm.\\
+      Stacioni 2 (25 mm) përfaqëson gjysmën e pellgut, pra merr peshë 0.5 dhe jo $1/3$; mesatarja bie.
+  \end{enumerate}
+  \vfill\kthehu{ushBasin122}
+\end{frame}
+
+\begin{frame}[label=zgjGabim122]{Zgjidhja: Gjej gabimin (\texttt{raw = TRUE})}
+  \begin{itemize}
+    \item Koordinatat janë në metra: $x\approx1.8\cdot10^5$, $y\approx3.3\cdot10^5$; $x^3\approx6\cdot10^{15}$.
+    \item Kolonat e matricës janë pothuajse kolineare: numri i kushtëzimit $\kappa(X)\approx7\cdot10^{23}$.
+    \item \texttt{lm()} (QR me tolerancë) i shpall 4 kolona ``të tepërta'' dhe i hedh: $x^3,\ x^2y,\ xy^2,\ y^3$.
+    \item Mbetet pikërisht modeli i rendit 2: $R^2=0.508$ në vend të $0.554$.
+    \item Zgjidhja: \texttt{poly()} ortogonal (parazgjedhja), ose qendërzim dhe shkallëzim në km ($\kappa\approx126$, $R^2=0.554$).
+  \end{itemize}
+  \vfill\kthehu{gjejGabim122}
+\end{frame}
+
+\begin{frame}[label=zgjMC122]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}.
+    \item Polinomi global: të gjithë koeficientët rivlerësohen, parashikimi ndryshon kudo.
+    \item A: ndryshon vetëm poligoni i ri dhe fqinjët e tij; qendra larg nuk preket.
+    \item B: me \texttt{nmax = 5}, pika e re nuk hyn ndër 5 më të afërtat të qendrës.
+    \item D: ndryshojnë vetëm trekëndëshat që prekin pikën e re.
+    \item Shënim: IDW \emph{pa} \texttt{nmax} ndryshon pak kudo (pesha e re e vogël, por pozitive).
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC122}
+\end{frame}
+
+\begin{frame}[label=zgjIdw122]{Zgjidhja: Radha jote! (IDW me $p=1$)}
+  \small
+  \begin{enumerate}
+    \item $d^{-1}$: $0.7071,\ 0.3162,\ 0.3162,\ 0.2357$; shuma $1.5752$.\\
+      Numëruesi: $7.071+6.325+9.487+8.485=31.368$.\\
+      $\hat z=31.368/1.5752\approx19.91$.
+    \item Më larg nga 10: me $p=1$ peshat janë më të barabarta ($\lambda_A=0.449$ kundrejt $0.662$ me $p=2$), prandaj $\hat z$ shkon drejt mesatares 24.
+    \item $p\to\infty$: vetëm A, $\hat z=10$ (Thiessen). $p=0$: mesatarja $96/4=24$.
+  \end{enumerate}
+  \vfill\kthehu{ushIdw122}
+\end{frame}
+
+\begin{frame}[label=zgj1D122]{Zgjidhja: Parashiko (IDW në 1D)}
+  \begin{enumerate}
+    \item Asnjëra: të treja japin 2.\\
+      Në $x_0=1$: $d=(1,1,4)$, peshat $(1,1,4^{-p})$ para normalizimit.\\
+      $\hat z=\dfrac{1+3+2\cdot4^{-p}}{2+4^{-p}}=\dfrac{2(2+4^{-p})}{2+4^{-p}}=2$ për çdo $p$.
+    \item $p=1$: maja të mprehta (derivati nuk ekziston te pikat); $p=8$: pothuajse shkallë (Thiessen), me kalime të shpejta në mes.
+  \end{enumerate}
+  \vfill\kthehu{pyetje1D122}
+\end{frame}
+
+\begin{frame}[label=zgjTPS122]{Zgjidhja: Think--pair--share (piezometrat)}
+  \begin{enumerate}
+    \item Nuk ka përgjigje të vetme. Me 12 pika: Thiessen ose TIN janë të ndershme dhe të thjeshta; IDW me $p$ të zgjedhur me LOOCV; polinom i rendit 1 nëse ka gradient të qartë (rrjedha e ujit).
+    \item IDW: 9 pikat e qendrës marrin pjesën më të madhe të peshës edhe larg qendrës; ``sy demi'' rreth tyre; periferia bëhet afërsisht mesatarja e qendrës.
+    \item LOOCV me 12 pika (RMSE për çdo metodë); dhe një hartë e pasigurisë (Kriging, Ora 4).
+  \end{enumerate}
+  \vfill\kthehu{ushTPS122}
+\end{frame}
+
+\begin{frame}[label=zgjCp122]{Përgjigjet: Checkpoint Ora 2}
+  \begin{enumerate}
+    \item IDW: peshat pozitive me shumë 1, pra mesatare e ponderuar. Polinomi: peshat $\mathbf x_0^\top(X^\top X)^{-1}X^\top$ mund të jenë negative, pra ekstrapolon (p.sh.\ rendi 3: 7.60 $>$ 7.517).
+    \item $p\to0$: mesatarja e thjeshtë; $p\to\infty$: fqinji më i afërt (Thiessen).
+    \item $R^2$ rritet gjithmonë kur shtojmë terma (0.267, 0.508, 0.554, 0.599); mat përshtatjen, jo parashikimin. Përdorim LOOCV.
+  \end{enumerate}
+  \vfill\kthehu{cp122}
+\end{frame}
