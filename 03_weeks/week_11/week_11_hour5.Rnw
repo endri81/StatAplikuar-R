@@ -1,0 +1,422 @@
+% ============================================================
+%  Java 11 · Ora 5 — Lab II: statistika zonale, ripërzgjedhja, agregimi
+%  Rezultatet: K3, S3, S4, C1
+%  Burimi: Hijmans, dokumentacioni i terra; Baston, exactextractr;
+%          CIESIN, GPW v4 rev11; INSTAT, Censi 2023; Openshaw (1984), MAUP
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Lab II]{Lab II: statistika zonale, ripërzgjedhja, agregimi}
+
+\begin{frame}{Ora 5: Lab II --- statistika zonale, ripërzgjedhja, agregimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Statistika zonale të sakta}
+% ------------------------------------------------------------
+
+\begin{frame}{Problemi: qelizat e kufirit}
+  \begin{itemize}
+    \item<1-> GPW ka qeliza $2.5'$: $\approx16$ km$^2$ secila. Një qark i vogël (Durrësi, 780 km$^2$) ka $\approx50$ qeliza.
+    \item<2-> Shumë prej tyre janë \textbf{pjesërisht} brenda qarkut ose pjesërisht në det.
+    \item<3-> Tre rregulla: (i) qendra brenda; (ii) çdo qelizë që preket; (iii) çdo qelizë me peshë $=$ pjesa e saj brenda.
+    \item<4-> Vetëm (iii) ruan shumën: çdo banor numërohet saktësisht një herë.
+  \end{itemize}
+  \LO{S3}
+\end{frame}
+
+\begin{frame}{Pesha e mbulimit (\emph{coverage fraction})}
+  \centering
+  \begin{tikzpicture}[scale=0.8, font=\scriptsize]
+    \foreach \i in {0,...,3} \foreach \j in {0,...,2} \draw[gray!60] (\i,\j) rectangle ++(1,1);
+    \fill[accent, opacity=0.15] (0.5,0) -- (4,0) -- (4,3) -- (2.5,3) -- cycle;
+    \draw[thick, accent] (0.5,0) -- (2.5,3);
+    \node at (1.5,1.5) {$\approx0.5$};
+    \node at (3.5,1.5) {1};
+    \node at (0.5,2.5) {0};
+    \node[accent] at (5.6,1.5) {zona (qarku)};
+  \end{tikzpicture}
+  \begin{itemize}
+    \item<2-> $c_i\in[0,1]$: pjesa e sipërfaqes së qelizës $i$ brenda zonës.
+    \item<3-> Shuma e ponderuar: $\sum_i c_i\,v_i$ (për sasi ekstensive, p.sh.\ banorë për qelizë).
+    \item<4-> Mesatarja e ponderuar: $\sum_i c_i v_i/\sum_i c_i$ (për sasi intensive).
+    \item<5-> Supozim: brenda qelizës, sasia është e shpërndarë njëtrajtësisht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushCov115]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    Një zonë mbulon: qelizën A plotësisht (1\,200 banorë), qelizën B për 40\% (2\,000 banorë), qelizën C për 10\% (5\,000 banorë, qendra jashtë zonës).
+    \begin{enumerate}
+      \item Sa banorë jep rregulli i qendrës (B ka qendrën brenda)?
+      \item Sa jep \texttt{touches = TRUE}? Sa jep pesha e mbulimit?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjCov115}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Popullsia GPW: nga dendësia te banorët}
+<<h5-pop>>=
+library(terra); library(sf); library(exactextractr)
+qarqe <- st_read(file.path(W11DATA, "gadm41_ALB_1.gpkg"), quiet = TRUE)
+dens  <- rast(file.path(W11DATA, "alb_gpw_dens_2020_2.5m.tif"))   # persons/km2
+pop   <- dens * cellSize(dens, unit = "km")                         # persons/cell
+names(pop) <- "pop"
+round(res(dens) * 60, 2)                                            # arc-minutes
+round(unlist(global(cellSize(dens, unit = "km"), range)), 2)        # km2 per cell
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Qeliza $2.5'\times2.5'$: 15.7--16.6 km$^2$ (më të vogla në veri).
+    \item<2-> GPW jep \textbf{dendësi} (intensive): e kthejmë në \textbf{banorë për qelizë} (ekstensive) para çdo shume.
+    \item<3-> Kujtesë (Ora 2): shuma e dendësive nuk ka kuptim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeDur115]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Llogarisim banorët e çdo qarku me tri rregullat. Për Durrësin (qark i vogël, bregdetar, me qytet të dendur):
+    \begin{enumerate}[A.]
+      \item të tri rregullat japin pothuajse njësoj;
+      \item rregulli i qendrës mbivlerëson ndjeshëm;
+      \item rregulli i qendrës nënvlerëson ndjeshëm.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjDur115}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Tri rregulla, një tabelë}
+<<h5-three>>=
+qv <- vect(qarqe)
+tab <- data.frame(
+  qark    = qarqe$qark,
+  centre  = extract(pop, qv, fun = sum, na.rm = TRUE)[, 2],
+  touches = extract(pop, qv, fun = sum, na.rm = TRUE, touches = TRUE)[, 2],
+  exact   = exact_extract(pop, qarqe, "sum", progress = FALSE))
+tab[, -1] <- round(tab[, -1])
+tab[order(-tab$exact), ][1:6, ]
+colSums(tab[, -1])
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Totali: qendra 2.90 mln, \texttt{touches} 3.50 mln, saktë 2.87 mln. \texttt{touches} numëron qelizat e kufirit dy herë.
+    \item<2-> Durrësi: qendra 346\,870, saktë 291\,615: $+19\%$. Me shumë gjasa: qeliza të dendura në kufirin me Tiranën, me qendër brenda Durrësit.
+    \item<3-> Vlora: qendra 159\,525, saktë 177\,703: $-10\%$. Qeliza bregdetare me qendër në det humbasin.
+    \item<4-> Qarqet e mëdha (Tirana, Korça): ndryshime $\le2\%$.
+  \end{itemize}
+  \pause[5]
+  \begin{Gabim}Gabimi i kufirit nuk është i rastësishëm: varet nga forma e zonës dhe nga ku janë banorët. Mesatarizimi nuk e zhduk.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=gjejGabim115,fragile]{Gjej gabimin}
+<<h5-bug, eval=FALSE>>=
+dens_q <- exact_extract(dens, qarqe, "sum")          # persons/km2 raster
+qarqe$density <- dens_q / qarqe$area_km2
+@
+  \begin{itemize}
+    \item Çfarë llogarit rreshti i parë? Pse \texttt{density} del e gabuar?
+    \item Cilat dy rregullime janë të sakta?
+  \end{itemize}
+  \shkoTe{zgjGabim115}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Dendësia e popullsisë sipas qarkut}
+<<h5-dens>>=
+qarqe$pop  <- tab$exact[match(qarqe$qark, tab$qark)]
+qarqe$km2  <- as.numeric(st_area(st_transform(qarqe, 6870))) / 1e6
+qarqe$dens <- qarqe$pop / qarqe$km2
+d <- st_drop_geometry(qarqe)[, c("qark", "pop", "km2", "dens")]
+d[, -1] <- round(d[, -1], 1)
+d[order(-d$dens), ][c(1:4, 10:12), ]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Tirana 609 banorë/km$^2$, Durrësi 374: dy qarqet e boshtit Tiranë--Durrës.
+    \item<2-> Gjirokastra 19.1 banorë/km$^2$: 32 herë më pak se Tirana.
+    \item<3-> Sipërfaqja në 6870 (Java 10), banorët me pesha mbulimi: të dyja të sakta.
+  \end{itemize}
+  \LO{S4}
+\end{frame}
+
+\begin{frame}[fragile]{Harta koropletike e dendësisë}
+<<h5-choro, eval=FALSE>>=
+library(ggplot2)
+ggplot(st_transform(qarqe, 6870)) +
+  geom_sf(aes(fill = dens), colour = "white", linewidth = 0.3) +
+  geom_sf_text(aes(label = qark), size = 2) +
+  scale_fill_distiller(palette = "YlOrRd", direction = 1, trans = "log10",
+                       name = "pop/km2") +
+  labs(x = NULL, y = NULL,
+       caption = "GPW v4 rev11 (2020), modelled; GADM 4.1. EPSG:6870") +
+  theme_bw(base_size = 7)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: dendësia (GPW 2020)}
+<<h5-choro-fig, ref.label="h5-choro", echo=FALSE, warning=FALSE, fig.height=3.7, fig.width=3.4, out.width="0.36\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Shkalla logaritmike (\texttt{trans = "log10"}): dendësitë ndryshojnë 32 herë; në shkallë lineare vetëm Tirana do të dallohej.
+    \item<2-> \texttt{caption}: burimi, viti, ``modelled'', CRS. Lexuesi e di që nuk është INSTAT.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{GPW kundrejt censit}
+% ------------------------------------------------------------
+
+\begin{frame}{Sa e besueshme është GPW për Shqipërinë?}
+  \begin{itemize}
+    \item<1-> GPW v4 2020: \textbf{model}: rishpërndan popullsinë e njësive administrative të censit më të fundit të disponueshëm, me ekstrapolim në kohë.
+    \item<2-> Totali ynë: 2\,865\,805 banorë (2020).
+    \item<3-> INSTAT, Censi 2023: \textbf{2\,402\,113} banorë rezidentë (18 shtator 2023).
+    \item<4-> Ndryshimi: GPW $\approx19\%$ më i lartë. Tre vite nuk e shpjegojnë: modeli nuk ka parë emigracionin e viteve 2011--2023.
+  \end{itemize}
+  \onslide<5->{\begin{Gabim}Produktet globale të modeluara (GPW, WorldPop, GHS-POP) janë të dobishme për \textbf{shpërndarjen} brenda vendit, por totalet kombëtare duhen kalibruar me censin.\end{Gabim}}
+\end{frame}
+
+\begin{frame}[fragile]{Kalibrimi në totalin e censit}
+<<h5-cal>>=
+census_2023 <- 2402113                               # INSTAT, Census 2023
+k <- census_2023 / sum(tab$exact)
+tab$calibrated <- round(tab$exact * k)
+c(factor = round(k, 4), tirana_share_gpw = round(100 * tab$exact[tab$qark == "Tirane"] /
+                                                 sum(tab$exact), 1))
+tab[order(-tab$calibrated), c("qark", "exact", "calibrated")][1:4, ]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Faktori i kalibrimit: 0.8382; çdo qark zvogëlohet me të njëjtën përqindje.
+    \item<2-> Pjesa e Tiranës sipas GPW: 34.8\%. Censi 2023: rreth 32\% (raportuar nga INSTAT).
+    \item<3-> Kalibrimi proporcional korrigjon totalin, jo shpërndarjen: Tirana mbetet 34.8\%.
+    \item<4-> Për analiza serioze: të dhënat e censit sipas qarqeve/bashkive nga INSTAT.
+  \end{itemize}
+  \LO{S3, C1}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC115]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Pas kalibrimit proporcional, cili pohim është i vërtetë?
+    \begin{enumerate}[A.]
+      \item Popullsia e çdo qarku tani përputhet me censin 2023.
+      \item Totali përputhet me censin; pjesët relative të qarqeve janë ato të GPW.
+      \item Dendësitë relative midis qarqeve ndryshojnë.
+      \item Kalibrimi rregullon gabimin e kufirit të rregullit të qendrës.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC115}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ripërzgjedhja në Albania TM}
+% ------------------------------------------------------------
+
+\begin{frame}{Projektimi i raster-it: çfarë ndodh?}
+  \begin{itemize}
+    \item<1-> Vektori: çdo kulm transformohet saktë (Java 10).
+    \item<2-> Raster-i: rrjeta e re (metra) \textbf{nuk} përputhet me të vjetrën (gradë): vlerat rillogariten.
+    \item<3-> \texttt{project(r, "EPSG:6870", res = 1000, method = )}: projektim + ripërzgjedhje.
+    \item<4-> Pyetja statistikore: sa gabim shton secila metodë?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Eksperimenti me të vërtetë të njohur}
+  \begin{itemize}
+    \item<1-> Fushë \textbf{sintetike}: $f(\lambda,\varphi)=100\sin\big(2\pi(\lambda-19)/1.5\big)\cos\big(2\pi(\varphi-39.5)/2\big)$.
+    \item<2-> E vlerësojmë në rrjetën $30''$ të lartësisë (396 $\times$ 252).
+    \item<3-> E projektojmë në 6870 me qeliza 1 km me tri metoda.
+    \item<4-> E vërteta: $f$ në qendrat e reja, të kthyera në $(\lambda,\varphi)$. Gabimi: RMSE dhe max.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Vlerësimi kundrejt së vërtetës}
+<<h5-resamp>>=
+f <- function(lon, lat) 100 * sin(2 * pi * (lon - 19) / 1.5) * cos(2 * pi * (lat - 39.5) / 2)
+g <- rast(nrows = 396, ncols = 252, xmin = 19.1, xmax = 21.2, ymin = 39.5, ymax = 42.8,
+          crs = "EPSG:4326")
+xy <- xyFromCell(g, 1:ncell(g)); values(g) <- f(xy[, 1], xy[, 2])
+tmpl <- project(g, "EPSG:6870", res = 1000)                 # target grid
+err <- sapply(c("near", "bilinear", "cubic"), function(m) {
+  p  <- project(g, tmpl, method = m)
+  ll <- project(xyFromCell(p, 1:ncell(p)), "EPSG:6870", "EPSG:4326")
+  e  <- values(p)[, 1] - f(ll[, 1], ll[, 2])
+  c(rmse = sqrt(mean(e^2, na.rm = TRUE)), max_abs = max(abs(e), na.rm = TRUE))
+})
+round(err, 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Fusha ka amplitudë 100; qeliza $\approx0.7\times0.93$ km.
+    \item<2-> RMSE: fqinji më i afërt 0.626, bilineari 0.082, kubiku 0.056.
+    \item<3-> Bilineari: $\approx8$ herë më i saktë se fqinji më i afërt për një fushë të lëmuar.
+    \item<4-> Gabimi maksimal (1.3--1.7) është afër skajeve, ku metodat kanë më pak fqinjë.
+  \end{itemize}
+  \LO{S3}
+\end{frame}
+
+\begin{frame}[fragile]{Lartësia reale në 6870}
+<<h5-elev>>=
+elev <- rast(file.path(W11DATA, "alb_elev_30s.tif"))
+e_near <- project(elev, tmpl, method = "near")
+e_bil  <- project(elev, tmpl, method = "bilinear")
+st <- function(r) round(unlist(global(r, c("max", "mean"), na.rm = TRUE)), 1)
+rbind(original = st(elev), near = st(e_near), bilinear = st(e_bil))
+c(cells_1km = global(!is.na(e_bil), "sum")[1, 1])
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{near}: kopjon vlera ekzistuese $\Rightarrow$ maksimumi mbetet 2623 m.
+    \item<2-> \texttt{bilinear}: mesatarizon $\Rightarrow$ maksimumi bie në 2495 m.
+    \item<3-> Mesatarja ndryshon $<1$ m: ripërzgjedhja prek ekstremet, jo nivelin.
+    \item<4-> 28\,288 qeliza $\times$ 1 km$^2$ $=28\,288$ km$^2$: tani sipërfaqja $=$ numri i qelizave.
+  \end{itemize}
+  \begin{Keshille}Në CRS të projektuar, \texttt{prod(res(r))} është sipërfaqja e vërtetë e qelizës (me gabim $<0.01\%$ në Albania TM).\end{Keshille}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Agregimi dhe MAUP}
+% ------------------------------------------------------------
+
+\begin{frame}{Efekti i shkallës: simulim}
+  \begin{itemize}
+    \item<1-> Rrjetë \textbf{sintetike} $128\times128$. Një fushë e lëmuar $S$ (mesatare $9\times9$ e zhurmës, e standardizuar).
+    \item<2-> $X=S+\varepsilon_1$, \; $Y=S+\varepsilon_2$, \; $\varepsilon_j\sim N(0,2^2)$ të pavarura.
+    \item<3-> Në nivel qelize: $\rho=\dfrac{\operatorname{Var}S}{\operatorname{Var}S+4}=\dfrac{1}{5}=0.2$.
+    \item<4-> Pas agregimit me mesatare $k\times k$: zhurma bëhet $4/k^2$, ndërsa $S$ (e lëmuar) pothuajse nuk ndryshon:
+      \[\rho_k\approx\frac{\operatorname{Var}S_k}{\operatorname{Var}S_k+4/k^2}.\]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeMaup115]{Parashiko (pa ndihmën e PC)}
+  \begin{Parashiko}
+    Me $\operatorname{Var}S_k\approx1$, sa pritet korrelacioni midis $X$ dhe $Y$ pas agregimit $k=2$ dhe $k=4$?
+  \end{Parashiko}
+  \shkoTe{zgjMaup115}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Simulimi}
+<<h5-maup>>=
+set.seed(2026)
+n <- 128
+z <- rast(nrows = n, ncols = n, xmin = 0, xmax = n, ymin = 0, ymax = n, crs = "local")
+values(z) <- rnorm(n * n)
+S <- focal(z, w = 9, fun = mean, na.rm = TRUE)
+S <- (S - global(S, "mean")[1, 1]) / global(S, "sd")[1, 1]
+X <- S; values(X) <- values(S) + rnorm(n * n, 0, 2)
+Y <- S; values(Y) <- values(S) + rnorm(n * n, 0, 2)
+maup <- t(sapply(c(1, 2, 4, 8, 16), function(k) {
+  a <- if (k == 1) c(X, Y, S) else aggregate(c(X, Y, S), k, mean)
+  v <- as.data.frame(a); vs <- var(v[, 3])
+  c(k = k, n = nrow(v), cor_xy = cor(v[, 1], v[, 2]), theory = vs / (vs + 4 / k^2))
+}))
+round(maup, 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Korrelacioni rritet: $0.196\to0.454\to0.734\to0.887\to0.925$.
+    \item<2-> Teoria e parashikon: $0.200, 0.475, 0.752, 0.896, 0.933$.
+    \item<3-> E njëjta lidhje ``e vërtetë'' në nivel qelize, por në nivel rajoni duket shumë më e fortë.
+    \item<4-> \emph{Ecological fallacy}: korrelacioni i rajoneve nuk vlen për individët/qelizat.
+  \end{itemize}
+  \LO{S3, C1}
+\end{frame}
+
+\begin{frame}[label=ushSd115]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(7 minuta)]
+    \begin{enumerate}
+      \item Ndryshoni devijimin standard të zhurmës nga 2 në 1 dhe 4. Si ndryshon \texttt{cor\_xy} për $k=1$ dhe $k=16$?
+      \item Ndryshoni dritaren e $S$ nga $w=9$ në $w=3$. Pse korrelacioni në $k=16$ bie?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjSd115}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Një shembull real: temperatura dhe lartësia}
+<<h5-lapse>>=
+tjul <- rast(file.path(W11DATA, "alb_tavg_30s.tif"))$Jul
+e_r  <- resample(elev, tjul)                       # same grid as temperature
+lapse <- t(sapply(c(1, 4, 16, 32), function(k) {
+  a <- if (k == 1) c(e_r, tjul) else aggregate(c(e_r, tjul), k, mean, na.rm = TRUE)
+  v <- na.omit(as.data.frame(a)); names(v) <- c("elev", "t")
+  fit <- lm(t ~ elev, data = v)
+  c(k = k, n = nrow(v), cor = cor(v$elev, v$t), per_100m = 100 * coef(fit)[[2]])
+}))
+round(lapse, 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Korrelacioni është $\approx-0.99$ në të gjitha shkallët: lartësia shpjegon pothuajse gjithçka.
+    \item<2-> Gradienti: $-0.61$ deri $-0.64^\circ$C për 100 m; afër vlerës standarde $-0.65$.
+    \item<3-> MAUP nuk është gjithmonë dramatik: kur lidhja është fizike dhe e fortë, shkalla ndikon pak.
+    \item<4-> Kujdes: WorldClim vetë është interpoluar duke përdorur lartësinë si kovariat; lidhja është pjesërisht ``e ndërtuar''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushTPS115]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Një studim gjen korrelacion 0.9 midis papunësisë dhe emigracionit sipas qarqeve. Çfarë mund të thoni për individët?
+      \item Pse supozimi ``popullsia njëtrajtshme brenda qelizës'' është më i keq për qeliza 16 km$^2$ se për 1 km$^2$?
+      \item Çfarë do t'i kërkonit INSTAT-it për ta zëvendësuar GPW-në në këtë analizë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS115}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë përmbledhëse: funksionet e orës}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    Dendësi $\to$ numër & \texttt{dens * cellSize(dens, unit = "km")} \\
+    Zonale, qendra / prekje & \texttt{extract(r, v, fun = sum, touches =)} \\
+    Zonale e saktë & \texttt{exactextractr::exact\_extract(r, sf, "sum")} \\
+    Projektim raster & \texttt{project(r, crs, res =, method =)} \\
+    Në rrjetën e tjetrit & \texttt{resample(r, template)}, \texttt{project(r, template)} \\
+    Agregim & \texttt{aggregate(r, k, mean / sum)} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[label=cp115]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Pse rregulli i qendrës mbivlerëson Durrësin dhe nënvlerëson Vlorën?
+    \item Pse bilineari ka RMSE më të vogël se fqinji më i afërt për fusha të lëmuara?
+    \item Shpjegoni pse korrelacioni rritet me agregimin në simulim.
+  \end{enumerate}
+  \shkoTe{zgjCp115}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item Banorët $=$ dendësi $\times$ \texttt{cellSize}; \texttt{exact\_extract} ruan totalin (2.87 mln).
+    \item Rregulli i qendrës: Durrësi $+19\%$, Vlora $-10\%$; \texttt{touches}: total 3.50 mln.
+    \item GPW 2020 $\approx19\%$ mbi censin 2023 (2\,402\,113): kalibrojeni ose përdorni censin.
+    \item Projektimi: RMSE near 0.63, bilinear 0.08, cubic 0.06 (fushë sintetike).
+    \item MAUP: $\rho$ nga 0.20 në 0.93 me agregim; gradienti termik $\approx-0.62^\circ$C/100 m.
+  \end{itemize}
+  \begin{Keshille}Ora 6: rasti studimor: DTM 90 m (pjerrësia, ekspozicioni, hija) dhe modeli i temperaturës.\end{Keshille}
+\end{frame}

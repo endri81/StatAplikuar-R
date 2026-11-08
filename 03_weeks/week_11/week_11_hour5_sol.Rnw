@@ -1,0 +1,84 @@
+% ============================================================
+%  Java 11 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjCov115]{Zgjidhja: Radha jote! (pesha e mbulimit)}
+  \begin{enumerate}
+    \item Qendra: A dhe B $\Rightarrow$ $1\,200+2\,000=3\,200$.
+    \item \texttt{touches}: A, B, C $\Rightarrow$ $8\,200$. Pesha e mbulimit: $1\,200+0.4\cdot2\,000+0.1\cdot5\,000=1\,200+800+500=2\,500$.
+  \end{enumerate}
+  \begin{itemize}
+    \item Rregulli i qendrës e mbivlerëson B (merr 100\% në vend të 40\%) dhe e injoron C.
+  \end{itemize}
+  \vfill\kthehu{ushCov115}
+\end{frame}
+
+\begin{frame}[label=zgjDur115]{Zgjidhja: Parashiko (Durrësi)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}. Qendra 346\,870 kundrejt 291\,615 të saktë ($+19\%$).
+    \item Qark i vogël $\Rightarrow$ shumë qeliza kufitare; qelizat kufitare janë të dendura (afër Tiranës dhe qytetit të Durrësit).
+    \item Kur qeliza të tilla kanë qendrën brenda, numërohen të plota.
+    \item Te Vlora ndodh e kundërta: qeliza bregdetare me qendër në det humbasin ($-10\%$).
+  \end{itemize}
+  \vfill\kthehu{pyetjeDur115}
+\end{frame}
+
+\begin{frame}[label=zgjGabim115]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item \texttt{exact\_extract(dens, \dots, "sum")} mbledh \textbf{dendësi} të ponderuara me mbulimin: njësia ``banorë/km$^2$ $\times$ qeliza'', pa kuptim.
+    \item Rregullim 1: \texttt{exact\_extract(dens * cellSize(dens, unit = "km"), qarqe, "sum")} $\Rightarrow$ banorë; pastaj pjesëto me sipërfaqen.
+    \item Rregullim 2: \texttt{exact\_extract(dens, qarqe, "weighted\_mean", weights = cellSize(dens, unit = "km"))} $\Rightarrow$ direkt dendësia mesatare e ponderuar me sipërfaqen.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim115}
+\end{frame}
+
+\begin{frame}[label=zgjMC115]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item A: jo; censi 2023 ka shpërndarjen e vet (p.sh.\ Tirana $\approx32\%$, GPW 34.8\%).
+    \item C: jo; të gjitha shumëzohen me 0.8382, raportet mbeten.
+    \item D: jo; kalibrimi i bëhet totalit; gabimi i kufirit kërkon pesha mbulimi.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC115}
+\end{frame}
+
+\begin{frame}[label=zgjMaup115]{Zgjidhja: Parashiko (MAUP)}
+  \begin{itemize}
+    \item $k=2$: zhurma $4/4=1$ $\Rightarrow$ $\rho\approx1/(1+1)=0.5$.
+    \item $k=4$: zhurma $4/16=0.25$ $\Rightarrow$ $\rho\approx1/1.25=0.8$.
+    \item Simulimi: 0.454 dhe 0.734; pak më pak sepse agregimi ul edhe $\operatorname{Var}S_k$ ($<1$).
+  \end{itemize}
+  \vfill\kthehu{pyetjeMaup115}
+\end{frame}
+
+\begin{frame}[label=zgjSd115]{Zgjidhja: Ndrysho parametrin}
+  \small
+  \begin{tabular}{lrr}
+    \toprule Skenari & $\rho$ ($k=1$) & $\rho$ ($k=16$) \\ \midrule
+    sd $=1$, $w=9$ & 0.496 & 0.981 \\ sd $=2$, $w=9$ & 0.196 & 0.925 \\
+    sd $=4$, $w=9$ & 0.057 & 0.746 \\ sd $=2$, $w=3$ & 0.201 & 0.572 \\ \bottomrule
+  \end{tabular}
+  \begin{enumerate}
+    \item Sa më shumë zhurmë, aq më i ulët $\rho$ në qelizë, por agregimi e ``ngre'' shumë.
+    \item Me $w=3$, $S$ ndryshon shpejt në hapësirë: mesatarja $16\times16$ e zhduk edhe $S$-në, jo vetëm zhurmën; $\operatorname{Var}S_k$ bie dhe $\rho_k$ mbetet më i ulët.
+  \end{enumerate}
+  \vfill\kthehu{ushSd115}
+\end{frame}
+
+\begin{frame}[label=zgjTPS115]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Asgjë të sigurt për individët (\emph{ecological fallacy}); lidhja mund të vijë nga faktorë rajonalë të përbashkët.
+    \item Në 16 km$^2$ ka qytet, fshat dhe mal njëkohësisht: banorët janë të përqendruar, jo njëtrajtshëm; peshat e mbulimit gabojnë më shumë.
+    \item Popullsinë e censit 2023 sipas njësive administrative (bashki, njësi vendore) me kufijtë e tyre, ose rrjetin statistikor 1 km (stil GEOSTAT).
+  \end{enumerate}
+  \vfill\kthehu{ushTPS115}
+\end{frame}
+
+\begin{frame}[label=zgjCp115]{Përgjigjet: Checkpoint Ora 5}
+  \begin{enumerate}
+    \item Qelizat kufitare numërohen ose të plota ose aspak: te Durrësi, qeliza të dendura me qendër brenda; te Vlora, qeliza bregdetare me qendër në det.
+    \item Bilineari përdor 4 fqinjë dhe ndjek pjerrësinë e fushës; fqinji më i afërt bën ``shkallë''.
+    \item Mesatarja zvogëlon variancën e zhurmës së pavarur ($\sigma^2/k^2$), ndërsa sinjali i lëmuar i përbashkët mbetet.
+  \end{enumerate}
+  \vfill\kthehu{cp115}
+\end{frame}
