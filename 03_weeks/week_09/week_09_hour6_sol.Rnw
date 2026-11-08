@@ -1,0 +1,39 @@
+% ============================================================
+%  Java 9 · Ora 6 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjCost]{Zgjidhja: Parashiko (pragu sipas kostos)}
+  \begin{enumerate}
+    \item $t^*=C_{FP}/(C_{FP}+C_{FN})=1/11\approx0.091$.
+    \item Shumë më i vogël se 0.5: një default i pakapur kushton 10 herë më shumë, prandaj ``alarmi'' duhet të bjerë më herët.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeCost}
+\end{frame}
+
+\begin{frame}[label=zgjCostR]{Zgjidhja: Radha jote! (FN $=5$)}
+  \begin{itemize}
+    \item $t^*=1/(1+5)=0.167$.
+    \item Kosto me $t^*$: 0.094 për klient; me 0.5: 0.118 (20\% më shumë).
+    \item Sensitiviteti 64.3\% (nga 75.7\%), specifiteti 96.4\% (nga 93.7\%).
+    \item Kosto FN më e ulët $\Rightarrow$ prag më i lartë $\Rightarrow$ më pak alarme, më pak default të kapura.
+  \end{itemize}
+  \vfill\kthehu{ushCost}
+\end{frame}
+
+\begin{frame}[label=zgjGab96]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item Pragu dhe kosto u vlerësuan mbi \textbf{të njëjtat} të dhëna ku u trajnua modeli: vlerësim optimist (mbi-përshtatje e pragut).
+    \item Duhej: parashikime jashtë palosjes (si sot) ose një mostër testi e veçantë, e paprekur gjatë zgjedhjes së pragut.
+    \item Në prodhim, popullata mund të ndryshojë (p.sh.\ krizë ekonomike): monitoroni kalibrimin.
+  \end{itemize}
+  \vfill\kthehu{gjejGab96}
+\end{frame}
+
+\begin{frame}[label=zgjCp96]{Përgjigjet: Checkpoint Ora 6}
+  \begin{enumerate}
+    \item ``Po'' kostoja e pritshme $C_{FP}(1-p)$; ``Jo'' $C_{FN}p$. ``Po'' kur $C_{FN}p>C_{FP}(1-p)$ $\iff$ $p>C_{FP}/(C_{FP}+C_{FN})$.
+    \item AUC mat vetëm renditjen; $t^*$ supozon që $\hat p$ janë probabilitete të sakta, pra kërkon kalibrim.
+    \item Kufiri është pothuajse linear në \texttt{balance}; RF ka variancë të madhe, mëson zhurmë (\texttt{income}) dhe jep probabilitete të vrazhda.
+  \end{enumerate}
+  \vfill\kthehu{cp96}
+\end{frame}

@@ -1,0 +1,303 @@
+% ============================================================
+%  Java 9 · Ora 6 — Rast studimi: Default, nga modeli te vendimi
+%  Rezultatet: S2, S3, C1, S4
+%  Burimi: ISLR kap. 4, 8 (Zgjerim); repo DS612 Lecture_4.R, Lecture_6.x.R, TreeModel_Review.R
+% ============================================================
+
+\section[Rast studimi]{Rast studimi: \texttt{Default}}
+
+\begin{frame}{Ora 6: Rast studimi --- \texttt{Default}, nga modeli te vendimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi dhe plani}
+% ------------------------------------------------------------
+
+\begin{frame}{Problemi \LO{S2} \LO{S3} \LO{C1}}
+  \begin{itemize}
+    \item<1-> Një bankë (\textbf{hipotetike}) vendos kujt t'i ulë limitin e kartës.
+    \item<2-> Të dhënat: \texttt{Default} (\textbf{sintetike}, ISLR), 10\,000 klientë, 3.33\% default.
+    \item<3-> Kostot (hipotetike, për ilustrim):
+      \begin{itemize}
+        \item default i pakapur (FN): \textbf{10} njësi;
+        \item klient i mirë i penalizuar (FP): \textbf{1} njësi.
+      \end{itemize}
+    \item<4-> Pyetja: cili model dhe cili prag minimizojnë koston e pritshme?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Rrjedha e punës}
+  \centering
+  \begin{tikzpicture}[node distance=0.3cm,
+      st/.style={draw,rounded corners,fill=uptlight,minimum width=1.85cm,minimum height=0.95cm,align=center,font=\scriptsize}]
+    \node[st] (a) {1. CV me\\të njëjtat palosje};
+    \node[st,right=of a] (b) {2. AUC\\(renditja)};
+    \node[st,right=of b] (c) {3. Kalibrimi\\(probabilitetet)};
+    \node[st,right=of c,fill=orange!15] (d) {4. Pragu\\sipas kostos};
+    \node[st,right=of d,fill=green!12] (e) {5. Raport};
+    \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+  \end{tikzpicture}
+  \vspace{6pt}
+  \begin{itemize}\small
+    \item Parashikimet ``jashtë palosjes'' (\emph{out-of-fold}): çdo klient parashikohet nga një model që nuk e ka parë.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Krahasimi me CV}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile,shrink=6]{Parashikimet jashtë palosjes}
+<<h6-oof>>=
+library(MASS); library(class); library(pROC)
+default_df <- read.csv(file.path(W09DATA, "Default.csv"), stringsAsFactors = TRUE)
+n <- nrow(default_df); y <- default_df$default == "Yes"
+set.seed(2026); fold <- sample(rep(1:10, length.out = n))
+Xs <- scale(model.matrix(~ balance + student + income, default_df)[, -1])
+oof <- matrix(NA, n, 4, dimnames = list(NULL, c("logit", "lda", "qda", "knn50")))
+for (k in 1:10) {
+  tr <- fold != k; te <- !tr; fm <- default ~ balance + student
+  oof[te, 1] <- predict(glm(fm, default_df[tr, ], family = binomial),
+                        default_df[te, ], type = "response")
+  oof[te, 2] <- predict(lda(fm, default_df[tr, ]), default_df[te, ])$posterior[, "Yes"]
+  oof[te, 3] <- predict(qda(fm, default_df[tr, ]), default_df[te, ])$posterior[, "Yes"]
+  kn <- knn(Xs[tr, ], Xs[te, ], default_df$default[tr], k = 50, prob = TRUE)
+  oof[te, 4] <- ifelse(kn == "Yes", attr(kn, "prob"), 1 - attr(kn, "prob")) }
+@
+\end{frame}
+
+\begin{frame}[fragile]{AUC me CV}
+<<h6-auc>>=
+round(apply(oof, 2, function(p)
+  auc(roc(y, p, levels = c(FALSE, TRUE), direction = "<", quiet = TRUE))), 4)
+@
+  \begin{itemize}
+    \item<2-> Logjistik, LDA, QDA: $\approx0.949$; KNN-50: 0.929.
+    \item<3-> \texttt{income} u hoq (Ora 3: pa efekt); modeli \texttt{balance + student} mjafton.
+    \item<4-> Për renditjen, tri metodat parametrike janë praktikisht të barabarta.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeCost]{Parashiko}
+  \begin{Parashiko}
+    Kostot: FN $=10$, FP $=1$. Klasifikojmë ``Po'' kur $\hat p>t$.
+    \begin{enumerate}
+      \item Cili prag $t$ minimizon koston e pritshme, nëse $\hat p$ është i saktë?
+      \item A do të jetë $t$ më i vogël apo më i madh se 0.5?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjCost}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Pragu optimal sipas kostos}
+  \begin{itemize}
+    \item<1-> Klasifikojmë ``Po'' $\Rightarrow$ kosto e pritshme $=C_{FP}(1-p)$.
+    \item<2-> Klasifikojmë ``Jo'' $\Rightarrow$ kosto e pritshme $=C_{FN}\,p$.
+    \item<3-> ``Po'' kur $C_{FN}\,p>C_{FP}(1-p)$, pra
+      \[ p>t^*=\frac{C_{FP}}{C_{FP}+C_{FN}}=\frac{1}{1+10}=0.091. \]
+    \item<4-> Me kosto të barabarta: $t^*=0.5$. Pragu 0.5 është rast i veçantë!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kosto e pritshme për klient}
+<<h6-cost>>=
+cost <- function(p, t, cfn = 10, cfp = 1)
+  (cfn * sum(y & p <= t) + cfp * sum(!y & p > t)) / n
+round(apply(oof, 2, function(p) c(t_0.5 = cost(p, 0.5), t_0.091 = cost(p, 1/11))), 4)
+ths <- seq(0.02, 0.6, by = 0.01)
+cc <- sapply(ths, function(t) cost(oof[, "logit"], t))
+c(best_t = ths[which.min(cc)], min_cost = round(min(cc), 4))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Logjistik me $t=0.5$: 0.232 për klient; me $t=0.091$: \textbf{0.142}, rreth 39\% më pak.
+    \item<2-> Pragu empirik më i mirë (0.10) është pothuajse $t^*$ teorik: probabilitetet janë të besueshme.
+    \item<3-> Logjistiku ka koston më të ulët; diferencat midis metodave janë të vogla.
+    \item<4-> Zgjedhja e pragut vlen më shumë se zgjedhja e metodës.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kurba e kostos}
+<<h6-cost-plot, fig.height=2.8, fig.width=5.5, out.width="0.5\\textwidth">>=
+plot(ths, cc, type = "l", lwd = 2, col = "#2C5AA0",
+     xlab = "threshold t", ylab = "expected cost per client")
+abline(v = c(1/11, 0.5), lty = c(1, 2), col = c("#15803D", "#D97706"))
+legend("topright", c("t* = 1/11", "t = 0.5"), lty = 1:2,
+       col = c("#15803D", "#D97706"), bty = "n", cex = 0.8)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Matrica e konfuzionit me $t^*$}
+<<h6-cm>>=
+p <- oof[, "logit"]
+tb <- table(pred = p > 1/11, true = y)
+tb
+round(c(sensitivity = tb["TRUE", "TRUE"] / sum(y),
+        specificity = tb["FALSE", "FALSE"] / sum(!y)), 3)
+@
+  \begin{itemize}
+    \item<2-> Sensitiviteti $31.5\%\to75.7\%$ (krahasuar me pragun 0.5, Ora 3); specifiteti $99.6\%\to93.7\%$.
+    \item<3-> 252 nga 333 default kapen; 609 klientë të mirë penalizohen.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kalibrimi dhe diagnostikimi}
+% ------------------------------------------------------------
+
+\begin{frame}{Pse kalibrimi?}
+  \begin{itemize}
+    \item<1-> AUC mat \textbf{renditjen}; pragu $t^*$ kërkon \textbf{probabilitete të sakta}.
+    \item<2-> Model i kalibruar: ndër klientët me $\hat p\approx0.1$, rreth 10\% bëjnë default.
+    \item<3-> Kontroll: ndaj në 10 grupe sipas $\hat p$ (decile), krahaso $\bar{\hat p}$ me përqindjen e vëzhguar.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=4]{Tabela e kalibrimit}
+<<h6-calib>>=
+dec <- cut(p, quantile(p, 0:10 / 10), include.lowest = TRUE, labels = 1:10)
+round(cbind(mean_pred = tapply(p, dec, mean), observed = tapply(y, dec, mean),
+            n = as.numeric(table(dec))), 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Decilet 1--7: $\hat p<1\%$, të vëzhguarat afër 0: përputhje.
+    \item<2-> Decili 9: 3.96\% kundrejt 4.6\%; decili 10: 26.8\% kundrejt 26.0\%.
+    \item<3-> Modeli është \textbf{i kalibruar mirë}: probabilitetet mund të përdoren direkt për $t^*$.
+    \item<4-> 90\% e klientëve kanë $\hat p<7\%$: rreziku përqendrohet te decili i fundit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pikat me ndikim te \texttt{glm}}
+<<h6-infl>>=
+fit <- glm(default ~ balance + student, data = default_df, family = binomial)
+D <- cooks.distance(fit)
+top <- order(D, decreasing = TRUE)[1:3]
+cbind(default_df[top, c("default", "student", "balance")], D = round(D[top], 4))
+sum(abs(rstandard(fit)) > 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mjetet e Javës 7 funksionojnë edhe për \texttt{glm}: \texttt{cooks.distance}, \texttt{rstandard}.
+    \item<2-> $D_{\max}=0.017$: asnjë klient i vetëm nuk e drejton modelin.
+    \item<3-> Më të ``papriturit'': default me balancë të ulët (652, 699 \$) dhe jo-default me 2391 \$.
+    \item<4-> 12 klientë me $|r_i|>3$ nga 10\,000: normale për një klasë të rrallë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushCost]{Radha jote!}
+  \begin{Ushtrim}[(6 minuta)]
+    Banka rishikon kostot: FN $=5$, FP $=1$.
+    \begin{enumerate}
+      \item Llogarit $t^*$ pa ndihmën e PC.
+      \item Me funksionin \texttt{cost()}, llogarit koston e logjistikut me $t^*$ dhe me 0.5.
+      \item Si ndryshojnë sensitiviteti dhe specifiteti krahasuar me $t^*=0.091$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjCostR}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=gjejGab96]{Gjej gabimin}
+  \begin{Parashiko}
+    Një analist raporton:\\[3pt]
+    {\small\emph{``Zgjodhëm pragun që minimizon koston mbi të gjitha 10\,000 klientët, duke përdorur modelin e trajnuar mbi të gjithë ata. Kosto e pritshme në prodhim do të jetë 0.14 për klient.''}}\\[3pt]
+    Çfarë nuk shkon? Si duhej bërë?
+  \end{Parashiko}
+  \shkoTe{zgjGab96}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\Zgjerim Pemët dhe random forest}
+% ------------------------------------------------------------
+
+\begin{frame}{\Zgjerim Pemët e klasifikimit}
+  \begin{itemize}
+    \item<1-> Ndaj hapësirën e $x$ me pyetje po/jo: ``\texttt{balance} $<1800$?''
+    \item<2-> Në çdo gjethe: klasa e shumicës (ose përqindja).
+    \item<3-> Interpretim shumë i lehtë; por variancë e madhe (ndryshon shumë me të dhënat).
+    \item<4-> \textbf{Random forest}: shumë pemë mbi mostra bootstrap, me nën-bashkësi të rastësishme variablash; mesatarja ul variancën.
+    \item<5-> Repo: \texttt{Lecture\_6.1--6.3.R}, \texttt{TreeModel\_Review.R}; ISLR kap.\ 8.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=14]{\Zgjerim Pema dhe random forest te \texttt{Default}}
+<<h6-tree, warning=FALSE>>=
+library(tree); library(randomForest)
+set.seed(2026); tr <- sample(n, 7000)
+auc_te <- function(p) round(as.numeric(auc(roc(default_df$default[-tr], p,
+  levels = c("No", "Yes"), direction = "<", quiet = TRUE))), 4)
+t1 <- tree(default ~ balance + student + income, default_df, subset = tr)
+set.seed(2026)
+rf <- randomForest(default ~ balance + student + income, default_df, subset = tr)
+g1 <- glm(default ~ balance + student, default_df[tr, ], family = binomial)
+c(tree = auc_te(predict(t1, default_df[-tr, ])[, "Yes"]),
+  random_forest = auc_te(predict(rf, default_df[-tr, ], type = "prob")[, "Yes"]),
+  logistic = auc_te(predict(g1, default_df[-tr, ], type = "response")))
+round(importance(rf), 1)
+@
+\end{frame}
+
+\begin{frame}{\Zgjerim Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pema përdor vetëm \texttt{balance} (5 gjethe): AUC 0.932.
+    \item<2-> Random forest: AUC \textbf{0.862}, më keq se logjistiku (0.945)!
+    \item<3-> Pse? Kufiri i vërtetë është pothuajse linear në \texttt{balance}; RF ``mëson'' zhurmë nga \texttt{income} dhe jep probabilitete të vrazhda.
+    \item<4-> Mësimi: metoda më komplekse nuk është automatikisht më e mirë. Krahaso gjithmonë me një model të thjeshtë.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Raporti}
+% ------------------------------------------------------------
+
+\begin{frame}{Raporti përfundimtar (6 pikat)}
+  \small
+  \begin{enumerate}
+    \item \textbf{Të dhënat}: \texttt{Default} (sintetike, ISLR), $n=10\,000$, 3.33\% default.
+    \item \textbf{Modeli}: logjistik \texttt{default \textasciitilde{} balance + student}; \texttt{income} pa efekt (LR $p=0.71$).
+    \item \textbf{Krahasimi}: 10-fold CV, AUC 0.949 (LDA, QDA të barabartë; KNN 0.929; RF 0.862).
+    \item \textbf{Kalibrimi}: i mirë në të gjitha decilet; $D_{\max}=0.017$.
+    \item \textbf{Vendimi}: pragu $t^*=1/11$ (kosto FN:FP $=10{:}1$, hipotetike): kosto $0.142$ kundrejt $0.232$ me 0.5; sensitivitet 75.7\%.
+    \item \textbf{Kufizimet}: të dhëna sintetike; kostot hipotetike; pragu i zgjedhur jashtë palosjes, por pa mostër testi të pavarur.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Lidhja me projektin final}
+  \begin{itemize}
+    \item<1-> Struktura e sotme për çdo problem klasifikimi në projekt:
+      \textbf{CV jashtë palosjes $\to$ AUC $\to$ kalibrim $\to$ prag sipas kostos $\to$ raport}.
+    \item<2-> Shembuj të mundshëm projekti: braktisja e studimeve, defektet në prodhim, tejkalimi i pragjeve të ndotjes.
+    \item<3-> Kostot duhen diskutuar me ``klientin'': ato janë vendim, jo statistikë.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp96]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Nxirrni $t^*=C_{FP}/(C_{FP}+C_{FN})$.
+    \item Pse AUC i lartë nuk mjafton për të përdorur pragun $t^*$?
+    \item Pse random forest humbi ndaj logjistikut këtu?
+  \end{enumerate}
+  \shkoTe{zgjCp96}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item CV jashtë palosjes: AUC 0.949 (logjistik $\approx$ LDA $\approx$ QDA).
+    \item $t^*=1/11$: kosto $0.232\to0.142$ ($-39\%$); sensitivitet 75.7\%.
+    \item Kalibrimi i mirë $\Rightarrow$ $t^*$ teorik $\approx$ optimumi empirik (0.10).
+    \item \texttt{cooks.distance} për \texttt{glm}: $D_{\max}=0.017$.
+    \item Zgjerim: pema 0.932, RF 0.862: kompleksiteti nuk garanton fitim.
+  \end{itemize}
+  \begin{Keshille}Ora 7: konsolidim --- kuiz 25/75, detyra, gabimet, fletët e funksioneve, Java 10.\end{Keshille}
+\end{frame}
