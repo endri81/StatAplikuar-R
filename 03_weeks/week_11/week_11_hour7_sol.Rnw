@@ -1,0 +1,136 @@
+% ============================================================
+%  Java 11 · Ora 7 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=s11T1]{Zgjidhja: Teori 1}
+  \small
+  \begin{enumerate}
+    \item Vektor: objekte diskrete me koordinata kulmesh + atribute (qarqe, rrugë, shkolla, stacione). Raster: rrjetë e rregullt qelizash me një vlerë secila, për fusha të vazhdueshme (lartësi, temperaturë, dendësi, imazh satelitor).
+    \item Intensive: nuk varen nga madhësia e njësisë (temperaturë, lartësi, dendësi) $\Rightarrow$ agregohen me mesatare (të ponderuar me sipërfaqe). Ekstensive: mblidhen me madhësinë (banorë, sipërfaqe) $\Rightarrow$ agregohen me shumë; në statistikat zonale me peshat e mbulimit.
+  \end{enumerate}
+  \vfill\kthehu{q11T1}
+\end{frame}
+
+\begin{frame}[label=s11T2]{Zgjidhja: Teori 2}
+  \small
+  \begin{enumerate}
+    \item Lokale (amplituda Jul$-$Jan), fokale (pjerrësia, zbutja $3\times3$), zonale (lartësia mesatare e qarkut), globale (mesatarja e Shqipërisë).
+    \item Qendra: qeliza e plotë nëse qendra është brenda; gabon sipas formës së kufirit (Durrësi $+19\%$, Vlora $-10\%$). \texttt{touches}: çdo qelizë e prekur; numëron dy herë qelizat kufitare (totali 3.50 mln kundrejt 2.87). Peshat: $\sum c_iv_i$; ruan totalin, supozon njëtrajtshmëri brenda qelizës.
+  \end{enumerate}
+  \vfill\kthehu{q11T2}
+\end{frame}
+
+\begin{frame}[label=s11T3]{Zgjidhja: Teori 3}
+  \small
+  \begin{enumerate}
+    \item Problemi i njësisë së ndryshueshme: rezultatet varen nga shkalla dhe zonimi. Me $X=S+\varepsilon_1$, $Y=S+\varepsilon_2$: $\rho_k\approx\operatorname{Var}S_k/(\operatorname{Var}S_k+\sigma^2/k^2)$, rritet me $k$.
+    \item \texttt{near}: klasa/kategori, ose kur duhen vlera ekzistuese. \texttt{bilinear}: fusha të vazhdueshme të lëmuara (RMSE 0.08 kundrejt 0.63).
+    \item Vëzhgimet fqinje mbartin informacion të përbashkët; numri efektiv i vëzhgimeve është shumë më i vogël se $n$; gabimet standarde nënvlerësohen, vlerat $p$ dalin shumë të vogla.
+  \end{enumerate}
+  \vfill\kthehu{q11T3}
+\end{frame}
+
+\begin{frame}[label=s11E1]{Zgjidhja: Ushtrimi 1}
+  \begin{enumerate}
+    \item $r_x=2.5/10=0.25^\circ$; $r_y=1/4=0.25^\circ$.
+    \item $j=\lfloor(20.3-19)/0.25\rfloor+1=\lfloor5.2\rfloor+1=6$; $i=\lfloor(43-42.6)/0.25\rfloor+1=\lfloor1.6\rfloor+1=2$; $c=(2-1)\cdot10+6=16$.
+    \item $x=19+5.5\cdot0.25=20.375$; $y=43-1.5\cdot0.25=42.625$.
+  \end{enumerate}
+  \begin{itemize}
+    \item \texttt{cellFromXY(r, cbind(20.3, 42.6))} $=16$.
+  \end{itemize}
+  \vfill\kthehu{q11E1}
+\end{frame}
+
+\begin{frame}[label=s11E2]{Zgjidhja: Ushtrimi 2}
+  \begin{enumerate}
+    \item $(r-10)/2$: \quad $\begin{smallmatrix}-4&-3&-2\\-1&0&1\\2&3&4\end{smallmatrix}$.
+    \item Qendra: $90/9=10$. Cepi lart-majtas: $(2+4+8+10)/4=6$.
+    \item 3 nuk pjesëtohet me 2: blloku i fundit ka vetëm 1 kolonë/rresht; \texttt{terra} e plotëson me NA, dhe blloku mbulon sipërfaqe jashtë raster-it.
+  \end{enumerate}
+  \vfill\kthehu{q11E2}
+\end{frame}
+
+\begin{frame}[label=s11E3]{Zgjidhja: Ushtrimi 3}
+  \begin{enumerate}
+    \item Brezi 1: 150, 300, 80, 500, 40, 250 $\Rightarrow$ 6. Brezi 2: 900, 1000, 999, 700 $\Rightarrow$ 4. Brezi 3: 1200, 1001, 1450, 1500 $\Rightarrow$ 4. Brezi 4: 1600, 2100 $\Rightarrow$ 2.
+    \item Mbi 1000 m: brezat 3 + 4 $=6$ qeliza $=6$ km$^2$ $=37.5\%$ e 16 km$^2$.
+  \end{enumerate}
+  \begin{itemize}
+    \item Kujdes: 1000 $\to$ brezi 2 dhe 1500 $\to$ brezi 3 (\texttt{right = TRUE}).
+  \end{itemize}
+  \vfill\kthehu{q11E3}
+\end{frame}
+
+\begin{frame}[label=s11E4]{Zgjidhja: Ushtrimi 4}
+  \begin{enumerate}
+    \item Banorë për qelizë: 800, 3\,200, 16\,000. Me pesha: $800+0.5\cdot3\,200+0.25\cdot16\,000=800+1\,600+4\,000=6\,400$.
+    \item Qendra: $800+3\,200=4\,000$; gabim $(4\,000-6\,400)/6\,400=-37.5\%$.
+    \item $50+200+1\,000$ janë banorë/km$^2$: shuma e tyre nuk është as banorë, as dendësi.
+  \end{enumerate}
+  \vfill\kthehu{q11E4}
+\end{frame}
+
+\begin{frame}[label=s11E5]{Zgjidhja: Ushtrimi 5}
+  \begin{enumerate}
+    \item $z_x=(260-200)/60=1$; $z_y=0$; $\theta=\arctan1=45^\circ$. Ngrihet drejt lindjes $\Rightarrow$ ekspozicioni $270^\circ$ (perëndim).
+    \item $H=\sin45^\circ\cos45^\circ+\cos45^\circ\sin45^\circ\cos(315^\circ-270^\circ)=0.5+0.5\cdot0.7071=0.854$.
+    \item I ndriçuar: shpati shikon nga perëndimi, dielli nga veriperëndimi: këndi $45^\circ$.
+  \end{enumerate}
+  \vfill\kthehu{q11E5}
+\end{frame}
+
+\begin{frame}[label=s11E6]{Zgjidhja: Ushtrimi 6}
+  \small
+  \begin{enumerate}
+    \item Elev: $-0.006^\circ$C për m ($-0.60$/100 m), me north dhe dcoast fiks. North: $-0.0038^\circ$C/km ($-0.38$ për 100 km drejt veriut). Dcoast: $-0.0006^\circ$C/km ($-0.06$ për 100 km): praktikisht zero.
+    \item $42.323-6.021-17.512-0.030=18.76^\circ$C.
+    \item Jo me siguri: vlera $p$ supozon pavarësi, por mbetjet kanë korrelacion 0.957 me fqinjët; dhe madhësia e efektit ($0.06^\circ$C/100 km) është e papërfillshme. (Në janar, efekti i detit është i madh: $-2.9^\circ$C/100 km.)
+  \end{enumerate}
+  \vfill\kthehu{q11E6}
+\end{frame}
+
+\begin{frame}[label=s11E7]{Zgjidhja: Ushtrimi 7}
+  \scriptsize
+  \begin{enumerate}
+    \item \texttt{b <- st\_read(...)}; \texttt{st\_is\_valid}; \texttt{b6 <- st\_transform(b, 6870)}.\\
+      \texttt{a <- cellSize(dem, unit = "km")}; \texttt{exact\_extract(a * (dem > 1500), b, "sum")} $\Rightarrow$ km$^2$ mbi 1500 m.\\
+      \texttt{pop <- gpw * cellSize(gpw, unit = "km")}; \texttt{exact\_extract(pop, b, "sum")} $\Rightarrow$ banorë GPW.
+    \item Normalizoni emrat (\texttt{stri\_trans\_general(x, "Latin-ASCII")}) ose më mirë përdorni kodin e bashkisë; \texttt{merge(all = TRUE)}, kontrolloni \texttt{nrow}; raporti GPW/Census dhe grafiku i shpërndarjes; kalibrimi i totalit.
+    \item (i) Bashkimi humb bashki $\to$ \texttt{setdiff}. (ii) Rregulli i qendrës me qeliza $2.5'$ ($\approx16$ km$^2$) për bashki të vogla $\to$ \texttt{exactextractr}. (iii) Shuma e dendësive $\to$ kthejeni në numër. Gjithashtu: viti 2020 kundrejt 2023; GPW e modeluar.
+  \end{enumerate}
+  \vfill\kthehu{q11E7}
+\end{frame}
+
+\begin{frame}[label=s11H1]{Udhëzime: Shtëpi 1--2}
+  \begin{itemize}
+    \item Shtëpi 1: \texttt{rasterize(rajonet, elev, field = "nuts2")}; pastaj \texttt{zonal(cellSize, c(bands, region), sum)} ose \texttt{crosstab()} me peshat e sipërfaqes.
+    \item Shtëpi 2: cikël mbi \texttt{names(tavg)}; prisni gradient $\approx-0.47$ në janar deri $\approx-0.60$ në korrik, dhe efektin e detit të fortë në dimër, afër zeros në verë.
+  \end{itemize}
+  \vfill\kthehu{h11H1}
+\end{frame}
+
+\begin{frame}[label=s11H3]{Udhëzime: Shtëpi 3--4}
+  \begin{itemize}
+    \item Shtëpi 3: bllok $=$ \texttt{paste(floor(x/20000), floor(y/20000))}; CV-ja me blloqe pritet të japë RMSE më të madh (më realist) se CV-ja e rastësishme.
+    \item Shtëpi 4: \texttt{extract(elev, vect(st\_transform(simp, 4326)), mean)}; qarqet me kufij të gjatë malorë/bregdetarë preken më shumë.
+  \end{itemize}
+  \vfill\kthehu{h11H3}
+\end{frame}
+
+\begin{frame}[label=s11H5]{Udhëzime: Shtëpi 5--6}
+  \begin{itemize}
+    \item Shtëpi 5: për plan, çdo diferencë jep saktësisht $a$ dhe $b$; mesatarja e ponderuar e Horn-it i ruan. Ndryshojnë kur sipërfaqja ka lakim (zhurma, majat).
+    \item Shtëpi 6: \texttt{replicate(200, \{\dots\})} rreth kodit të simulimit pa \texttt{set.seed} brenda; \texttt{set.seed(2026)} vetëm një herë jashtë.
+  \end{itemize}
+  \vfill\kthehu{h11H5}
+\end{frame}
+
+\begin{frame}[label=zgjCp117]{Përgjigjet: Checkpoint Ora 7}
+  \begin{enumerate}
+    \item CRS dhe rezolucioni (gradë/metra); diapazoni dhe NA; nëse sasia është intensive apo ekstensive.
+    \item Zonat e vogla kanë pak qeliza dhe shumë prej tyre në kufi: çdo qelizë kufitare ``e plotë apo zero'' ka peshë të madhe.
+    \item Mbetjet e fqinjëve janë të korreluara; variogrami e mat këtë si funksion të distancës dhe Kriging-u e përdor për të parashikuar në vende të pamatura.
+  \end{enumerate}
+  \vfill\kthehu{cp117}
+\end{frame}

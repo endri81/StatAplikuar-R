@@ -31,7 +31,7 @@ Titullari: Prof. Asoc. Dr. Endri Raço (eraco@fimif.edu.al)
 | 08 | Regresi jolinear dhe robust | K2, S2 | ✅ Gati (203 slide + 40 zgjidhje) |
 | 09 | Regresi logjistik dhe klasifikimi (+ Zgjerim: pemët, RF) | K2, S3, C1 | ✅ Gati (177 slide + 41 zgjidhje) |
 | 10 | Sistemet koordinative, projeksionet, datumet (`sf`, `s2`, `ggspatial`) | K3 | ✅ Gati (261 slide + 58 zgjidhje) |
-| 11 | Raster dhe vektor, shapefile, DTM (`terra`, `sf`, `geodata`) | K3, S4, S1, S3 | 🔄 Orët 1–6 gati (214 slide + 44 zgjidhje) |
+| 11 | Raster dhe vektor, shapefile, DTM (`terra`, `sf`, `geodata`) | K3, S4, S1, S3 | ✅ Gati (241 slide + 58 zgjidhje) |
 | 12 | Interpolimi hapësinor, DTM, Kriging (`gstat`) + projekti final | K3, C1 | ⏳ |
 
 ## Kompilimi i një jave

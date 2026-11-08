@@ -1,0 +1,334 @@
+% ============================================================
+%  Java 11 · Ora 7 — Konsolidimi
+%  Rezultatet: K2, K3, S1, S3, S4, C1
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Konsolidimi]{Konsolidimi}
+
+\begin{frame}{Ora 7: Konsolidimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuizi në stilin e provimit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuizi: si funksionon}
+  \begin{itemize}
+    \item<1-> Si në provim: \textbf{25\% teori, 75\% ushtrime}; 3 pyetje teorike (25 pikë) + 7 ushtrime (75 pikë).
+    \item<2-> Koha: 45 minuta. Ushtrimet 1--5 bëhen pa ndihmën e PC.
+    \item<3-> Vlera të dobishme: $\sin45^\circ=\cos45^\circ=0.7071$; $\arctan1=45^\circ$; $\arctan0.5=26.57^\circ$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Për çdo raster: shkruani rezolucionin dhe njësinë e qelizës (gradë apo metra).\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=q11T1]{Teori 1 (8 pikë)}
+  \begin{Ushtrim}[(Teori 1)]
+    \begin{enumerate}
+      \item Dalloni modelin vektor nga raster-i. Jepni nga dy shembuj për secilin.
+      \item Çfarë janë sasitë intensive dhe ekstensive? Si ndikojnë në agregim dhe në statistikat zonale?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s11T1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q11T2]{Teori 2 (8 pikë)}
+  \begin{Ushtrim}[(Teori 2)]
+    \begin{enumerate}
+      \item Emërtoni katër familjet e algjebrës së hartave me nga një shembull.
+      \item Krahasoni rregullin e qendrës, \texttt{touches = TRUE} dhe peshat e mbulimit në statistikat zonale.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s11T2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q11T3]{Teori 3 (9 pikë)}
+  \begin{Ushtrim}[(Teori 3)]
+    \begin{enumerate}
+      \item Çfarë është MAUP? Shpjegoni efektin e shkallës me një formulë.
+      \item Kur përdorni ripërzgjedhjen \texttt{near} dhe kur \texttt{bilinear}?
+      \item Pse autokorrelacioni hapësinor i mbetjeve i bën vlerat $p$ të \texttt{lm()} të pabesueshme?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s11T3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q11E1]{Ushtrimi 1 (10 pikë): indeksimi}
+  \begin{Ushtrim}[(Ushtrimi 1, pa ndihmën e PC)]
+    Raster: $x_{\min}=19$, $x_{\max}=21.5$, $y_{\min}=42$, $y_{\max}=43$, $n_c=10$, $n_r=4$.
+    \begin{enumerate}
+      \item Rezolucioni në $x$ dhe $y$?
+      \item Rreshti, kolona dhe numri i qelizës për pikën $(20.3, 42.6)$.
+      \item Koordinatat e qendrës së asaj qelize.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s11E1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q11E2]{Ushtrimi 2 (10 pikë): algjebra}
+  \begin{Ushtrim}[(Ushtrimi 2, pa ndihmën e PC)]
+    \begin{center}
+      \begin{tabular}{ccc} 2 & 4 & 6 \\ 8 & 10 & 12 \\ 14 & 16 & 18 \end{tabular}
+    \end{center}
+    \begin{enumerate}
+      \item Rezultati i \texttt{(r - 10) / 2} (lokale).
+      \item \texttt{focal(r, 3, mean, na.rm = TRUE)} në qendër dhe në cepin lart-majtas.
+      \item \texttt{aggregate} nuk mund të zbatohet me \texttt{fact = 2} pa humbje. Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s11E2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q11E3]{Ushtrimi 3 (10 pikë): klasifikimi}
+  \begin{Ushtrim}[(Ushtrimi 3, pa ndihmën e PC)]
+    Lartësi në m, qeliza 1 km$^2$ (CRS i projektuar):
+    \begin{center}\small
+      \begin{tabular}{cccc} 150 & 900 & 1000 & 1200 \\ 300 & 1001 & 1450 & 1600 \\ 80 & 500 & 999 & 2100 \\ 40 & 250 & 700 & 1500 \end{tabular}
+    \end{center}
+    Brezat $(-\infty,500]\to1$, $(500,1000]\to2$, $(1000,1500]\to3$, $(1500,\infty)\to4$.
+    \begin{enumerate}
+      \item Numri i qelizave në çdo brez. \quad 2. Sipërfaqja mbi 1000 m (km$^2$ dhe \%).
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s11E3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q11E4]{Ushtrimi 4 (10 pikë): popullsia zonale}
+  \begin{Ushtrim}[(Ushtrimi 4, pa ndihmën e PC)]
+    Tri qeliza 16 km$^2$ me dendësi 50, 200 dhe 1000 banorë/km$^2$. Mbulimi nga zona: 1, 0.5, 0.25. Qendrat e dy të parave janë brenda zonës.
+    \begin{enumerate}
+      \item Banorët me peshat e mbulimit.
+      \item Banorët me rregullin e qendrës. Sa \% gabon?
+      \item Pse \texttt{sum} mbi dendësitë është i gabuar?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s11E4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q11E5]{Ushtrimi 5 (10 pikë): terreni}
+  \begin{Ushtrim}[(Ushtrimi 5, pa ndihmën e PC)]
+    Qeliza 30 m. Fqinjët: $z_L=260$, $z_P=200$, $z_V=230$, $z_J=230$.
+    \begin{enumerate}
+      \item Pjerrësia (gradë) dhe ekspozicioni.
+      \item Hija me $\alpha=45^\circ$, $\phi=315^\circ$.
+      \item A del ky shpat i ndriçuar apo i errët në hartë? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s11E5}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q11E6]{Ushtrimi 6 (10 pikë): lexo output-in}
+  \begin{Ushtrim}[(Ushtrimi 6)]
+    \small
+    Modeli i korrikut (Ora 6): $\hat T=42.323-0.006021\,\text{elev}-0.003807\,\text{north}-0.000598\,\text{dcoast}$; $R^2=0.985$; korrelacioni i mbetjeve me fqinjët 0.957.
+    \begin{enumerate}
+      \item Interpretoni çdo koeficient me njësi (elev në m, north dhe dcoast në km).
+      \item Parashikoni $T$ për elev $=1000$ m, north $=4600$ km, dcoast $=50$ km.
+      \item A mund të themi që dcoast ``ka efekt domethënës''? Arsyetoni.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s11E6}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q11E7]{Ushtrimi 7 (15 pikë): projekt i vogël}
+  \begin{Ushtrim}[(Ushtrimi 7)]
+    \small
+    Keni: shapefile i 61 bashkive (EPSG:4326, emra me ë/ç), DEM $30''$, GPW 2020 ($2.5'$) dhe tabelën e censit 2023 sipas bashkive (CSV, emra me ë/ç).
+    \begin{enumerate}
+      \item Hapat për: sipërfaqen mbi 1500 m dhe banorët e modeluar (GPW) për bashki.
+      \item Si e krahasoni GPW me censin për çdo bashki?
+      \item Tri gabime që mund të ndodhin dhe si i parandaloni.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s11E7}{Zgjidhja}
+\end{frame}
+
+\begin{frame}{Tabela e pikëve}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Pjesa & Pyetjet & Pikët \\ \midrule
+    Teori (25\%) & T1, T2, T3 & 8 + 8 + 9 = 25 \\
+    Ushtrime (75\%) & U1--U6 & $6\times10=60$ \\
+     & U7 & 15 \\ \midrule
+    Gjithsej & 10 & 100 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Nën 50 pikë: përsëritni Orët 2 dhe 5.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ushtrime për shtëpi}
+% ------------------------------------------------------------
+
+\begin{frame}[label=h11H1]{Ushtrime për shtëpi 1--2}
+  \begin{Ushtrim}[(Shtëpi 1: brezat sipas NUTS2)]
+    Llogaritni sipërfaqen e çdo brezi lartësie (Ora 3) për secilin nga 3 rajonet NUTS2 (Ora 4). Paraqiteni si tabelë dhe si grafik me shtylla.
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 2: janari)]
+    Përsëritni modelin e Orës 6 për çdo muaj (12 modele). Vizatoni gradientin termik dhe koeficientin e \texttt{dcoast} sipas muajit. Interpretoni.
+  \end{Ushtrim}
+  \shkoTe{s11H1}{Udhëzime}
+\end{frame}
+
+\begin{frame}[label=h11H3]{Ushtrime për shtëpi 3--4}
+  \begin{Ushtrim}[(Shtëpi 3: CV hapësinor)]
+    Ndani qelizat e modelit të temperaturës në blloqe $20\times20$ km. Krahasoni RMSE nga CV me 10 grupe të rastësishme dhe nga CV me blloqe.
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 4: thjeshtimi)]
+    Llogaritni lartësinë mesatare të qarqeve me poligonet origjinale dhe me \texttt{st\_simplify(dTolerance = 5000)}. Sa ndryshon? Cili qark preket më shumë?
+  \end{Ushtrim}
+  \shkoTe{s11H3}{Udhëzime}
+\end{frame}
+
+\begin{frame}[label=h11H5]{Ushtrime për shtëpi 5--6}
+  \begin{Ushtrim}[(Shtëpi 5: teori)]
+    Tregoni që për një plan $z=ax+by+c$ formula e Horn-it dhe diferencat qendrore japin të njëjtën pjerrësi. Kur ndryshojnë?
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 6: Zgjerim)]
+    Përsëritni simulimin MAUP të Orës 5 me 200 përsëritje (\texttt{set.seed}). Vizatoni shpërndarjen e \texttt{cor\_xy} për $k=1,4,16$ dhe krahasojeni me formulën.
+  \end{Ushtrim}
+  \shkoTe{s11H5}{Udhëzime}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gabimet e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet e zakonshme: raster}
+  \begin{Gabim}Numri i qelizave $\times$ \texttt{prod(res())} në raster gjeografik: gradë katrore, jo km$^2$. Përdorni \texttt{cellSize()}.\end{Gabim}
+  \pause
+  \begin{Gabim}Shuma e dendësive (intensive) në agregim ose statistika zonale. Kthejini së pari në numër.\end{Gabim}
+  \pause
+  \begin{Gabim}Ripërzgjedhje \texttt{bilinear} për klasa; \texttt{shade()} me gradë në vend të radianëve.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: vektor dhe statistikë}
+  \begin{Gabim}\texttt{merge()} sipas emrave me ë/ç: rreshta të humbur pa paralajmërim. Kontrolloni \texttt{nrow()} dhe \texttt{setdiff()}.\end{Gabim}
+  \pause
+  \begin{Gabim}Analiza mbi poligone të thjeshtuara: mbivendosje dhe boshllëqe.\end{Gabim}
+  \pause
+  \begin{Gabim}Vlera $p$ nga \texttt{lm()} mbi mijëra qeliza të autokorreluara; korrelacioni i rajoneve i interpretuar për individët.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit për raster}
+  \begin{enumerate}
+    \item<1-> \texttt{crs(r)}, \texttt{res(r)}, \texttt{ext(r)}: gradë apo metra?
+    \item<2-> \texttt{datatype}, NA, diapazoni (\texttt{global(r, range)}): ka vlera të pamundura?
+    \item<3-> Sasia është intensive apo ekstensive?
+    \item<4-> Para algjebrës me dy raster-a: \texttt{compareGeom()}.
+    \item<5-> Para statistikave zonale: sa qeliza ka zona? Duhen pesha mbulimi?
+    \item<6-> Hartë: burimi, viti, ``e modeluar'' nëse është, CRS.
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fletë-kujtesa}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë-kujtesa 1: formulat}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Koncepti & Formula \\ \midrule
+    Indeksimi & $j=\lfloor(x-x_{\min})/r_x\rfloor+1$, $i=\lfloor(y_{\max}-y)/r_y\rfloor+1$, $c=(i-1)n_c+j$ \\
+    Qendra & $x=x_{\min}+(j-\frac12)r_x$, $y=y_{\max}-(i-\frac12)r_y$ \\
+    Zonale e saktë & $\sum c_iv_i$ (ekstensive), $\sum c_iv_i/\sum c_i$ (intensive) \\
+    Bilinear & $\sum w_kf_k$, $w=(1-u)(1-v),u(1-v),(1-u)v,uv$ \\
+    Pjerrësia & $\theta=\arctan\sqrt{z_x^2+z_y^2}$, $z_x=(z_L-z_P)/2\Delta$ \\
+    Hija & $H=\sin\alpha\cos\theta+\cos\alpha\sin\theta\cos(\phi-\psi)$ \\
+    MAUP & $\rho_k\approx\operatorname{Var}S_k/(\operatorname{Var}S_k+\sigma^2/k^2)$ \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 2: \texttt{terra}}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    Lexo / shkruaj & \texttt{rast()}, \texttt{vect()}, \texttt{writeRaster(datatype=)} \\
+    Gjeometria & \texttt{ext}, \texttt{res}, \texttt{crs}, \texttt{cellSize}, \texttt{compareGeom} \\
+    Prit / maskë & \texttt{crop}, \texttt{mask}, \texttt{classify}, \texttt{ifel} \\
+    Algjebra & \texttt{+ - * /}, \texttt{app}, \texttt{focal}, \texttt{zonal}, \texttt{global} \\
+    Vektor $\leftrightarrow$ raster & \texttt{rasterize(touches=)}, \texttt{as.polygons}, \texttt{extract} \\
+    Rrjeta & \texttt{aggregate}, \texttt{resample}, \texttt{project(method=)} \\
+    Terreni & \texttt{terrain("slope"/"aspect", unit=)}, \texttt{shade()} \\
+    Distanca & \texttt{distance(raster, vektor)}, \texttt{init(r, "y")} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 3: cilën metodë kur}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Situata & Zgjedhja \\ \midrule
+    Fushë e vazhdueshme në rrjetë të re & \texttt{bilinear} (ose \texttt{cubic}) \\
+    Klasa / kategori & \texttt{near}; agregim me \texttt{modal} \\
+    Banorë në rrjetë më të trashë & numër për qelizë, pastaj \texttt{sum} \\
+    Zona të vogla / bregdetare & \texttt{exactextractr} (pesha mbulimi) \\
+    Pjerrësi, buffer, distanca & CRS i projektuar (6870) \\
+    Ruajtje vektori & GeoPackage, jo shapefile \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pamje e Javës 12}
+% ------------------------------------------------------------
+
+\begin{frame}{Java 12: interpolimi hapësinor dhe Kriging \LO{K3, C1}}
+  \begin{itemize}
+    \item<1-> Pyetja: matëm në pika (\texttt{meuse}, stacione); si e ndërtojmë raster-in e vazhdueshëm?
+    \item<2-> Poligonet Thiessen/Voronoi, polinomi global, IDW.
+    \item<3-> Variogrami: sa shpejt bie korrelacioni me distancën (ideja e $r_{nn}$ dhe e 0.957).
+    \item<4-> Kriging: parashikuesi linear më i mirë i paanshëm, me gabim standard për çdo qelizë.
+    \item<5-> Projekti final dhe prezantimet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Para Javës 12}
+  \begin{itemize}
+    \item Kontrolloni: \texttt{library(gstat); library(sf); library(terra)}.
+    \item Përsëritni: \texttt{meuse} (Java 10, Ora 6), regresi dhe mbetjet (Javët 5--7), \texttt{rasterize}, \texttt{extract}.
+    \item Ushtrimi i shtëpisë 3 (CV hapësinor) do të përdoret për validimin e Kriging-ut.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Burime}
+  \footnotesize
+  \begin{itemize}
+    \item K.-T.~Chang, \emph{Introduction to Geographic Information Systems}, McGraw-Hill, 2012 (modelet raster/vektor, DEM, analiza e terrenit).
+    \item E.~Pebesma, R.~Bivand, \emph{Spatial Data Science: With Applications in R}, CRC, 2023.
+    \item R.~Lovelace, J.~Nowosad, J.~Muenchow, \emph{Geocomputation with R}, 2nd ed., CRC.
+    \item R.~J.~Hijmans, \texttt{terra} dhe \texttt{geodata} (dokumentacioni i paketave); D.~Baston, \texttt{exactextractr}.
+    \item B.~K.~P.~Horn (1981), \emph{Hill shading and the reflectance map}, Proc.\ IEEE; C.~D.~Tomlin (1990), \emph{Geographic Information Systems and Cartographic Modeling}.
+    \item Të dhënat: GADM 4.1; SRTM (CGIAR-CSI v4.1); WorldClim 2.1 (Fick \& Hijmans 2017); GPW v4 rev11 (CIESIN); INSTAT (NUTS, VKM 1037/2010; Censi 2023); Natural Earth.
+    \item Repo DS612 nuk mbulon të dhënat hapësinore: e gjithë java është \textbf{material plotësues}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp117]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 7}
+  \begin{enumerate}
+    \item Cilat janë tre kontrollet e para kur merrni një raster të ri?
+    \item Pse rregulli i qendrës gabon më shumë për zona të vogla?
+    \item Si lidhet autokorrelacioni i mbetjeve me Kriging-un?
+  \end{enumerate}
+  \shkoTe{zgjCp117}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje e Javës 11}
+  \begin{itemize}
+    \item Vektor (objekte) dhe raster (fusha); qelizat në gradë kanë sipërfaqe të ndryshme.
+    \item Algjebra: lokale, fokale, zonale, globale; intensive $\to$ \texttt{mean}, ekstensive $\to$ \texttt{sum}.
+    \item Shqipëria: 28.9\% mbi 1000 m; Korça qarku më malor; Fieri 0\%.
+    \item Bashkimet sipas emrave me ë/ç humbin rreshta; statistikat zonale kërkojnë pesha mbulimi (Durrësi $+19\%$).
+    \item DTM: pjerrësia, hija, profili; korriku $-0.60^\circ$C/100 m; mbetjet të autokorreluara (0.957).
+  \end{itemize}
+  \LO{K2, K3, S1, S3, S4, C1}
+\end{frame}
