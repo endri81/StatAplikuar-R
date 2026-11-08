@@ -1,0 +1,77 @@
+% ============================================================
+%  Java 10 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjGabim103,fragile]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item Unaza nuk është e mbyllur: kulmi i fundit $(1,1)\neq(0,0)$.
+    \item \texttt{sf} nuk e mbyll vetë; ndalon me gabim.
+    \item Rregullimi: shtoni \texttt{c(0, 0)} në fund:
+  \end{itemize}
+  \texttt{st\_polygon(list(rbind(c(0,0), c(1,0), c(1,1), c(0,0))))}
+  \vfill\kthehu{gjejGabim103}
+\end{frame}
+
+\begin{frame}[label=zgjShoe103]{Zgjidhja: Radha jote! (formula e lidhëzës)}
+  \begin{enumerate}
+    \item Termat: $0\cdot0-6\cdot0=0$; $6\cdot5-2\cdot0=30$; $2\cdot0-0\cdot5=0$. $A=30/2=15$.
+      Kontroll: baza 6, lartësia 5, $A=6\cdot5/2=15$. \checkmark
+    \item Rendi i kundërt: termat $0$, $2\cdot0-6\cdot5=-30$, $0$. Shuma $-30$: shenja ndryshon (në drejtim të akrepave), vlera absolute jo.
+    \item \texttt{shoelace(rbind(c(0,0),c(6,0),c(2,5),c(0,0)))} $=15$; \texttt{st\_area()} $=15$.
+  \end{enumerate}
+  \vfill\kthehu{ushShoe103}
+\end{frame}
+
+\begin{frame}[label=zgjBow103]{Zgjidhja: Parashiko (papioni)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}, 0 (nuk jep gabim).
+    \item Trekëndëshi i majtë përshkohet kundër akrepave ($+1$), i djathti në drejtim të tyre ($-1$).
+    \item Shuma $0$. Secili trekëndësh ka sipërfaqe 1; sipërfaqja e figurës është 2, siç jep \texttt{st\_make\_valid()}.
+  \end{itemize}
+  \vfill\kthehu{pyetjeBow103}
+\end{frame}
+
+\begin{frame}[label=zgjArea103]{Zgjidhja: Parashiko (sipërfaqja e Shqipërisë)}
+  \begin{enumerate}
+    \item m$^2$: me \texttt{s2}, \texttt{sf} mat mbi sferë dhe kthen njësi metrike.
+    \item Më e vogël: 28\,335 km$^2$. Kufiri 1:50m ka vetëm 113 kulme; gjiret, kepet dhe ishujt e vegjël humbasin.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeArea103}
+\end{frame}
+
+\begin{frame}[label=zgjBuf103]{Zgjidhja: Ndrysho parametrin}
+  \begin{enumerate}
+    \item 25 km: vetëm Tirana. 90 km: + Durrës, Elbasan, Shkodër (86.1). 150 km: të gjashtë.
+    \item \texttt{nQuadSegs = 2}: tetëkëndësh i brendashkruar, $A=2\sqrt2\,r^2=7\,071.1$ km$^2$ (10\% më pak se rrethi).
+    \item Qyteti më i largët në plan është Korça: 112.94 km $\Rightarrow$ \texttt{dist} $\ge 112\,940$ m (me rreth të saktë; me poligon, pak më shumë).
+  \end{enumerate}
+  \vfill\kthehu{ushBuf103}
+\end{frame}
+
+\begin{frame}[label=zgjMC103]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item A: \texttt{st\_point()} nuk ka argument \texttt{crs}; \texttt{sfg} nuk mban CRS.
+    \item C: poligoni kërkon matricë unaze, jo pikë; edhe ashtu do të ishte \texttt{sfg}.
+    \item D: kthen drejtkëndëshin rrethues, pa CRS kur hyrja është \texttt{sfg}.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC103}
+\end{frame}
+
+\begin{frame}[label=zgjTPS103]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Spitalet: \texttt{POINT}; popullsia: poligonet e njësive (p.sh.\ zona regjistrimi) me numër banorësh, ose raster popullsie.
+    \item \texttt{st\_transform} $\to$ \texttt{st\_buffer(10000)} $\to$ \texttt{st\_union} (bashko zonat që mbivendosen) $\to$ \texttt{st\_intersection} me njësitë $\to$ \texttt{st\_area} për peshat $\to$ shuma e ponderuar.
+    \item Albania TM (EPSG:6870): metra dhe sipërfaqe të sakta.
+  \end{enumerate}
+  \vfill\kthehu{ushTPS103}
+\end{frame}
+
+\begin{frame}[label=zgjCp103]{Përgjigjet: Checkpoint Ora 3}
+  \begin{enumerate}
+    \item \texttt{sfg}: një gjeometri pa CRS; \texttt{sfc}: listë gjeometrish me CRS; \texttt{sf}: tabelë me atribute dhe \texttt{sfc}.
+    \item Termat: $0$, $3\cdot3-3\cdot0=9$, $3\cdot3-0\cdot3=9$, $0$. $A=18/2=9$.
+    \item Kufiri është i përgjithësuar (1:50m): pak kulme, detaje të humbura.
+  \end{enumerate}
+  \vfill\kthehu{cp103}
+\end{frame}

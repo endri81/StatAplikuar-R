@@ -1,0 +1,422 @@
+% ============================================================
+%  Java 10 · Ora 3 — Lab I: sf nga zero
+%  Rezultatet: K3, S4
+%  Burimi: dokumentacioni i sf (vinjeta 1); Pebesma & Bivand (2023), kap. 3;
+%          Lovelace et al., Geocomputation with R, kap. 2
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Lab I: sf]{Lab I: \texttt{sf} nga zero}
+
+\begin{frame}{Ora 3: Lab I --- \texttt{sf} nga zero}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gjeometritë e thjeshta}
+% ------------------------------------------------------------
+
+\begin{frame}{Standardi \emph{Simple Features}}
+  \begin{itemize}
+    \item<1-> Standard ISO/OGC: si përshkruhen gjeometritë 2D me vija të drejta midis kulmeve.
+    \item<2-> 7 tipe kryesore: \texttt{POINT}, \texttt{LINESTRING}, \texttt{POLYGON}, \texttt{MULTIPOINT}, \texttt{MULTILINESTRING}, \texttt{MULTIPOLYGON}, \texttt{GEOMETRYCOLLECTION}.
+    \item<3-> I njëjti standard në PostGIS, QGIS, GDAL, Python (\texttt{shapely}, \texttt{geopandas}).
+    \item<4-> Teksti WKT (\emph{well-known text}): \texttt{POINT (19.82 41.33)}.
+  \end{itemize}
+  \LO{K3, S4}
+\end{frame}
+
+\begin{frame}{Tre nivele objektesh në \texttt{sf}}
+  \centering
+  \begin{tikzpicture}[font=\scriptsize, node distance=1.4cm,
+      box/.style={draw, rounded corners, fill=uptlight, minimum width=2.6cm, minimum height=0.9cm, align=center}]
+    \node[box] (g) {\texttt{sfg}\\ një gjeometri};
+    \node[box, right=of g] (c) {\texttt{sfc}\\ listë gjeometrish + CRS};
+    \node[box, right=of c] (f) {\texttt{sf}\\ \texttt{data.frame} + \texttt{sfc}};
+    \draw[->, thick] (g) -- node[above]{\texttt{st\_sfc()}} (c);
+    \draw[->, thick] (c) -- node[above]{\texttt{st\_sf()}} (f);
+  \end{tikzpicture}
+  \begin{itemize}
+    \item<2-> \texttt{sfg}: koordinatat e një objekti, pa CRS.
+    \item<3-> \texttt{sfc}: kolona e gjeometrive; këtu jeton CRS-ja.
+    \item<4-> \texttt{sf}: tabela me atribute dhe një kolonë \texttt{geometry}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pika, vija, poligon}
+<<h3-sfg>>=
+library(sf)
+p  <- st_point(c(19.819, 41.328))                       # Tirana
+ln <- st_linestring(rbind(c(19.819, 41.328), c(19.455, 41.324)))
+pg <- st_polygon(list(rbind(c(0, 0), c(4, 0), c(4, 3), c(1, 4), c(0, 0))))
+st_as_text(p); st_as_text(ln); st_as_text(pg)
+class(pg)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pika: vektor me 2 numra, rendi (x, y) = (lon, lat).
+    \item<2-> Vija: matricë $n\times2$, një rresht për çdo kulm.
+    \item<3-> Poligoni: \textbf{listë} unazash; unaza e parë është kufiri i jashtëm, të tjerat janë vrima.
+    \item<4-> Unaza është e mbyllur: kulmi i fundit $=$ kulmi i parë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=gjejGabim103,fragile]{Gjej gabimin}
+<<h3-bug, error=TRUE>>=
+tri <- st_polygon(list(rbind(c(0, 0), c(1, 0), c(1, 1))))
+@
+  Çfarë mungon? Si e rregullojmë?
+  \shkoTe{zgjGabim103}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC: formula e lidhëzës}
+  \begin{itemize}
+    \item<1-> Për poligon me kulme $(x_1,y_1),\dots,(x_n,y_n)$, $(x_{n+1},y_{n+1})=(x_1,y_1)$:
+      \[ A=\tfrac12\Big|\sum_{i=1}^{n}(x_i y_{i+1}-x_{i+1}y_i)\Big| \quad\text{(\emph{shoelace formula})}\]
+    \item<2-> Kulmet: $(0,0),(4,0),(4,3),(1,4)$.
+    \item<3-> Termat: $0\cdot0-4\cdot0=0$; \; $4\cdot3-4\cdot0=12$; \; $4\cdot4-1\cdot3=13$; \; $1\cdot0-0\cdot4=0$.
+    \item<4-> $A=\tfrac12|0+12+13+0|=12.5$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pse funksionon formula?}
+  \begin{itemize}
+    \item<1-> Çdo term $\tfrac12(x_iy_{i+1}-x_{i+1}y_i)$ është sipërfaqja me shenjë e trekëndëshit $(O,P_i,P_{i+1})$.
+    \item<2-> Shenja: $+$ kur kalojmë kundër akrepave të orës, $-$ kur kalojmë në drejtim të tyre.
+    \item<3-> Trekëndëshat ``jashtë'' poligonit anulohen; mbetet vetëm sipërfaqja e brendshme.
+    \item<4-> Pasojë: kulmet në rend të gabuar $\Rightarrow$ sipërfaqe e gabuar (do ta shohim).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Formula e lidhëzës në R kundrejt \texttt{st\_area()}}
+<<h3-shoe>>=
+shoelace <- function(xy) {                 # xy: closed ring, n+1 rows
+  n <- nrow(xy) - 1
+  x <- xy[, 1]; y <- xy[, 2]
+  0.5 * abs(sum(x[1:n] * y[2:(n + 1)] - x[2:(n + 1)] * y[1:n]))
+}
+ring <- pg[[1]]                            # first (outer) ring
+c(shoelace = shoelace(ring), st_area = st_area(pg))
+st_length(st_cast(st_sfc(pg), "LINESTRING"))  # perimeter
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të dyja japin 12.5: \texttt{st\_area()} (GEOS) përdor të njëjtin parim.
+    \item<2-> Perimetri: $4+3+\sqrt{10}+\sqrt{17}=14.285$.
+    \item<3-> Pa CRS (\texttt{sfg}): njësitë janë ato të koordinatave; R nuk shton njësi.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushShoe103]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Llogaritni sipërfaqen e trekëndëshit $(0,0),(6,0),(2,5)$ me formulën e lidhëzës.
+      \item Ndërroni rendin e kulmeve: $(0,0),(2,5),(6,0)$. Çfarë ndodh me shumën para vlerës absolute?
+      \item Kontrolloni në R me \texttt{shoelace()} dhe \texttt{st\_area()}.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjShoe103}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=pyetjeBow103]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Poligoni ``papion'' $(0,0),(2,2),(2,0),(0,2),(0,0)$ kryqëzon veten. Çfarë sipërfaqe jep \texttt{st\_area()}?
+    \begin{enumerate}[A.]
+      \item 4 \quad B. 2 \quad C. 0 \quad D. gabim
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjBow103}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Gjeometri të pavlefshme}
+<<h3-valid>>=
+bow <- st_polygon(list(rbind(c(0, 0), c(2, 2), c(2, 0), c(0, 2), c(0, 0))))
+st_is_valid(bow, reason = TRUE)
+st_area(bow)
+fixed <- st_make_valid(bow)
+st_as_text(fixed); st_area(fixed)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Sipërfaqja 0: dy trekëndëshat kanë shenja të kundërta dhe anulohen.
+    \item<2-> \texttt{st\_is\_valid()} e zbulon: \emph{Self-intersection} në pikën $(1,1)$.
+    \item<3-> \texttt{st\_make\_valid()}: e ndan në dy poligone (\texttt{MULTIPOLYGON}), sipërfaqja 2.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Shapefile-t reale shpesh kanë poligone të pavlefshme. Kontrolloni me \texttt{st\_is\_valid()} para çdo llogaritjeje sipërfaqesh ose prerjesh.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Nga gjeometria te tabela}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Ndërtimi i \texttt{sfc} dhe \texttt{sf} me dorë të R}
+<<h3-sf>>=
+cities <- read.csv(file.path(W10DATA, "al_cities.csv"))
+geom <- st_sfc(lapply(seq_len(nrow(cities)),
+                      function(i) st_point(c(cities$lon[i], cities$lat[i]))),
+               crs = 4326)
+pts <- st_sf(city = cities$city, geometry = geom)
+pts2 <- st_as_sf(cities, coords = c("lon", "lat"), crs = 4326)
+all.equal(st_coordinates(pts), st_coordinates(pts2))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Rruga e gjatë: \texttt{st\_point} $\to$ \texttt{st\_sfc(crs=)} $\to$ \texttt{st\_sf()}.
+    \item<2-> Rruga e shkurtër: \texttt{st\_as\_sf(coords=, crs=)}.
+    \item<3-> Rezultati është i njëjtë (\texttt{TRUE}). Në praktikë përdorim të shkurtrën.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pyetje bazë mbi një objekt \texttt{sf}}
+<<h3-ask>>=
+st_geometry_type(pts)[1:2]
+st_crs(pts)$epsg
+st_bbox(pts)
+st_drop_geometry(pts)[1:3, , drop = FALSE]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{st\_geometry\_type()}: tipi për çdo rresht.
+    \item<2-> \texttt{st\_crs()\$epsg}: 4326.
+    \item<3-> \texttt{st\_bbox()}: drejtkëndëshi rrethues (\emph{bounding box}).
+    \item<4-> \texttt{st\_drop\_geometry()}: kthen \texttt{data.frame} të zakonshëm, p.sh.\ për \texttt{lm()} ose tabela.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Një rrugë: Shkodër--Tiranë--Elbasan--Korçë}
+<<h3-route>>=
+ord <- match(c("Shkoder", "Tirane", "Elbasan", "Korce"), cities$city)
+route <- st_sfc(st_linestring(as.matrix(cities[ord, c("lon", "lat")])),
+                crs = 4326)
+st_length(route)
+st_length(st_transform(route, 6870))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Në 4326: 199.06 km, mbi sferë (\texttt{s2}).
+    \item<2-> Në 6870 (Albania TM, metra në plan): 199.07 km. Ndryshim 10 m.
+    \item<3-> Vija ajrore nga qyteti në qytet, jo rruga automobilistike: 3 segmente, 4 kulme.
+    \item<4-> Rezultati ka njësi: \texttt{[m]}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Poligoni i Shqipërisë}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Leximi i shteteve}
+<<h3-read>>=
+balk <- st_read(file.path(W10DATA, "balkans_ne50.gpkg"), quiet = TRUE)
+alb  <- balk[balk$admin == "Albania", ]
+st_geometry_type(alb)
+nrow(st_coordinates(alb))         # number of vertices
+all(st_is_valid(balk))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Shqipëria është \texttt{MULTIPOLYGON}: format e Natural Earth ruhen të gjitha si \texttt{MULTI}.
+    \item<2-> Vetëm 113 kulme: shkallë 1:50m, bregdeti i thjeshtuar.
+    \item<3-> Të gjitha gjeometritë janë të vlefshme.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeArea103]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Shifra e cituar zakonisht për sipërfaqen e Shqipërisë është $28\,748$ km$^2$.
+    \begin{enumerate}
+      \item Çfarë njësie do të japë \texttt{st\_area(alb)} me CRS 4326: gradë katrore apo m$^2$?
+      \item A do të dalë më e madhe apo më e vogël se 28\,748 km$^2$? Pse?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjArea103}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Sipërfaqja dhe perimetri}
+<<h3-area>>=
+alb_tm <- st_transform(alb, 6870)
+area_km2 <- as.numeric(c(s2_sphere = st_area(alb), albania_tm = st_area(alb_tm))) / 1e6
+names(area_km2) <- c("s2_sphere", "albania_tm")
+round(area_km2, 1)
+perim <- st_length(st_cast(st_geometry(alb_tm), "MULTILINESTRING"))
+round(units::set_units(perim, km), 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Njësia: m$^2$ edhe në 4326. \texttt{s2} llogarit mbi sferë, jo në ``gradë katrore''.
+    \item<2-> 28\,335 km$^2$ (sferë) dhe 28\,373 km$^2$ (Albania TM): ndryshim 0.13\%.
+    \item<3-> Të dyja më të vogla se 28\,748: përgjithësimi 1:50m pret gjiret dhe kepet.
+    \item<4-> Perimetri 875.5 km varet shumë nga shkalla: sa më shumë detaje, aq më i gjatë (\emph{paradoksi i bregdetit}).
+  \end{itemize}
+  \LO{S3}
+\end{frame}
+
+\begin{frame}[fragile]{Qendra dhe fqinjët}
+<<h3-cent>>=
+cen <- st_centroid(st_geometry(alb_tm))
+st_coordinates(st_transform(cen, 4326))
+nb <- st_touches(alb, balk)
+balk$admin[nb[[1]]]
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Qendra gjeometrike: $(20.05^\circ, 41.14^\circ)$, rreth 3.6 km në veriperëndim të Elbasanit.
+    \item<2-> \texttt{st\_touches()}: shtetet që kanë kufi të përbashkët me Shqipërinë.
+    \item<3-> Katër fqinjë: Mali i Zi, Kosova, Maqedonia e Veriut, Greqia. Italia jo: kufi detar.
+  \end{itemize}
+  \begin{Keshille}Llogaritni centroidin në CRS të projektuar. Në 4326, \texttt{sf} përdor \texttt{s2} dhe rezultati mund të ndryshojë pak.\end{Keshille}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kallëzuesit hapësinorë}
+% ------------------------------------------------------------
+
+\begin{frame}{Kallëzuesit hapësinorë (\emph{spatial predicates})}
+  \begin{itemize}
+    \item<1-> Pyetje po/jo midis dy gjeometrive: \texttt{st\_intersects}, \texttt{st\_within}, \texttt{st\_contains}, \texttt{st\_touches}, \texttt{st\_disjoint}.
+    \item<2-> Bazë: modeli DE-9IM (brendësia, kufiri, jashtësia e secilës gjeometri).
+    \item<3-> \texttt{sparse = TRUE} (parazgjedhje): listë indeksesh; \texttt{FALSE}: matricë logjike.
+    \item<4-> \texttt{st\_within(A, B)} $\Leftrightarrow$ \texttt{st\_contains(B, A)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Zona 50 km rreth Tiranës}
+<<h3-buf>>=
+pts_tm <- st_transform(pts, 6870)
+buf50  <- st_buffer(pts_tm[pts_tm$city == "Tirane", ], dist = 50000)
+inside <- st_intersects(pts_tm, buf50, sparse = FALSE)[, 1]
+pts_tm$city[inside]
+c(buffer_km2 = as.numeric(st_area(buf50)) / 1e6, circle_km2 = pi * 50^2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Brenda 50 km: Tirana, Durrësi (30.4), Elbasani (32.6). Shkodra (86) jo.
+    \item<2-> Bufferi është poligon me shumë kulme: 7850.4 kundrejt $\pi\cdot50^2=7854.0$ km$^2$.
+    \item<3-> Ndryshimi 0.05\%: rrethi përafrohet me 120 segmente (30 për çerek).
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}\texttt{st\_buffer(x, 50000)} në 4326 nuk do të thotë 50\,000 gradë: \texttt{sf} e trajton si metra me \texttt{s2}. Por \texttt{dist = 0.5} do të ishte 0.5 m, jo gjysmë grade. Punoni në metra, në CRS të projektuar.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile]{Harta: rruga, zona dhe qytetet}
+<<h3-map, eval=FALSE>>=
+library(ggplot2)
+ggplot() +
+  geom_sf(data = alb_tm, fill = "grey95") +
+  geom_sf(data = buf50, fill = "steelblue", alpha = 0.25) +
+  geom_sf(data = st_transform(route, 6870), colour = "darkred") +
+  geom_sf(data = pts_tm, aes(colour = inside), size = 1.8) +
+  coord_sf(datum = 6870) + scale_x_continuous(breaks = c(450000, 550000)) +
+  theme_bw(base_size = 8) + labs(colour = "< 50 km")
+@
+\end{frame}
+
+\begin{frame}[fragile]{Rezultati: zona 50 km dhe rruga}
+<<h3-map-fig, ref.label="h3-map", echo=FALSE, fig.height=3.6, fig.width=4.0, out.width="0.42\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Të gjitha shtresat janë në 6870; \texttt{geom\_sf()} kërkon CRS të njëjtë ose i transformon vetë.
+    \item<2-> \texttt{coord\_sf(datum = 6870)}: boshtet në metra Albania TM, jo në gradë.
+    \item<3-> Rrethi duket rreth i vërtetë sepse projeksioni është konform (Ora 4).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushBuf103]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Ndryshoni \texttt{dist} në 25\,000, 90\,000 dhe 150\,000. Cilat qytete hyjnë?
+      \item Shtoni \texttt{nQuadSegs = 2} te \texttt{st\_buffer()}. Sa del sipërfaqja? Pse?
+      \item Me cilin \texttt{dist} minimal përfshihen të gjashtë qytetet?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjBuf103}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC103]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Kemi \texttt{x <- st\_point(c(1, 2))}. Cila thirrje krijon objekt me CRS?
+    \begin{enumerate}[A.]
+      \item \texttt{st\_point(c(1, 2), crs = 4326)}
+      \item \texttt{st\_sfc(x, crs = 4326)}
+      \item \texttt{st\_polygon(list(x))}
+      \item \texttt{st\_bbox(x)}
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC103}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushTPS103]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    Një ministri do të dijë sa banorë jetojnë brenda 10 km nga një spital.
+    \begin{enumerate}
+      \item Cilat shtresa ju duhen dhe çfarë tipi gjeometrie ka secila?
+      \item Cilat funksione \texttt{sf} do të përdornit, me radhë?
+      \item Në cilin CRS do të punonit dhe pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS103}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Fletë përmbledhëse: funksionet e orës}
+  \small
+  \begin{tabular}{ll}
+    \toprule
+    Detyra & Funksioni \\
+    \midrule
+    Krijo gjeometri & \texttt{st\_point}, \texttt{st\_linestring}, \texttt{st\_polygon} \\
+    Shto CRS / tabelë & \texttt{st\_sfc(crs=)}, \texttt{st\_sf}, \texttt{st\_as\_sf} \\
+    Lexo & \texttt{st\_read} \\
+    Kontrollo & \texttt{st\_is\_valid}, \texttt{st\_make\_valid}, \texttt{st\_geometry\_type} \\
+    Mat & \texttt{st\_area}, \texttt{st\_length}, \texttt{st\_distance} \\
+    Ndërto & \texttt{st\_buffer}, \texttt{st\_centroid}, \texttt{st\_cast} \\
+    Pyet & \texttt{st\_intersects}, \texttt{st\_within}, \texttt{st\_touches} \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp103]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Cili është ndryshimi midis \texttt{sfg}, \texttt{sfc} dhe \texttt{sf}?
+    \item Llogaritni pa ndihmën e PC sipërfaqen e katrorit $(0,0),(3,0),(3,3),(0,3)$ me formulën e lidhëzës.
+    \item Pse sipërfaqja e Shqipërisë nga Natural Earth del më e vogël se shifra zyrtare?
+  \end{enumerate}
+  \shkoTe{zgjCp103}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item \texttt{sfg} $\to$ \texttt{sfc} (CRS) $\to$ \texttt{sf} (tabelë); unazat e poligoneve mbyllen.
+    \item Formula e lidhëzës $=$ \texttt{st\_area()}: 12.5; poligoni papion jep 0 $\Rightarrow$ \texttt{st\_is\_valid()}.
+    \item Shqipëria (1:50m): 28\,373 km$^2$ në Albania TM; 4 fqinjë tokësorë.
+    \item Buffer 50 km rreth Tiranës: Durrësi dhe Elbasani brenda.
+    \item Punoni në metra (CRS i projektuar) për buffer, sipërfaqe dhe centroid.
+  \end{itemize}
+  \begin{Keshille}Ora 4: projeksionet: si e shtrijmë elipsoidin në plan dhe çfarë humbet.\end{Keshille}
+\end{frame}
