@@ -1,0 +1,302 @@
+% ============================================================
+%  Java 9 · Ora 5 — R Lab II: Smarket, ROC, simulim me kufi të njohur
+%  Rezultatet: S4, S3, C1
+%  Burimi: repo DS612 Lecture_4.R (Smarket: glm, lda, qda, knn); ISLR kap. 4.7;
+%          dokumentacioni i pROC
+% ============================================================
+
+\section[R Lab II]{R Lab II: LDA, QDA, KNN, ROC}
+
+\begin{frame}{Ora 5: R Lab II --- LDA, QDA, KNN, ROC}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\texttt{Smarket}: katër metoda}
+% ------------------------------------------------------------
+
+\begin{frame}{Plani i laboratorit \LO{S4} \LO{S3} \LO{C1}}
+  \begin{itemize}
+    \item<1-> \texttt{Smarket} (\textbf{reale}: kthimet ditore të S\&P 500, 2001--2005, ISLR): a mund të parashikojmë drejtimin e tregut?
+    \item<2-> Sipas repo \texttt{Lecture\_4.R}: train 2001--2004, test 2005.
+    \item<3-> \texttt{Default} (sintetike): ROC dhe AUC për 4 metoda.
+    \item<4-> Simulim me kufi të njohur: kush i afrohet gabimit të Bayes-it?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Të dhënat dhe ndarja}
+<<h5-smarket>>=
+library(MASS); library(class)
+sm <- read.csv(file.path(W09DATA, "Smarket.csv"), stringsAsFactors = TRUE)
+dim(sm)
+train <- sm$Year < 2005
+sm_te <- sm[!train, ]
+c(n_train = sum(train), n_test = nrow(sm_te),
+  share_up_test = round(mean(sm_te$Direction == "Up"), 4))
+acc <- function(pred) round(mean(pred == sm_te$Direction), 4)
+@
+\end{frame}
+
+\begin{frame}[label=pyetjeSm]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Në 2005, tregu u ngrit në 55.95\% të ditëve.
+    \begin{enumerate}
+      \item Çfarë saktësie ka rregulli ``thuaj gjithmonë Up''?
+      \item A pret që një model me kthimet e 5 ditëve të fundit ta kalojë ndjeshëm këtë?
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjSm}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Logjistiku: 6 parashikues kundrejt 2}
+<<h5-logit>>=
+g6 <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
+          data = sm, family = binomial, subset = train)
+p6 <- ifelse(predict(g6, sm_te, type = "response") > 0.5, "Up", "Down")
+g2 <- glm(Direction ~ Lag1 + Lag2, data = sm, family = binomial, subset = train)
+p2 <- ifelse(predict(g2, sm_te, type = "response") > 0.5, "Up", "Down")
+c(logit_6 = acc(p6), logit_2 = acc(p2))
+table(pred = p2, true = sm_te$Direction)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Me 6 parashikues: 48.0\%, \textbf{më keq se hedhja e monedhës}.
+    \item<2-> Me \texttt{Lag1 + Lag2}: 55.95\%: saktësisht sa ``gjithmonë Up''.
+    \item<3-> Parashikuesit pa sinjal shtojnë vetëm variancë: mbi-përshtatje (Java 6).
+    \item<4-> Kur parashikon ``Up'': $106/182=58.2\%$ të saktë: pak mbi bazën.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{LDA dhe QDA}
+<<h5-lda>>=
+fit_lda <- lda(Direction ~ Lag1 + Lag2, data = sm, subset = train)
+fit_lda$prior
+round(fit_lda$means, 4)
+fit_qda <- qda(Direction ~ Lag1 + Lag2, data = sm, subset = train)
+c(lda = acc(predict(fit_lda, sm_te)$class),
+  qda = acc(predict(fit_qda, sm_te)$class))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Priorët: 49.2\% Down, 50.8\% Up (nga 2001--2004).
+    \item<2-> Mesataret: para ditëve Up, \texttt{Lag1} dhe \texttt{Lag2} janë pak \textbf{negative}: tendencë e dobët rikthimi.
+    \item<3-> LDA: 55.95\%, njësoj si logjistiku (Ora 4: e njëjta formë lineare).
+    \item<4-> QDA: \textbf{59.9\%}: më i miri; kufiri kuadratik kap diçka që lineari nuk e kap.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{KNN}
+<<h5-knn>>=
+X <- cbind(sm$Lag1, sm$Lag2)
+set.seed(1)
+k1 <- knn(X[train, ], X[!train, ], sm$Direction[train], k = 1)
+set.seed(1)
+k3 <- knn(X[train, ], X[!train, ], sm$Direction[train], k = 3)
+c(knn1 = acc(k1), knn3 = acc(k3))
+@
+  \begin{itemize}
+    \item<2-> $K=1$: 50\%; $K=3$: 53.2\%. KNN nuk ndihmon: sinjali, nëse ekziston, është shumë i dobët.
+    \item<3-> \texttt{set.seed()}: \texttt{knn} zgjidh barazimet rastësisht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Përmbledhje: \texttt{Smarket}}
+  \centering
+  \begin{tabular}{@{}lc@{}}
+    \toprule Metoda & Saktësia në 2005\\ \midrule
+    ``Gjithmonë Up'' & 55.95\%\\
+    Logjistik, 6 parashikues & 48.0\%\\
+    Logjistik, \texttt{Lag1 + Lag2} & 55.95\%\\
+    LDA & 55.95\%\\
+    QDA & \textbf{59.9\%}\\
+    KNN, $K=1$ / $K=3$ & 50.0\% / 53.2\%\\ \bottomrule
+  \end{tabular}
+  \pause
+  \begin{Gabim}``QDA parashikon tregun me 60\% saktësi.'' Një vit test me 252 ditë: SE $\approx\sqrt{0.6\cdot0.4/252}=3.1$ pikë. Diferenca nga 56\% është afër zhurmës. Mos e përdorni për investime!\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{ROC dhe AUC te \texttt{Default}}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Katër metoda te \texttt{Default}}
+<<h5-default>>=
+default_df <- read.csv(file.path(W09DATA, "Default.csv"), stringsAsFactors = TRUE)
+set.seed(2026); itr <- sample(nrow(default_df), 7000)
+dtr <- default_df[itr, ]; dte <- default_df[-itr, ]
+fm <- default ~ balance + student + income
+p_log <- predict(glm(fm, dtr, family = binomial), dte, type = "response")
+p_lda <- predict(lda(fm, dtr), dte)$posterior[, "Yes"]
+p_qda <- predict(qda(fm, dtr), dte)$posterior[, "Yes"]
+Xs <- scale(model.matrix(~ balance + student + income, default_df)[, -1])
+set.seed(2026)
+kn <- knn(Xs[itr, ], Xs[-itr, ], default_df$default[itr], k = 25, prob = TRUE)
+p_knn <- ifelse(kn == "Yes", attr(kn, "prob"), 1 - attr(kn, "prob"))
+@
+\end{frame}
+
+\begin{frame}[fragile]{AUC}
+<<h5-auc>>=
+library(pROC)
+probs <- list(logistic = p_log, lda = p_lda, qda = p_qda, knn25 = p_knn)
+rocs <- lapply(probs, function(p)
+  roc(dte$default, p, levels = c("No", "Yes"), direction = "<", quiet = TRUE))
+round(sapply(rocs, auc), 4)
+@
+  \begin{itemize}
+    \item<2-> Logjistik, LDA, QDA: AUC $\approx0.944$, pothuajse identike.
+    \item<3-> KNN: 0.905. Me 3 parashikues dhe kufi pothuajse linear, metodat parametrike fitojnë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=8]{Kurbat ROC}
+<<h5-roc-plot, fig.height=3.2, fig.width=4.2, out.width="0.42\\textwidth">>=
+cols <- c("#2C5AA0", "#15803D", "#D97706", "#B91C1C")
+plot(rocs[[1]], col = cols[1], legacy.axes = TRUE, lwd = 2)
+for (k in 2:4) plot(rocs[[k]], add = TRUE, col = cols[k], lwd = 2)
+legend("bottomright", names(rocs), col = cols, lwd = 2, bty = "n", cex = 0.7)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Boshti $x$: $1-$specifiteti (FPR); $y$: sensitiviteti (TPR).
+    \item<2-> Tri kurbat parametrike pothuajse mbivendosen; KNN pak më poshtë.
+    \item<3-> AUC 0.944: një klient me default ka 94\% shans të renditet mbi një klient pa default.
+    \item<4-> Pragu 0.5 (Ora 3) është vetëm \textbf{një pikë} në këtë kurbë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushKnnK]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(6 minuta)]
+    \begin{enumerate}
+      \item Llogarit AUC e KNN për $K=1,\ 5,\ 100$ (me \texttt{set.seed(2026)}).
+      \item Pse $K=1$ jep AUC shumë të ulët?
+      \item Provo KNN \textbf{pa} \texttt{scale()} me $K=25$. Çfarë ndodh?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjKnnK}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Simulim: kufi i njohur}
+% ------------------------------------------------------------
+
+\begin{frame}{Dy skenarë \hfill\small(sintetike)}
+  \begin{itemize}
+    \item<1-> $Y\in\{0,1\}$ me $\pi=0.5$; $X\mid Y=0\sim N_2(0,I)$.
+    \item<2-> \textbf{Skenari A} (kovariancë e njëjtë): $X\mid Y=1\sim N_2\big((1.5,1.5),\,I\big)$ $\Rightarrow$ kufiri i Bayes-it \textbf{linear}.
+    \item<3-> \textbf{Skenari B} (kovariancë e ndryshme): $X\mid Y=1\sim N_2\big((1,1),\,4I\big)$ $\Rightarrow$ kufiri i Bayes-it \textbf{kuadratik} (rreth).
+    \item<4-> Train $n=200$, test 10\,000; 50 përsëritje. Gabimi i Bayes-it nga dendësitë e vërteta.
+    \item<5-> KNN: $K$ nga \texttt{knn.cv} (LOOCV) mbi $\{1,5,10,20,30,50\}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=10]{Kodi}
+<<h5-sim, cache=FALSE>>=
+gen <- function(n, scen) {
+  y <- rbinom(n, 1, 0.5); x <- matrix(rnorm(2 * n), n)
+  if (scen == "A") x[y == 1, ] <- x[y == 1, ] + 1.5 else x[y == 1, ] <- 2 * x[y == 1, ] + 1
+  data.frame(x1 = x[, 1], x2 = x[, 2], y = factor(y)) }
+bayes <- function(d, scen) {
+  f0 <- dnorm(d$x1) * dnorm(d$x2)
+  f1 <- if (scen == "A") dnorm(d$x1, 1.5) * dnorm(d$x2, 1.5) else dnorm(d$x1, 1, 2) * dnorm(d$x2, 1, 2)
+  factor(as.numeric(f1 > f0), levels = 0:1) }
+set.seed(2026)
+for (scen in c("A", "B")) {
+  te <- gen(10000, scen); err <- function(p) mean(p != te$y)
+  res <- replicate(50, {
+    d <- gen(200, scen)
+    pg <- factor(as.numeric(predict(glm(y ~ x1 + x2, d, family = binomial), te,
+                                    type = "response") > 0.5), levels = 0:1)
+    ks <- c(1, 5, 10, 20, 30, 50)
+    kb <- ks[which.min(sapply(ks, function(k) mean(knn.cv(d[, 1:2], d$y, k = k) != d$y)))]
+    c(logit = err(pg), lda = err(predict(lda(y ~ x1 + x2, d), te)$class),
+      qda = err(predict(qda(y ~ x1 + x2, d), te)$class),
+      knn1 = err(knn(d[, 1:2], te[, 1:2], d$y, k = 1)),
+      knn_cv = err(knn(d[, 1:2], te[, 1:2], d$y, k = kb))) })
+  cat("scenario", scen, " Bayes error:", round(err(bayes(te, scen)), 4), "\n")
+  print(round(rowMeans(res), 4)) }
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon? (vlerësimi kundrejt së vërtetës)}
+  \begin{itemize}
+    \item<1-> \textbf{A} (linear): Bayes 14.2\%; logjistik, LDA, QDA $\approx14.5\%$; KNN-CV 15.2\%; KNN-1 20.6\%.
+    \item<2-> \textbf{B} (kuadratik): Bayes 22.0\%; \textbf{QDA 22.7\%}; KNN-CV 25.6\%; logjistik dhe LDA $\approx31\%$.
+    \item<3-> Kur supozimet përputhen me të vërtetën, metoda parametrike i afrohet tavanit.
+    \item<4-> KNN-CV: kurrë më i miri, por kurrë katastrofik. $K=1$: gjithmonë i dobët (variancë).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=25]{Kufijtë në skenarin B}
+<<h5-bound, fig.height=3.2, fig.width=4.4, out.width="0.42\\textwidth">>=
+set.seed(3); d <- gen(200, "B")
+gr <- expand.grid(x1 = seq(-4, 6, length.out = 120), x2 = seq(-4, 6, length.out = 120))
+z_l <- as.numeric(predict(lda(y ~ x1 + x2, d), gr)$class) - 1
+z_q <- as.numeric(predict(qda(y ~ x1 + x2, d), gr)$class) - 1
+z_b <- as.numeric(bayes(gr, "B")) - 1
+plot(d$x1, d$x2, col = c("#2C5AA0", "#D97706")[d$y], pch = 16, cex = 0.6,
+     xlab = "x1", ylab = "x2")
+for (z in list(list(z_b, 1, "black"), list(z_l, 2, "#15803D"), list(z_q, 1, "#B91C1C")))
+  contour(unique(gr$x1), unique(gr$x2), matrix(z[[1]], 120), levels = 0.5,
+          add = TRUE, drawlabels = FALSE, lty = z[[2]], col = z[[3]], lwd = 2)
+legend("topleft", c("Bayes", "LDA", "QDA"), lty = c(1, 2, 1),
+       col = c("black", "#15803D", "#B91C1C"), lwd = 2, bty = "n", cex = 0.7)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Kufiri i Bayes-it (i zi): rreth rreth klasës 0.
+    \item<2-> QDA (i kuq): rreth i ngjashëm, sepse supozimi i saj është i saktë.
+    \item<3-> LDA (jeshil, i ndërprerë): vijë e drejtë; nuk e kap dot rrethin.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab95]{Gjej gabimin}
+<<h5-bug>>=
+set.seed(1)
+k_bad <- knn(X[train, ], X[train, ], sm$Direction[train], k = 1)
+mean(k_bad == sm$Direction[train])
+@
+  \begin{itemize}
+    \item Një student raporton: ``KNN me $K=1$ ka saktësi 100\% te \texttt{Smarket}.'' Çfarë nuk shkon?
+  \end{itemize}
+  \shkoTe{zgjGab95}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabime të zakonshme në laborator}
+  \begin{Gabim}\texttt{predict(lda\_fit)} kthen listë: \texttt{\$class} për klasën, \texttt{\$posterior} për probabilitetet.\end{Gabim}
+  \pause
+  \begin{Gabim}\texttt{roc()} pa \texttt{levels} dhe \texttt{direction}: \texttt{pROC} mund ta kthejë kurbën përmbys dhe AUC del $<0.5$.\end{Gabim}
+  \pause
+  \begin{Gabim}\texttt{knn(\dots, prob = TRUE)} jep probabilitetin e klasës \textbf{fituese}, jo të ``Yes''; duhet konvertim.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=cp95]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Pse logjistiku me 6 parashikues bën më keq se me 2 te \texttt{Smarket}?
+    \item Në skenarin B, pse QDA fiton dhe LDA humbet?
+    \item Pse AUC është metrikë më e mirë se saktësia te \texttt{Default}?
+  \end{enumerate}
+  \shkoTe{zgjCp95}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item \texttt{Smarket}: të gjitha metodat afër 56\% bazë; QDA 59.9\% (brenda zhurmës).
+    \item \texttt{Default}: AUC $\approx0.944$ për logjistik, LDA, QDA; KNN 0.905.
+    \item Simulim A: parametriket $\approx$ Bayes; B: QDA $\approx$ Bayes, LDA/logjistik shumë më keq.
+    \item KNN: $K$ me CV; $K=1$ ka variancë të madhe.
+  \end{itemize}
+  \begin{Keshille}Ora 6: rast studimi \texttt{Default}: krahasim me CV, kalibrim, pragu sipas kostos, raport.\end{Keshille}
+\end{frame}

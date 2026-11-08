@@ -1,0 +1,39 @@
+% ============================================================
+%  Java 9 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjSm]{Zgjidhja: Parashiko (\texttt{Smarket})}
+  \begin{enumerate}
+    \item 55.95\%: rregulli më i thjeshtë i mundshëm, pa asnjë parashikues.
+    \item Jo shumë: nëse kthimet e kaluara do të parashikonin mirë, tregtarët do ta kishin shfrytëzuar këtë (hipoteza e tregut efikas). Prisni rezultate afër 50--56\%.
+  \end{enumerate}
+  \vfill\kthehu{pyetjeSm}
+\end{frame}
+
+\begin{frame}[label=zgjKnnK]{Zgjidhja: Ndrysho parametrin (KNN te \texttt{Default})}
+  \begin{itemize}
+    \item AUC me \texttt{scale()}: $K=1$: 0.714; $K=5$: 0.826; $K=25$: 0.905; $K=100$: 0.930.
+    \item $K=1$: ``probabiliteti'' është 0 ose 1: vetëm dy pragje, kurba ROC ka një pikë; dhe variancë e madhe.
+    \item $K$ i madh: probabilitete më të lëmuara, renditje më e mirë; afrohet te modelet parametrike (0.944).
+    \item Pa \texttt{scale()}, $K=25$: 0.883: \texttt{income} (në \$) dominon distancën, \texttt{balance} humbet peshë.
+  \end{itemize}
+  \vfill\kthehu{ushKnnK}
+\end{frame}
+
+\begin{frame}[label=zgjGab95]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item KNN me $K=1$ u vlerësua mbi \textbf{të njëjtat} të dhëna të trajnimit: çdo pikë është fqinji i vet më i afërt.
+    \item Saktësia 100\% është gabimi i trajnimit, jo i testit.
+    \item Gabimi i vërtetë i testit (2005) për $K=1$: 50\%.
+  \end{itemize}
+  \vfill\kthehu{gjejGab95}
+\end{frame}
+
+\begin{frame}[label=zgjCp95]{Përgjigjet: Checkpoint Ora 5}
+  \begin{enumerate}
+    \item Parashikuesit shtesë nuk kanë sinjal: shtojnë variancë pa ulur zhvendosjen; me pak sinjal, kjo e ul saktësinë në test.
+    \item Kufiri i vërtetë i Bayes-it është kuadratik (kovarianca të ndryshme); QDA e supozon pikërisht këtë, LDA supozon kufi linear.
+    \item Klasa e rrallë (3.3\%): saktësia dominohet nga ``Jo''; AUC mat renditjen e të gjitha çifteve pozitiv--negativ, pavarësisht përqindjes dhe pragut.
+  \end{enumerate}
+  \vfill\kthehu{cp95}
+\end{frame}
