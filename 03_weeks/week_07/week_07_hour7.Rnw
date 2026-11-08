@@ -1,0 +1,342 @@
+% ============================================================
+%  Java 7 · Ora 7 — Konsolidimi
+%  Rezultatet: S3, C1, S4
+% ============================================================
+
+\section{Konsolidimi}
+
+\begin{frame}{Ora 7: Konsolidimi}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuizi në stilin e provimit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuizi: si funksionon}
+  \begin{itemize}
+    \item<1-> Si në provim: \textbf{25\% teori, 75\% ushtrime}; 3 pyetje teorike (25 pikë) + 7 ushtrime (75 pikë).
+    \item<2-> Koha: 45 minuta. Ushtrimet 1--5 dhe 7 bëhen pa ndihmën e PC.
+    \item<3-> Ushtrimet 1, 2 dhe 5: $x=(2,3,4,5,11)$, $y=(2,4,5,5,9)$, model $y\sim x$ (\textbf{sintetike}).
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Shkruaj gjithmonë formulën para numrave: pikët jepen edhe për rrugën.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=q7T1]{Teori 1 (8 pikë)}
+  \begin{Ushtrim}[(Teori 1)]
+    \begin{enumerate}
+      \item Përkufizoni leverage $h_{ii}$. Pse varet vetëm nga $X$? Sa është $\sum_i h_{ii}$?
+      \item Dalloni vlerën ekstreme, pikën me leverage të lartë dhe pikën me ndikim. Jepni një shembull ku pika ka mbetje të vogël por ndikim të madh.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s7T1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q7T2]{Teori 2 (8 pikë)}
+  \begin{Ushtrim}[(Teori 2)]
+    \begin{enumerate}
+      \item Cili supozim, kur shkelet, e zhvendos $\hat\beta$? Cilat prishin vetëm SE?
+      \item Shkruani formulën sandwich për $\operatorname{Var}(\hat\beta)$ dhe shpjegoni kur thjeshtohet në $\sigma^2(X^\top X)^{-1}$.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s7T2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q7T3]{Teori 3 (9 pikë)}
+  \begin{Ushtrim}[(Teori 3)]
+    \begin{enumerate}
+      \item Përkufizoni VIF dhe lidhjen e tij me SE.
+      \item Çfarë është transformimi Box--Cox dhe si zgjidhet $\lambda$?
+      \item Pse heqja automatike e përsëritur e vlerave ekstreme është e gabuar?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s7T3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q7E1]{Ushtrimi 1 (10 pikë): vlerësimi dhe leverage}
+  \begin{Ushtrim}[(Ushtrimi 1, pa ndihmën e PC)]
+    $x=(2,3,4,5,11)$, $y=(2,4,5,5,9)$.
+    \begin{enumerate}
+      \item Llogaritni $\bar x$, $\bar y$, $S_{xx}$, $S_{xy}$, $b_0$, $b_1$.
+      \item Llogaritni $h_{ii}$ për të gjitha pikat dhe kontrolloni $\sum h_{ii}$.
+      \item Cila pikë e kalon pragun $2(p+1)/n$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s7E1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q7E2]{Ushtrimi 2 (10 pikë): mbetjet dhe Cook}
+  \begin{Ushtrim}[(Ushtrimi 2, pa ndihmën e PC)]
+    Me rezultatet e Ushtrimit 1:
+    \begin{enumerate}
+      \item Llogaritni mbetjet $e_i$, SSE dhe $\hat\sigma$.
+      \item Llogaritni $r_i$ dhe $D_i$ për pikat 1 dhe 5.
+      \item Për pikën 1: $t_1=r_1\sqrt{2/(3-r_1^2)}$. Me vlerën kritike Bonferroni 9.92, a është vlerë ekstreme?
+      \item Cila pikë ka ndikimin më të madh? Pse?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s7E2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q7E3]{Ushtrimi 3 (10 pikë): VIF}
+  \begin{Ushtrim}[(Ushtrimi 3, pa ndihmën e PC)]
+    Në një model me tre parashikues, regresionet ndihmëse japin $R_1^2=0.20$, $R_2^2=0.75$, $R_3^2=0.90$.
+    \begin{enumerate}
+      \item Llogaritni VIF për secilin dhe sa herë rritet SE.
+      \item $\text{SE}(\hat\beta_3)=0.60$. Sa do të ishte afërsisht pa kolinearitet?
+      \item Cilin parashikues do të shqyrtonit për heqje? Çfarë duhet kontrolluar para heqjes?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s7E3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q7E4]{Ushtrimi 4 (10 pikë): BP dhe SE robuste}
+  \begin{Ushtrim}[(Ushtrimi 4, pa ndihmën e PC)]
+    $n=100$, $p=3$. Regresi ndihmës i $e_i^2$ mbi parashikuesit jep $R^2_{\text{aux}}=0.12$. $\chi^2_{3;\,0.95}=7.81$, $t_{0.975;\,96}=1.98$.
+    \begin{enumerate}
+      \item Llogaritni BP dhe vendosni për $H_0$.
+      \item Për $x_1$: $\hat\beta_1=0.50$, SE klasike 0.20, SE HC3 0.30. Llogaritni të dyja statistikat $t$.
+      \item A ndryshon përfundimi për $x_1$? Cilin raportoni?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s7E4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q7E5]{Ushtrimi 5 (10 pikë): SE HC0 pa ndihmën e PC}
+  \begin{Ushtrim}[(Ushtrimi 5, pa ndihmën e PC)]
+    Me të dhënat e Ushtrimeve 1--2:
+    \begin{enumerate}
+      \item Llogaritni SE klasike të $\hat\beta_1$: $\hat\sigma/\sqrt{S_{xx}}$.
+      \item Llogaritni SE HC0: $\sqrt{\sum(x_i-\bar x)^2e_i^2}\,/\,S_{xx}$.
+      \item Cila pikë jep kontributin më të madh në shumë? Pse HC3 do të jepte vlerë shumë më të madhe?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s7E5}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[fragile,shrink=12,label=q7E6]{Ushtrimi 6 (10 pikë): lexo output-in}
+<<quiz7-auto, echo=FALSE>>=
+suppressMessages({library(lmtest); library(car)})
+auto_q <- na.omit(read.csv(file.path(W07DATA, "Auto.csv"), na.strings = "?"))
+fit_q <- lm(mpg ~ horsepower + weight + year, data = auto_q)
+bptest(fit_q)
+round(vif(fit_q), 2)
+outlierTest(fit_q)
+@
+  Interpretoni të tre output-et. Çfarë do të shihnit te grafikët? Propozoni dy korrigjime. \hfill\shkoTe{s7E6}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q7E7]{Ushtrimi 7 (15 pikë): Box--Cox dhe interpretimi}
+  \begin{Ushtrim}[(Ushtrimi 7, pa ndihmën e PC)]
+    \small
+    Për modelin \texttt{mpg \textasciitilde{} horsepower + weight + year}: \texttt{boxcox} jep $\hat\lambda=-0.38$, IB 95\% $[-0.54,\,-0.22]$. Modeli me $\log(\texttt{mpg})$ jep $\hat\beta_{\texttt{year}}=0.0298$. \;$e^{0.0298}=1.030$, $e^{0.0596}=1.061$.
+    \begin{enumerate}
+      \item A nevojitet transformim? Pse?
+      \item A është log brenda IB? Jepni dy arsye për ta zgjedhur prapëseprapë.
+      \item Interpretoni $\hat\beta_{\texttt{year}}$. Sa ndryshon \texttt{mpg} për 2 vite modeli?
+      \item Pse nuk mund të krahasoni drejtpërdrejt $R^2$ e modelit me \texttt{mpg} dhe me $\log(\texttt{mpg})$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s7E7}{Zgjidhja}
+\end{frame}
+
+\begin{frame}{Tabela e pikëve}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Pjesa & Pyetjet & Pikët \\ \midrule
+    Teori (25\%) & T1, T2, T3 & 8 + 8 + 9 = 25 \\
+    Ushtrime (75\%) & U1--U6 & $6\times10=60$ \\
+     & U7 & 15 \\ \midrule
+    Gjithsej & 10 & 100 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Nën 50 pikë: përsëritni Orët 2 dhe 4.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ushtrime për shtëpi}
+% ------------------------------------------------------------
+
+\begin{frame}[label=h7H1]{Ushtrime për shtëpi 1--2}
+  \begin{Ushtrim}[(Shtëpi 1: \texttt{Advertising})]
+    Modeli \texttt{sales \textasciitilde{} TV + radio + newspaper}: \texttt{plot(fit)}, \texttt{bptest}, \texttt{crPlots}. Shtoni ndërveprimin \texttt{TV:radio}. Çfarë ndodh me formën U dhe me BP?
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 2: \texttt{Auto})]
+    Te \texttt{log(mpg)} zëvendësoni \texttt{horsepower} me \texttt{poly(horsepower, 2)}. Krahasoni me 10-fold CV në shkallën e \texttt{mpg}.
+  \end{Ushtrim}
+  \shkoTe{s7H1}{Udhëzime}
+\end{frame}
+
+\begin{frame}[label=h7H3]{Ushtrime për shtëpi 3--4}
+  \begin{Ushtrim}[(Shtëpi 3: \texttt{Credit})]
+    VIF për \texttt{Balance \textasciitilde{} Income + Limit + Rating + Cards + Age + Education} (pa kolonën e etnisë). Hiqni një variabël dhe argumentoni zgjedhjen me SE, $R^2$ dhe CV.
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 4: simulim)]
+    Përsëritni simulimin e Orës 5 për $n=20, 50, 200$. Bëni tabelë të madhësisë së testit për SE klasike, HC0, HC3. Çfarë ndodh kur rritet $n$?
+  \end{Ushtrim}
+  \shkoTe{s7H3}{Udhëzime}
+\end{frame}
+
+\begin{frame}[label=h7H5]{Ushtrime për shtëpi 5--6}
+  \begin{Ushtrim}[(Shtëpi 5: teori)]
+    Vërtetoni: (a) $H$ është simetrike dhe idempotente; (b) $\sum h_{ii}=p+1$; (c) $\operatorname{Var}(e)=\sigma^2(I-H)$.
+  \end{Ushtrim}
+  \begin{Ushtrim}[(Shtëpi 6: \texttt{Boston}, raport)]
+    Shkruani raportin 1-faqësh të Orës 6 (6 pikat) për modelin me \texttt{poly(rm, 2)}. Përfshini IB me HC3 dhe analizën pa zonat me \texttt{medv} $=50$.
+  \end{Ushtrim}
+  \shkoTe{s7H5}{Udhëzime}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gabimet e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet e zakonshme: mbetjet dhe pikat}
+  \begin{Gabim}Krahasimi i mbetjeve të papërpunuara $e_i$; duhet $r_i$ ose $t_i$.\end{Gabim}
+  \pause
+  \begin{Gabim}``Mbetje e vogël, pra pika është në rregull'': harron leverage-in.\end{Gabim}
+  \pause
+  \begin{Gabim}Heqja e pikave pa kontrolluar burimin, ose heqja e përsëritur deri sa ``të pastrohet''.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: supozimet}
+  \begin{Gabim}SE robuste si ``ilaç'' për jolinearitetin: ato nuk e korrigjojnë $\hat\beta$.\end{Gabim}
+  \pause
+  \begin{Gabim}Testimi i normalitetit të $y$ në vend të mbetjeve; ose besimi te Shapiro me $n$ të madh.\end{Gabim}
+  \pause
+  \begin{Gabim}Heqja e variablave me VIF të lartë pa menduar për pyetjen kërkimore.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: transformimet dhe raportimi}
+  \begin{Gabim}$\log y$ me $y=0$; Box--Cox kërkon $y>0$.\end{Gabim}
+  \pause
+  \begin{Gabim}Krahasimi i $R^2$ ose MSE në shkallë të ndryshme ($y$ kundrejt $\log y$).\end{Gabim}
+  \pause
+  \begin{Gabim}\texttt{coeftest(fit)} pa \texttt{vcov.}: SE klasike, jo robuste.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit e diagnostikimit}
+  \small
+  \begin{enumerate}
+    \item \texttt{plot(fit)}: formë (U)? hinkë? bishta? pika të veçanta?
+    \item \texttt{crPlots}: cili parashikues ka lakim?
+    \item \texttt{bptest}: heteroskedasticitet? $\Rightarrow$ HC3.
+    \item \texttt{rstudent}, \texttt{outlierTest}: vlera ekstreme? Kontrollo burimin.
+    \item \texttt{hatvalues}, \texttt{cooks.distance}: ndikim? Raporto me/pa.
+    \item \texttt{vif}: kolinearitet? Interpreto me kujdes.
+    \item Transformim (log, Box--Cox) $\Rightarrow$ \textbf{rikontrollo 1--6}.
+    \item Validim me CV në shkallën origjinale.
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fletë-kujtesa}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë-kujtesa 1: formulat}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Madhësia & Formula \\ \midrule
+    Matrica hat & $H=X(X^\top X)^{-1}X^\top$, \ $h_{ii}\in[1/n,1]$, \ $\sum h_{ii}=p+1$ \\
+    Regres i thjeshtë & $h_{ii}=1/n+(x_i-\bar x)^2/S_{xx}$ \\
+    Mbetjet & $\operatorname{Var}(e_i)=\sigma^2(1-h_{ii})$, \ $r_i=e_i/(\hat\sigma\sqrt{1-h_{ii}})$ \\
+    Studentizuar & $t_i=r_i\sqrt{(n-p-2)/(n-p-1-r_i^2)}\sim t_{n-p-2}$ \\
+    Cook & $D_i=\frac{r_i^2}{p+1}\frac{h_{ii}}{1-h_{ii}}$ \\
+    Sandwich & $(X^\top X)^{-1}\big(\sum\omega_ix_ix_i^\top\big)(X^\top X)^{-1}$, HC3: $\omega_i=e_i^2/(1-h_{ii})^2$ \\
+    BP & $nR^2_{\text{aux}}\sim\chi^2_p$ \\
+    VIF & $1/(1-R_j^2)$; \ SE $\times\sqrt{\text{VIF}}$ \\
+    Box--Cox & $(y^\lambda-1)/\lambda$; \ $\lambda=0$: $\log y$ \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 2: funksionet R}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Detyra & Funksioni \\ \midrule
+    Leverage, mbetje & \Rkey{hatvalues()}, \Rkey{rstandard()}, \Rkey{rstudent()} \\
+    Ndikimi & \Rkey{cooks.distance()}, \Rkey{dffits()}, \Rkey{dfbetas()}, \Rkey{influence.measures()} \\
+    Vlerat ekstreme & \Rkey{car::outlierTest()} \\
+    Heteroskedasticiteti & \Rkey{lmtest::bptest()} \\
+    SE robuste & \Rkey{coeftest(fit, vcov. = vcovHC(fit, type = "HC3"))} \\
+    Normaliteti & \Rkey{shapiro.test(rstandard(fit))} \\
+    Autokorrelacioni & \Rkey{lmtest::dwtest()}, \Rkey{acf(resid(fit))} \\
+    Kolineariteti & \Rkey{car::vif()} \\
+    Transformimi & \Rkey{MASS::boxcox()}, \Rkey{car::powerTransform()} \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 3: grafikët}
+  \small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Grafiku & Komanda & Çfarë kërkon \\ \midrule
+    Residuals vs Fitted & \Rkey{plot(fit, which = 1)} & formë U $\Rightarrow$ jolinearitet \\
+    Q-Q & \Rkey{plot(fit, which = 2)} & bishta, anim \\
+    Scale-Location & \Rkey{plot(fit, which = 3)} & pjerrësi $\Rightarrow$ hinkë \\
+    Cook & \Rkey{plot(fit, which = 4)} & shtyllë e dalluar \\
+    Res.\ vs Leverage & \Rkey{plot(fit, which = 5)} & pika jashtë konturit $D=0.5$ \\
+    CR & \Rkey{car::crPlots(fit)} & lakim për një $x_j$ \\
+    Ndikim & \Rkey{car::influencePlot(fit)} & rrathë të mëdhenj \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Pamje e Javës 8}
+% ------------------------------------------------------------
+
+\begin{frame}{Java 8: regresi jolinear dhe i fortë \LO{K2} \LO{S2}}
+  \begin{itemize}
+    \item<1-> Sot pamë që forma U dhe lakimi te \texttt{crPlots} kërkojnë modele më fleksibile.
+    \item<2-> Regresi polinomial, funksionet shkallë, splines, regresi lokal (ISLR kap.\ 7; repo ``Moving Beyond Linearity'').
+    \item<3-> Regresi i fortë (\emph{robust}): M-vlerësuesit, \texttt{MASS::rlm}: një alternativë ndaj heqjes së pikave.
+    \item<4-> Të dhënat: \texttt{Wage} (pa kolonën e racës), \texttt{Auto}, \texttt{Boston}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Para Javës 8}
+  \begin{itemize}
+    \item Ushtrimet për shtëpi 1--6 (sidomos 2 dhe 6, që përgatitin polinomet).
+    \item Rishikoni \texttt{poly()} dhe testin $F$ të pjesshëm (Java 6).
+    \item Lexoni ISLR kap.\ 7.1--7.4.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Burime}
+  \footnotesize
+  \begin{itemize}
+    \item E.~Raço, E.~Llagami, K.~Haxhi, O.~Zaçaj, \emph{Teoria e Probabilitetit dhe Statistika Matematike me ilustrime në gjuhën R}, Kotti, 2021 (regresi dhe kontrolli i hipotezave).
+    \item J.~Cohen, P.~Cohen, S.~G.~West, L.~S.~Aiken, \emph{Applied Multiple Regression/Correlation Analysis for the Behavioral Sciences}, LEA, 2003 (diagnostikimi, vlerat ekstreme, multikolineariteti, transformimet).
+    \item G.~James, D.~Witten, T.~Hastie, R.~Tibshirani, \emph{An Introduction to Statistical Learning}, Springer, kap.~3.3.3; \url{https://www.statlearning.com}.
+    \item N.~Lo, \emph{DS612 Data Mining with Business Applications (R)}, \url{https://github.com/NormanLo4319/DS612_Data_Mining_with_Business_Applications_R} (licencë MIT): \texttt{Linear\_Regression.R} (regresi linear, baza e Javëve 5--7).
+    \item F.~J.~Anscombe (1973), \emph{The American Statistician} 27(1); D.~Harrison, D.~L.~Rubinfeld (1978), \emph{J.\ Environmental Economics and Management} 5(1).
+    \item Paketat: \texttt{car}, \texttt{lmtest}, \texttt{sandwich}, \texttt{MASS}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e ditës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp77]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 7}
+  \begin{enumerate}
+    \item Cilat janë 3 hapat e parë kur një model ka shumë pika me $|t_i|>3$?
+    \item Kur përdorni SE HC3 dhe kur një transformim?
+    \item Si e vlerësoni nëse korrigjimet e përmirësuan modelin?
+  \end{enumerate}
+  \shkoTe{zgjCp77}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje e Javës 7}
+  \begin{itemize}
+    \item Matrica hat, leverage, $r_i$, $t_i$, Cook: vlerë ekstreme $\ne$ ndikim.
+    \item Supozimet: forma $\to$ $\hat\beta$; varianca, pavarësia $\to$ SE; normaliteti $\to$ $n$ i vogël.
+    \item Mjetet: \texttt{plot(fit)}, \texttt{crPlots}, \texttt{bptest}, HC3, \texttt{vif}, \texttt{boxcox}.
+    \item \texttt{Auto} dhe \texttt{Boston}: log $\Rightarrow$ formë më e mirë, më pak ``vlera ekstreme'', CV më i mirë.
+    \item Mos ``pastro'' automatikisht; diagnostikimi ndryshon modelin, jo të dhënat.
+  \end{itemize}
+\end{frame}

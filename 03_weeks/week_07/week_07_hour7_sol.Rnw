@@ -1,0 +1,167 @@
+% ============================================================
+%  Java 7 · Ora 7 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=s7T1]{Zgjidhja: Teori 1}
+  \small
+  \begin{enumerate}
+    \item $h_{ii}=x_i^\top(X^\top X)^{-1}x_i$, elementi diagonal i $H=X(X^\top X)^{-1}X^\top$. $H$ ndërtohet vetëm nga $X$; mat sa larg qendrës së $x$-ve është pika. $\sum h_{ii}=\operatorname{tr}(H)=p+1$.
+    \item Vlerë ekstreme: $|t_i|$ i madh (larg në $y$). Leverage i lartë: $h_{ii}$ i madh (larg në $x$). Ndikim: heqja e pikës ndryshon $\hat\beta$ shumë ($D_i$ i madh) $\approx$ leverage $\times$ mbetje.
+    \item Shembull: Ora 2, pika 5 ($x=10$): $e_5=-0.36$, por $D_5=6.47$; pa të, pjerrësia $0.56\to1.1$.
+  \end{enumerate}
+  \vfill\kthehu{q7T1}
+\end{frame}
+
+\begin{frame}[label=s7T2]{Zgjidhja: Teori 2}
+  \small
+  \begin{enumerate}
+    \item Lineariteti ($E[\varepsilon\mid X]=0$, forma e saktë) $\Rightarrow$ zhvendosje. Heteroskedasticiteti dhe autokorrelacioni prishin SE; normaliteti prek inferencën ekzakte për $n$ të vogël; kolineariteti fryn SE.
+    \item $\operatorname{Var}(\hat\beta)=(X^\top X)^{-1}X^\top\Omega X(X^\top X)^{-1}$, $\Omega=\operatorname{Var}(\varepsilon)$. Kur $\Omega=\sigma^2I$: $\sigma^2(X^\top X)^{-1}X^\top X(X^\top X)^{-1}=\sigma^2(X^\top X)^{-1}$.
+  \end{enumerate}
+  \vfill\kthehu{q7T2}
+\end{frame}
+
+\begin{frame}[label=s7T3]{Zgjidhja: Teori 3}
+  \small
+  \begin{enumerate}
+    \item $\text{VIF}_j=1/(1-R_j^2)$, $R_j^2$ nga regresi i $x_j$ mbi të tjerët. $\operatorname{Var}(\hat\beta_j)=\frac{\sigma^2}{S_{jj}}\text{VIF}_j$, pra SE $\times\sqrt{\text{VIF}_j}$.
+    \item $y^{(\lambda)}=(y^\lambda-1)/\lambda$ ($\log y$ për $\lambda=0$), për $y>0$. $\hat\lambda$ maksimizon log-përgjasinë e profilit; IB: vlerat brenda 1.92 nga maksimumi; zgjidhet një vlerë e rrumbullakët brenda IB.
+    \item $\hat\sigma$ zvogëlohet pas çdo heqjeje, kështu që pika të reja dalin ``ekstreme''; humbet informacion, ndryshon popullata, SE dalin të rreme. Ora 3: 69 makina (18\%) u hoqën dhe shenja e \texttt{horsepower} ndryshoi.
+  \end{enumerate}
+  \vfill\kthehu{q7T3}
+\end{frame}
+
+\begin{frame}[label=s7E1]{Zgjidhja: Ushtrimi 1}
+  \small
+  \begin{itemize}
+    \item $\bar x=5$, $\bar y=5$; $x-\bar x=(-3,-2,-1,0,6)$, $y-\bar y=(-3,-1,0,0,4)$.
+    \item $S_{xx}=9+4+1+0+36=50$, \; $S_{xy}=9+2+0+0+24=35$.
+    \item $b_1=35/50=0.7$, \; $b_0=5-0.7\cdot5=1.5$.
+    \item $h_{ii}=0.2+(x_i-5)^2/50=(0.38,\,0.28,\,0.22,\,0.20,\,0.92)$; $\sum=2=p+1$. \checkmark
+    \item Prag $2\cdot2/5=0.8$: vetëm pika 5 ($h=0.92$).
+  \end{itemize}
+  \vfill\kthehu{q7E1}
+\end{frame}
+
+\begin{frame}[label=s7E2]{Zgjidhja: Ushtrimi 2}
+  \small
+  \begin{itemize}
+    \item $\hat y=(2.9,\,3.6,\,4.3,\,5.0,\,9.2)$, \; $e=(-0.9,\,0.4,\,0.7,\,0,\,-0.2)$.
+    \item SSE $=0.81+0.16+0.49+0+0.04=1.5$; \; $\hat\sigma^2=1.5/3=0.5$, \; $\hat\sigma=0.707$.
+    \item $r_1=-0.9/(0.707\sqrt{0.62})=-1.62$; \; $D_1=\frac{2.61}{2}\cdot\frac{0.38}{0.62}=0.80$.
+    \item $r_5=-0.2/(0.707\sqrt{0.08})=-1.00$; \; $D_5=\frac{1}{2}\cdot\frac{0.92}{0.08}=5.75$.
+    \item $t_1=-1.62\sqrt{2/(3-2.61)}=-3.67$; $|t_1|<9.92$: nuk është vlerë ekstreme.
+    \item Pika 5 ka ndikimin më të madh: leverage $0.92$ e shumëzon me $11.5$ një mbetje të moderuar.
+  \end{itemize}
+  \vfill\kthehu{q7E2}
+\end{frame}
+
+\begin{frame}[fragile,label=s7E2R]{Kontroll në R: Ushtrimet 1, 2, 5}
+<<sol-q7>>=
+x <- c(2, 3, 4, 5, 11); y <- c(2, 4, 5, 5, 9)
+fq <- lm(y ~ x)
+round(cbind(h = hatvalues(fq), e = resid(fq), r = rstandard(fq),
+            t = rstudent(fq), D = cooks.distance(fq)), 3)
+library(sandwich)
+round(c(classic = sqrt(vcov(fq)[2, 2]),
+        HC0 = sqrt(vcovHC(fq, type = "HC0")[2, 2]),
+        HC3 = sqrt(vcovHC(fq, type = "HC3")[2, 2])), 4)
+@
+  \vfill\kthehu{q7E2}
+\end{frame}
+
+\begin{frame}[label=s7E3]{Zgjidhja: Ushtrimi 3}
+  \small
+  \begin{itemize}
+    \item VIF $=1/0.8=1.25$, \; $1/0.25=4$, \; $1/0.1=10$.
+    \item SE rritet $\sqrt{1.25}=1.12$, \; $2$, \; $3.16$ herë.
+    \item Pa kolinearitet: $0.60/3.16\approx0.19$.
+    \item Shqyrto $x_3$ (VIF $=10$). Para heqjes: a është $x_3$ i nevojshëm për pyetjen kërkimore? Me cilin variabël korrelon? A ndryshojnë shumë $R^2$ dhe CV pa të?
+  \end{itemize}
+  \vfill\kthehu{q7E3}
+\end{frame}
+
+\begin{frame}[label=s7E4]{Zgjidhja: Ushtrimi 4}
+  \small
+  \begin{itemize}
+    \item BP $=nR^2_{\text{aux}}=100\cdot0.12=12>7.81$: refuzojmë $H_0$; ka heteroskedasticitet.
+    \item $t_{\text{klasik}}=0.50/0.20=2.50$; \; $t_{\text{HC3}}=0.50/0.30=1.67$.
+    \item Klasike: $2.50>1.98$, i rëndësishëm. HC3: $1.67<1.98$, jo i rëndësishëm.
+    \item Përfundimi ndryshon. Raportojmë HC3, sepse BP tregon që SE klasike nuk janë të vlefshme.
+  \end{itemize}
+  \vfill\kthehu{q7E4}
+\end{frame}
+
+\begin{frame}[label=s7E5]{Zgjidhja: Ushtrimi 5}
+  \small
+  \begin{itemize}
+    \item Klasike: $0.707/\sqrt{50}=0.707/7.07=0.100$.
+    \item $\sum(x_i-\bar x)^2e_i^2=9(0.81)+4(0.16)+1(0.49)+0+36(0.04)=7.29+0.64+0.49+0+1.44=9.86$.
+    \item HC0: $\sqrt{9.86}/50=3.14/50=0.063$.
+    \item Kontributi më i madh: pika 1 (7.29). HC3 pjesëton me $(1-h_{ii})^2$: për pikën 5, $0.04/0.0064=6.25$, kontributi bëhet $36\cdot6.25=225$; HC3 rritet shumë (shiko kontrollin në R).
+  \end{itemize}
+  \vfill\kthehu{q7E5}
+\end{frame}
+
+\begin{frame}[label=s7E6]{Zgjidhja: Ushtrimi 6}
+  \small
+  \begin{itemize}
+    \item BP $=$ \Sexpr{round(unname(bptest(fit_q)$statistic), 1)}, $p\approx0$: heteroskedasticitet; SE klasike jo të besueshme.
+    \item VIF: \texttt{horsepower} dhe \texttt{weight} rreth 4--5 (korrelacion i fortë); \texttt{year} afër 1. Kolinearitet i moderuar.
+    \item \texttt{outlierTest}: obs.\ 323 (\texttt{mazda glc}), $t=4.29$, $p_{\text{Bonf}}=0.009$.
+    \item Grafikët: formë U te Residuals vs Fitted; hinkë te Scale-Location; bisht i djathtë te Q-Q.
+    \item Korrigjime: $\log(\texttt{mpg})$ (Ora 5: BP $p=0.40$, vlera ekstreme zhduket); SE HC3; \texttt{poly(horsepower, 2)}.
+  \end{itemize}
+  \vfill\kthehu{q7E6}
+\end{frame}
+
+\begin{frame}[label=s7E7]{Zgjidhja: Ushtrimi 7}
+  \small
+  \begin{enumerate}
+    \item Po: $\lambda=1$ (pa transformim) nuk është në IB $[-0.54,-0.22]$.
+    \item Jo, $0$ është pak jashtë. Arsye: interpretim në përqindje; diagnostikimi më i mirë (BP $p=0.40$, 2 pika me $|t|>3$ kundrejt 7; me $\lambda=-0.5$ BP ende refuzon).
+    \item Çdo vit modeli: \texttt{mpg} $\times1.030$, pra $+3.0\%$, me fuqi dhe peshë konstante. Për 2 vite: $\times1.061$, $+6.1\%$.
+    \item $y$ të ndryshëm (\texttt{mpg} kundrejt $\log$): $R^2$ mat pjesë të variancës së variablave të ndryshëm. Krahasojmë në shkallën origjinale (p.sh.\ CV MSE pas \texttt{exp()}).
+  \end{enumerate}
+  \vfill\kthehu{q7E7}
+\end{frame}
+
+\begin{frame}[label=s7H1]{Udhëzime: Shtëpi 1--2}
+  \small
+  \begin{itemize}
+    \item Shtëpi 1: modeli aditiv ka formë U të qartë (efekti sinergjik \texttt{TV}--\texttt{radio}), por BP nuk refuzon ($p=0.16$). Me \texttt{TV:radio}: $R^2$ $0.897\to0.968$, forma përmirësohet, por BP tani refuzon ($p=0.002$) $\Rightarrow$ HC3.
+    \item Mësim: BP pa refuzim nuk do të thotë model i mirë.
+    \item Shtëpi 2: përdorni të njëjtat palosje për të dy modelet (\texttt{set.seed}, \texttt{fold}); kthejeni parashikimin me \texttt{exp()}.
+  \end{itemize}
+  \vfill\kthehu{h7H1}
+\end{frame}
+
+\begin{frame}[label=s7H3]{Udhëzime: Shtëpi 3--4}
+  \small
+  \begin{itemize}
+    \item Shtëpi 3: VIF \texttt{Limit} $=228.9$, \texttt{Rating} $=230.6$; të tjerët $<3$. Hiqni njërin; krahasoni SE e tjetrit dhe $R^2$/CV (pothuajse të njëjtë). Zgjedhja varet nga pyetja: \texttt{Limit} vendoset nga banka, \texttt{Rating} nga agjencia.
+    \item Shtëpi 4: përdorni \texttt{sapply(c(20, 50, 200), ...)} rreth kodit të Orës 5. Me \texttt{set.seed(2026)}: klasike 11.2\%, 10.8\%, 10.3\% (problemi \textbf{nuk} zhduket me $n$); HC0 11.1\%, 7.7\%, 6.4\%; HC3 6.5\%, 6.3\%, 6.0\%. HC0 kërkon $n$ të madh; HC3 është më i mirë për $n$ të vogël.
+  \end{itemize}
+  \vfill\kthehu{h7H3}
+\end{frame}
+
+\begin{frame}[label=s7H5]{Udhëzime: Shtëpi 5--6}
+  \small
+  \begin{itemize}
+    \item 5(a): $H^\top=X((X^\top X)^{-1})^\top X^\top=H$; \; $H^2=X(X^\top X)^{-1}X^\top X(X^\top X)^{-1}X^\top=H$.
+    \item 5(b): $\operatorname{tr}(H)=\operatorname{tr}((X^\top X)^{-1}X^\top X)=p+1$.
+    \item 5(c): $e=(I-H)\varepsilon$; $\operatorname{Var}(e)=(I-H)\sigma^2I(I-H)^\top=\sigma^2(I-H)$, sepse $I-H$ është simetrike dhe idempotente.
+    \item Shtëpi 6: ndiqni 6 pikat e slide-it ``Raporti përfundimtar''; IB HC3 me \texttt{coefci(fit, vcov. = vcovHC(fit, type = "HC3"))} (\texttt{lmtest}).
+  \end{itemize}
+  \vfill\kthehu{h7H5}
+\end{frame}
+
+\begin{frame}[label=zgjCp77]{Përgjigjet: Checkpoint Ora 7}
+  \small
+  \begin{enumerate}
+    \item (i) \texttt{plot(fit)} dhe \texttt{crPlots}: a është forma e gabuar? (ii) kontrollo burimin e pikave më ekstreme (cungim, gabime); (iii) transformim/term jolinear dhe rikontroll.
+    \item HC3 kur forma është e saktë por varianca jo-konstante; transformim kur ka edhe lakim, anim ose efekt shumëzues.
+    \item Rikontroll i diagnostikimit + CV në shkallën origjinale me të njëjtat palosje.
+  \end{enumerate}
+  \vfill\kthehu{cp77}
+\end{frame}
