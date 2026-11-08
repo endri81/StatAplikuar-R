@@ -1,0 +1,308 @@
+% ============================================================
+%  Java 9 · Ora 3 — R Lab I: logjistiku në R, IRLS nga zero, matrica e konfuzionit
+%  Rezultatet: S4, S2, S3
+%  Burimi: repo DS612 Lecture_4.R (glm, table), Lecture_5.R (cv.glm); ISLR kap. 4.7.2
+% ============================================================
+
+\section[R Lab I]{R Lab I: logjistiku në R}
+
+\begin{frame}{Ora 3: R Lab I --- logjistiku në R}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{\texttt{glm()} te \texttt{Default}}
+% ------------------------------------------------------------
+
+\begin{frame}{Plani i laboratorit \LO{S4} \LO{S2} \LO{S3}}
+  \begin{itemize}
+    \item<1-> \texttt{Default} (sintetike, ISLR): \texttt{glm(\dots, family = binomial)}.
+    \item<2-> IRLS nga zero, krahasuar me \texttt{glm()}.
+    \item<3-> Probabilitetet e parashikuara me IB.
+    \item<4-> Matrica e konfuzionit, sensitiviteti, specifiteti, pragu.
+    \item<5-> Train/test dhe \texttt{cv.glm()} me funksion kostoje për gabimin e klasifikimit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Modeli me tre parashikues}
+<<h3-glm>>=
+default_df <- read.csv(file.path(W09DATA, "Default.csv"), stringsAsFactors = TRUE)
+default_df$income_k <- default_df$income / 1000      # income in 1000 USD
+default_df$y <- as.numeric(default_df$default == "Yes")
+fit3 <- glm(default ~ balance + income_k + student, data = default_df,
+            family = binomial)
+round(coef(summary(fit3)), 5)
+c(null_dev = fit3$null.deviance, dev = fit3$deviance, AIC = AIC(fit3),
+  iterations = fit3$iter)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{balance}: $z=24.7$; për +100 \$: OR $=e^{0.574}=1.77$.
+    \item<2-> \texttt{income\_k}: $p=0.71$: pa efekt, me balancën dhe statusin fiks.
+    \item<3-> \texttt{studentYes}: $-0.647$, OR $=0.52$ (efekti i drejtpërdrejtë, Ora 2).
+    \item<4-> Deviance: $2920.6\to1571.5$; 8 iteracione IRLS.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Testi LR për \texttt{income}}
+<<h3-lr>>=
+fit2 <- glm(default ~ balance + student, data = default_df, family = binomial)
+anova(fit2, fit3, test = "Chisq")
+@
+  \begin{itemize}
+    \item<2-> $\Delta D=0.137$, $p=0.71$: \texttt{income} nuk shton asgjë. Përputhet me Wald ($p=0.71$).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{IRLS nga zero}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{IRLS nga zero}
+<<h3-irls>>=
+X <- model.matrix(fit3); y <- default_df$y
+beta <- rep(0, ncol(X))                           # start at 0 (p = 0.5)
+for (iter in 1:25) {
+  eta <- drop(X %*% beta); p <- 1 / (1 + exp(-eta))
+  w <- p * (1 - p)                                # IRLS weights
+  z <- eta + (y - p) / w                          # working response
+  beta_new <- drop(solve(crossprod(X, w * X), crossprod(X, w * z)))
+  if (max(abs(beta_new - beta)) < 1e-10) { beta <- beta_new; break }
+  beta <- beta_new }
+c(iterations = iter, max_rel_diff = max(abs(beta / coef(fit3) - 1)))
+@
+\end{frame}
+
+\begin{frame}[fragile]{SE nga zero}
+<<h3-se>>=
+p <- 1 / (1 + exp(-drop(X %*% beta)))
+se_ours <- sqrt(diag(solve(crossprod(X, (p * (1 - p)) * X))))
+round(cbind(ours = se_ours, glm = coef(summary(fit3))[, "Std. Error"]), 6)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 10 hapa IRLS japin të njëjtët koeficientë; diferenca relative $\approx2\times10^{-9}$ vjen nga kriteri i ndalimit i \texttt{glm} (8 hapa). \checkmark
+    \item<2-> SE $=\sqrt{\operatorname{diag}(X^\top\hat WX)^{-1}}$: të njëjta me \texttt{glm} deri në shifrën e 5-të. \checkmark
+    \item<3-> Kodi është i njëjtë me WLS-në e Javës 7, vetëm me $w$ dhe $z$ që përditësohen.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGab93]{Gjej gabimin}
+<<h3-bug>>=
+fit_bad <- lm(y ~ balance + income_k + student, data = default_df)
+nd <- data.frame(balance = 2000, income_k = 40, student = "No")
+round(c(lm = predict(fit_bad, nd),
+        glm_link = predict(fit3, nd)), 3)
+@
+  \begin{itemize}
+    \item Dy gabime: cili ``probabilitet'' është i pakuptimtë dhe pse?
+  \end{itemize}
+  \shkoTe{zgjGab93}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Probabilitetet dhe IB}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{IB për probabilitetin}
+<<h3-ci>>=
+nd <- data.frame(balance = c(1500, 1500, 2000, 2000), income_k = 40,
+                 student = c("No", "Yes", "No", "Yes"))
+pr <- predict(fit3, nd, se.fit = TRUE)            # on the logit scale
+ci <- cbind(p = plogis(pr$fit), lo = plogis(pr$fit - 1.96 * pr$se.fit),
+            hi = plogis(pr$fit + 1.96 * pr$se.fit))
+cbind(nd[, c("balance", "student")], round(ci, 3))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> IB ndërtohet në shkallën logit, pastaj kthehet me \texttt{plogis()}: qëndron gjithmonë në $[0,1]$.
+    \item<2-> 2000 \$, jo-student: 67.4\% [61.3, 72.9]; student: 52.0\% [41.1, 62.6].
+    \item<3-> IB jo simetrik rreth $\hat p$: pasojë e transformimit.
+  \end{itemize}
+  \begin{Gabim}$\hat p\pm1.96\,\text{SE}(\hat p)$ direkt në shkallën e probabilitetit: mund të dalë jashtë $[0,1]$.\end{Gabim}
+\end{frame}
+
+\begin{frame}[fragile,shrink=6]{Kurbat sipas statusit}
+<<h3-curves, fig.height=3, fig.width=6.5, out.width="0.5\\textwidth">>=
+gb <- data.frame(balance = seq(0, 2700, by = 10), income_k = 40)
+plot(NULL, xlim = c(0, 2700), ylim = c(0, 1), xlab = "balance", ylab = "P(default)")
+for (s in c("No", "Yes")) {
+  gb$student <- s
+  lines(gb$balance, predict(fit3, gb, type = "response"),
+        col = if (s == "Yes") "#D97706" else "#2C5AA0", lwd = 2) }
+legend("topleft", c("non-student", "student"), col = c("#2C5AA0", "#D97706"),
+       lwd = 2, bty = "n")
+@
+\end{frame}
+
+\begin{frame}[label=ushPred]{Radha jote!}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Llogarit $\hat P(\text{default})$ me IB 95\% për një student me balancë 1000 \$ dhe të ardhura 20 mijë \$.
+      \item Pa PC: me koeficientët e \texttt{fit3}, sa është log-odds? ($-10.869+0.00574\cdot1000+0.00303\cdot20-0.647$.)
+      \item Kontrollo me \texttt{plogis()}.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjPred}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Matrica e konfuzionit}
+% ------------------------------------------------------------
+
+\begin{frame}{Matrica e konfuzionit}
+  \centering
+  \begin{tikzpicture}[c/.style={draw,minimum width=2.4cm,minimum height=1cm,align=center,font=\scriptsize}]
+    \node[c,fill=green!12] at (0,0) {TN\\vërtetë negativ};
+    \node[c,fill=red!10] at (2.4,0) {FN\\fals negativ};
+    \node[c,fill=red!10] at (0,-1) {FP\\fals pozitiv};
+    \node[c,fill=green!12] at (2.4,-1) {TP\\vërtetë pozitiv};
+    \node[font=\scriptsize] at (0,0.75) {e vërteta: Jo}; \node[font=\scriptsize] at (2.4,0.75) {e vërteta: Po};
+    \node[font=\scriptsize,anchor=east] at (-1.3,0) {parashikim: Jo}; \node[font=\scriptsize,anchor=east] at (-1.3,-1) {parashikim: Po};
+  \end{tikzpicture}
+  \vspace{4pt}
+  \begin{itemize}\small
+    \item Saktësia $=\frac{TP+TN}{n}$; \; sensitiviteti $=\frac{TP}{TP+FN}$; \; specifiteti $=\frac{TN}{TN+FP}$.
+    \item Sensitiviteti: sa default kapim. Specifiteti: sa klientë të mirë nuk i refuzojmë gabimisht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pragu 0.5}
+<<h3-cm>>=
+p_hat <- fitted(fit3)
+conf <- function(th) {
+  pred <- factor(ifelse(p_hat > th, "Yes", "No"), levels = c("No", "Yes"))
+  tb <- table(pred = pred, true = default_df$default)
+  print(tb)
+  round(c(accuracy = mean(pred == default_df$default),
+          sensitivity = tb["Yes", "Yes"] / sum(tb[, "Yes"]),
+          specificity = tb["No", "No"] / sum(tb[, "No"])), 4) }
+conf(0.5)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Saktësia 97.3\%: vetëm pak më lart se 96.7\% e ``gjithmonë jo''.
+    \item<2-> Sensitiviteti \textbf{31.5\%}: kapim vetëm 105 nga 333 default.
+    \item<3-> Specifiteti 99.6\%: pothuajse asnjë klient i mirë nuk refuzohet.
+    \item<4-> Për një bankë, 228 default të pakapura janë problemi kryesor.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=ushTh]{Ndrysho parametrin dhe shiko: pragu 0.2}
+<<h3-cm2>>=
+conf(0.2)
+@
+  \shkoTe{zgjTh}{Çfarë ndodhi?}
+\end{frame}
+
+\begin{frame}{Kompromisi i pragut}
+  \begin{itemize}
+    \item<1-> Pragu $0.5\to0.2$: sensitiviteti $31.5\%\to61.0\%$; specifiteti $99.6\%\to97.1\%$.
+    \item<2-> Saktësia bie ($97.3\%\to95.9\%$), por modeli është \textbf{më i dobishëm} për bankën.
+    \item<3-> Pragu nuk është pjesë e modelit: zgjidhet sipas kostove (Ora 6).
+    \item<4-> Të gjitha pragjet njëherësh: kurba ROC (Ora 4).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Train/test dhe CV}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Ndarja train/test}
+<<h3-split>>=
+set.seed(2026)
+train <- sample(nrow(default_df), 7000)
+fit_tr <- glm(default ~ balance + income_k + student,
+              data = default_df[train, ], family = binomial)
+p_te <- predict(fit_tr, default_df[-train, ], type = "response")
+pred_te <- ifelse(p_te > 0.5, "Yes", "No")
+table(pred = pred_te, true = default_df$default[-train])
+round(c(test_error = mean(pred_te != default_df$default[-train]),
+        null_error = mean(default_df$default[-train] == "Yes")), 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Gabimi i testit: 2.8\%; ``gjithmonë jo'': 3.33\%.
+    \item<2-> Modeli ul gabimin vetëm me 0.5 pikë përqindjeje: klasa e rrallë e bën gabimin total jo shumë informues.
+    \item<3-> Testi ka vetëm 100 default: sensitiviteti matet me pasiguri të madhe.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{cv.glm()} me funksion kostoje}
+<<h3-cv>>=
+library(boot)
+cost <- function(r, pi = 0) mean(abs(r - pi) > 0.5)    # misclassification
+cv_err <- sapply(list(
+  balance = y ~ balance,
+  balance_student = y ~ balance + student,
+  all_three = y ~ balance + income_k + student), function(f) {
+    set.seed(2026)
+    cv.glm(default_df, glm(f, data = default_df, family = binomial),
+           cost, K = 10)$delta[1] })
+round(cv_err, 4)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{cost}: \texttt{r} = $y$ i vërtetë, \texttt{pi} = $\hat p$; gabim nëse $|y-\hat p|>0.5$.
+    \item<2-> Pa \texttt{cost}, \texttt{cv.glm} llogarit MSE mbi probabilitete (rezultati Brier), jo gabimin e klasifikimit.
+    \item<3-> \texttt{balance} vetëm: 2.76\%; + \texttt{student}: 2.70\%; + \texttt{income}: 2.70\%.
+    \item<4-> Modeli me \texttt{balance + student} mjafton; \texttt{income} nuk ndihmon (si LR).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeCV]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Dy modele kanë gabim CV 2.70\% dhe 2.76\%. Cila është e \textbf{saktë}?
+    \begin{enumerate}[A)]
+      \item Diferenca prej 0.06 pikësh tregon që modeli i parë është qartë më i mirë.
+      \item Me klasa të pabalancuara, gabimi total fsheh diferenca në sensitivitet; duhen edhe metrika të tjera.
+      \item CV nuk mund të përdoret për klasifikim.
+      \item Modeli me gabim më të ulët ka gjithmonë sensitivitet më të lartë.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjCV}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabime të zakonshme në laborator}
+  \begin{Gabim}\texttt{glm()} pa \texttt{family = binomial}: përshtat regres linear (Gaussian).\end{Gabim}
+  \pause
+  \begin{Gabim}\texttt{predict(fit)} pa \texttt{type = "response"}: jep log-odds, jo probabilitete.\end{Gabim}
+  \pause
+  \begin{Gabim}\texttt{table()} me nivele që mungojnë (p.sh.\ asnjë ``Yes'' në parashikime): matrica del $1\times2$. Përdorni \texttt{factor(\dots, levels = )}.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=cp93]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Si ndërtohet IB 95\% për $\hat p$ në R dhe pse në shkallën logit?
+    \item Çfarë ndodh me sensitivitetin dhe specifitetin kur pragu ulet?
+    \item Pse \texttt{cv.glm} ka nevojë për funksion \texttt{cost} në klasifikim?
+  \end{enumerate}
+  \shkoTe{zgjCp93}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item \texttt{glm(\dots, family = binomial)}; \texttt{income} pa efekt (Wald dhe LR $p=0.71$).
+    \item IRLS nga zero = \texttt{glm}, edhe SE. \checkmark
+    \item IB për $\hat p$: në logit, pastaj \texttt{plogis()}.
+    \item Pragu 0.5: sensitivitet 31.5\%; pragu 0.2: 61.0\%.
+    \item Test 2.8\% kundrejt 3.33\% bazë; CV me \texttt{cost}: 2.70\%.
+  \end{itemize}
+  \begin{Keshille}Ora 4: klasifikuesi i Bayes-it, LDA, QDA, KNN, ROC dhe AUC.\end{Keshille}
+\end{frame}

@@ -1,0 +1,51 @@
+% ============================================================
+%  Java 9 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjGab93]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item \texttt{lm} mbi 0/1: 0.192 për balancë 2000 \$, ndërsa logjistiku jep 0.674; modeli linear e nënvlerëson shumë (dhe jep negative për balanca të vogla).
+    \item \texttt{predict(fit3, nd)} pa \texttt{type = "response"}: 0.725 është \textbf{log-odds}, jo probabilitet. Probabiliteti: \texttt{plogis(0.725)} $=0.674$.
+    \item Rastësisht 0.725 duket si probabilitet i arsyeshëm: kjo e bën gabimin të rrezikshëm.
+  \end{itemize}
+  \vfill\kthehu{gjejGab93}
+\end{frame}
+
+\begin{frame}[label=zgjPred]{Zgjidhja: Radha jote! (parashikimi)}
+  \begin{itemize}
+    \item Log-odds: $-10.869+5.737+0.061-0.647=-5.719$.
+    \item $\hat p=1/(1+e^{5.719})=0.0033$, pra 0.33\%.
+    \item IB 95\%: [0.22\%, 0.49\%] (me \texttt{predict(\dots, se.fit = TRUE)} dhe \texttt{plogis}).
+    \item Me balancë 1000 \$, default-i është shumë i pamundshëm, pavarësisht statusit.
+  \end{itemize}
+  \vfill\kthehu{ushPred}
+\end{frame}
+
+\begin{frame}[label=zgjTh]{Zgjidhja: Ndrysho parametrin (pragu 0.2)}
+  \begin{itemize}
+    \item TP: $105\to203$; FN: $228\to130$: kapim gati dyfishin e default-eve.
+    \item FP: $40\to277$: refuzojmë gabimisht më shumë klientë të mirë.
+    \item Sensitiviteti $31.5\%\to61.0\%$; specifiteti $99.6\%\to97.1\%$; saktësia $97.3\%\to95.9\%$.
+    \item Nëse një default kushton shumë më tepër se një refuzim i gabuar, pragu 0.2 është më i mirë, megjithëse saktësia bie.
+  \end{itemize}
+  \vfill\kthehu{ushTh}
+\end{frame}
+
+\begin{frame}[label=zgjCV]{Zgjidhja: Pyetje me zgjedhje (CV)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item A: 0.06 pikë = 6 klientë nga 10\,000; brenda pasigurisë së CV.
+    \item C: CV funksionon, me funksionin e duhur të kostos.
+    \item D: jo; gabimi total dominohet nga klasa e madhe.
+  \end{itemize}
+  \vfill\kthehu{pyetjeCV}
+\end{frame}
+
+\begin{frame}[label=zgjCp93]{Përgjigjet: Checkpoint Ora 3}
+  \begin{enumerate}
+    \item \texttt{predict(fit, nd, se.fit = TRUE)} jep $\hat\eta$ dhe SE në logit; IB $=\texttt{plogis}(\hat\eta\pm1.96\,\text{SE})$. Në logit shpërndarja është afër normales dhe IB mbetet në $[0,1]$.
+    \item Sensitiviteti rritet, specifiteti bie.
+    \item Parazgjedhja e \texttt{cv.glm} është MSE mbi $\hat p$; për gabim klasifikimi duhet $I(|y-\hat p|>0.5)$.
+  \end{enumerate}
+  \vfill\kthehu{cp93}
+\end{frame}

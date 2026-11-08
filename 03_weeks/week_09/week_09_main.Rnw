@@ -157,6 +157,8 @@ attach(list(
 @
 <<hour2, child='week_09_hour2.Rnw'>>=
 @
+<<hour3, child='week_09_hour3.Rnw'>>=
+@
 
 % ===================== SHTOJCA =====================
 \appendix
@@ -165,6 +167,8 @@ attach(list(
 <<hour1sol, child='week_09_hour1_sol.Rnw'>>=
 @
 <<hour2sol, child='week_09_hour2_sol.Rnw'>>=
+@
+<<hour3sol, child='week_09_hour3_sol.Rnw'>>=
 @
 
 \end{document}
