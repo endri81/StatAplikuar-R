@@ -1,0 +1,489 @@
+% ============================================================
+%  Java 10 · Ora 2 — Toka, elipsoidi, datumet, haversine
+%  Rezultatet: K3, S1
+%  Burimi: Chang (GIS), kapitulli për sistemet koordinative;
+%          Pebesma & Bivand (2023), kap. 2; dokumentacioni PROJ / EPSG
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Toka dhe datumet]{Toka, elipsoidi dhe datumet}
+
+\begin{frame}{Ora 2: Toka, elipsoidi dhe datumet}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Forma e Tokës}
+% ------------------------------------------------------------
+
+\begin{frame}{Tri modele të Tokës}
+  \begin{itemize}
+    \item<1-> \termi{Gjeoidi}{geoid}: sipërfaqja me potencial gravitacional konstant (niveli mesatar i detit). E parregullt.
+    \item<2-> \termi{Elipsoidi}{ellipsoid}: elipsë e rrotulluar rreth boshtit polar. E lëmuar, me formula.
+    \item<3-> \termi{Sfera}{sphere}: rreze e vetme $R$. Më e thjeshta; gabim deri në $\approx0.5\%$.
+    \item<4-> Lartësitë maten nga gjeoidi; koordinatat horizontale nga elipsoidi.
+  \end{itemize}
+  \LO{K3, S1}
+\end{frame}
+
+\begin{frame}{Elipsoidi: dy numra mjaftojnë}
+  \centering
+  \begin{tikzpicture}[scale=1.1]
+    \draw[thick] (0,0) ellipse (2.2 and 1.7);
+    \draw[->] (0,0) -- (2.2,0) node[midway,below,font=\scriptsize]{$a$};
+    \draw[->,uptblue] (0,0) -- (0,1.7) node[midway,left,font=\scriptsize]{$b$};
+    \draw[dashed] (-2.5,0) -- (2.5,0) node[right,font=\scriptsize]{ekuatori};
+    \draw[dashed] (0,-2) -- (0,2) node[above,font=\scriptsize]{boshti polar};
+    \fill (0,0) circle (1pt);
+  \end{tikzpicture}
+  \begin{itemize}
+    \item $a$: gjysmëboshti i madh (ekuatorial); $b$: gjysmëboshti i vogël (polar).
+    \item Shtypja (\emph{flattening}): $f=(a-b)/a$. Figura e ekzagjeron shumë $f$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Elipsoidët që do të takoni}
+  \small
+  \begin{tabular}{lrrl}
+    \toprule
+    Elipsoidi & $a$ (m) & $1/f$ & Përdorimi \\
+    \midrule
+    WGS 84 & 6\,378\,137 & 298.257223563 & GPS, EPSG:4326 \\
+    GRS 80 & 6\,378\,137 & 298.257222101 & ETRS89, Albania TM 2010 \\
+    Krasovsky 1940 & 6\,378\,245 & 298.3 & Albanian 1987 (EPSG:4191) \\
+    \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item<2-> WGS 84 dhe GRS 80: ndryshim në $b$ rreth 0.1 mm.
+    \item<3-> Krasovsky: $a$ më i madh me 108 m. Elipsoidi i sistemit të vjetër shqiptar.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeAB102]{Parashiko para se ta ekzekutosh (pa ndihmën e PC)}
+  \begin{Parashiko}
+    Për WGS 84: $a=6\,378\,137$ m dhe $1/f\approx298.26$.
+    Sa është afërsisht $a-b$ në kilometra?
+    \begin{enumerate}[A.]
+      \item 0.2 km \quad B. 2 km \quad C. 21 km \quad D. 210 km
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjAB102}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Parametrat e nxjerrë të WGS 84}
+<<h2-ell>>=
+a  <- 6378137
+f  <- 1 / 298.257223563
+b  <- a * (1 - f)            # semi-minor axis
+e2 <- 2 * f - f^2            # first eccentricity squared
+c(b = round(b, 3), a_minus_b = round(a - b, 3))
+signif(e2, 6)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> $b=6\,356\,752.314$ m; $a-b\approx21.38$ km.
+    \item<2-> Krahasuar me $a$: $0.34\%$. Për syrin, Toka është sferë.
+    \item<3-> \termi{Ekscentriciteti}{eccentricity} në katror: $e^2=2f-f^2\approx0.00669$; hyn në të gjitha formulat e elipsoidit.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}$f$ është i vogël, por 21 km nuk janë të vogla: një hartë kadastrale me sferë në vend të elipsoidit gabon në metra.\end{Gabim}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Koordinatat gjeografike}
+% ------------------------------------------------------------
+
+\begin{frame}{Gjerësia dhe gjatësia gjeografike}
+  \begin{itemize}
+    \item<1-> \termi{Gjatësia}{longitude} $\lambda$: këndi nga meridiani zero (Greenwich), $-180^\circ$ deri $180^\circ$; L pozitive.
+    \item<2-> \termi{Gjerësia gjeodezike}{geodetic latitude} $\varphi$: këndi i \textbf{normales} së elipsoidit me ekuatorin, $-90^\circ$ deri $90^\circ$.
+    \item<3-> Në sferë, normalja kalon nga qendra; në elipsoid, jo.
+    \item<4-> Rendi në R/\texttt{sf}: \textbf{(x, y) = (lon, lat)}. Në GPS dhe në EPSG shpesh: (lat, lon).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gjeodezike kundrejt gjeocentrike}
+  \centering
+  \begin{tikzpicture}[scale=1.15]
+    \draw[thick] (0,0) ellipse (2.2 and 1.5);
+    \draw[dashed] (-2.5,0) -- (2.6,0);
+    \coordinate (P) at (1.556,1.061);           % point at parameter 45 deg
+    \coordinate (Q) at (0.833,0);               % normal meets the equator
+    \fill (P) circle (1.3pt) node[above right,font=\scriptsize]{$P$};
+    \draw[uptblue] (0,0) -- (P);
+    \draw[accent,thick] (Q) -- (P);
+    \draw[uptblue] (0.6,0) arc (0:34.3:0.6);
+    \node[uptblue,font=\scriptsize] at (0.75,0.2) {$\psi$};
+    \draw[accent] ($(Q)+(0.4,0)$) arc (0:55.7:0.4);
+    \node[accent,font=\scriptsize] at (1.35,0.32) {$\varphi$};
+    \node[font=\scriptsize,uptblue,right] at (2.4,-0.7) {gjeocentrike $\psi$ (nga qendra)};
+    \node[font=\scriptsize,accent,right] at (2.4,-1.0) {gjeodezike $\varphi$ (normalja)};
+  \end{tikzpicture}
+  \begin{itemize}
+    \item $\tan\psi=(1-e^2)\tan\varphi$. Ndryshimi maksimal $\approx0.19^\circ$ (rreth 21 km) afër $45^\circ$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gradë, minuta, sekonda (DMS)}
+  \begin{itemize}
+    \item<1-> $1^\circ=60'$, $1'=60''$. Dhjetore: $\theta=D+M/60+S/3600$.
+    \item<2-> Shembull: $41^\circ19'41''=41+0.31667+0.01139=41.32806^\circ$.
+    \item<3-> Anasjelltas: $41.328^\circ$: $D=41$; $0.328\cdot60=19.68 \Rightarrow M=19$; $0.68\cdot60=40.8 \Rightarrow S=40.8''$.
+    \item<4-> Në terren: $1''$ gjerësi $\approx 30.9$ m; $0.00001^\circ\approx1.1$ m.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushDMS102]{Radha jote! (pa ndihmën e PC)}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Ktheni Shkodrën $42.068^\circ$ V, $19.513^\circ$ L në DMS.
+      \item Ktheni $40^\circ28'08''$ në gradë dhjetore. Cili qytet nga lista e Orës 1 është?
+      \item Sa shifra dhjetore duhen për saktësi $\approx1$ m?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjDMS102}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}{Sa gjatë është një gradë në elipsoid?}
+  \begin{itemize}
+    \item<1-> Rrezja e lakimit në meridian: $M(\varphi)=\dfrac{a(1-e^2)}{(1-e^2\sin^2\varphi)^{3/2}}$.
+    \item<2-> Rrezja në vertikalin kryesor: $N(\varphi)=\dfrac{a}{\sqrt{1-e^2\sin^2\varphi}}$.
+    \item<3-> $1^\circ$ gjerësi $=M\cdot\pi/180$; \quad $1^\circ$ gjatësi $=N\cos\varphi\cdot\pi/180$.
+    \item<4-> Në sferë: $M=N=R$, dhe kthehemi te formulat e Orës 1.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontroll në R: Tirana, sferë kundrejt elipsoidit}
+<<h2-MN>>=
+phi <- 41.328 * pi / 180
+M <- a * (1 - e2) / (1 - e2 * sin(phi)^2)^1.5
+N <- a / sqrt(1 - e2 * sin(phi)^2)
+ell <- c(lat = M, lon = N * cos(phi)) * pi / 180 / 1000
+sph <- c(lat = 6371, lon = 6371 * cos(phi)) * pi / 180
+round(rbind(ellipsoid = ell, sphere = sph), 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Elipsoidi: $1^\circ$ gjerësi $=111.06$ km, $1^\circ$ gjatësi $=83.72$ km.
+    \item<2-> Sfera: 111.19 km dhe 83.50 km.
+    \item<3-> Ndryshim $\approx0.1$--$0.3\%$: i papërfillshëm për hartë tematike, i rëndësishëm për matje inxhinierike.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=8]{Gjatësia e një grade sipas gjerësisë}
+<<h2-curve, fig.height=2.4, fig.width=5.4, out.width="0.58\\textwidth">>=
+lat <- seq(0, 89, by = 1); p <- lat * pi / 180
+Nl <- a / sqrt(1 - e2 * sin(p)^2)
+km <- data.frame(lat, lon_deg_km = Nl * cos(p) * pi / 180 / 1000)
+library(ggplot2)
+ggplot(km, aes(lat, lon_deg_km)) + geom_line(colour = "steelblue") +
+  geom_vline(xintercept = c(39.6, 42.7), linetype = 2) +
+  labs(x = "latitude (deg)", y = "km per 1 deg longitude") + theme_bw(base_size = 10)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Nga $\approx111$ km në ekuator në 0 në pol: kurbë kosinusi.
+    \item<2-> Brezi i Shqipërisë (vijat e ndërprera): rreth 82--86 km.
+    \item<3-> Pasojë: brenda Shqipërisë, një shkallë e vetme ``km për gradë'' gabon deri $\approx2.4\%$ në veri ose në jug.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Datumet}
+% ------------------------------------------------------------
+
+\begin{frame}{Çfarë është një datum?}
+  \begin{itemize}
+    \item<1-> \termi{Datumi gjeodezik}{geodetic datum} = elipsoidi + \textbf{si është vendosur} ai në raport me Tokën reale.
+    \item<2-> Datum gjeocentrik: qendra e elipsoidit në qendrën e masës së Tokës (WGS 84, ETRS89).
+    \item<3-> Datum lokal: elipsoidi ``ngjitet'' mirë me një vend; qendra mund të jetë qindra metra larg (Albanian 1987).
+    \item<4-> I njëjti çift (lon, lat) në dy datume $\Rightarrow$ dy pika të ndryshme në terren.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Dy datume, një Tokë}
+  \centering
+  \begin{tikzpicture}[scale=1.0]
+    \draw[thick,uptblue] (0,0) ellipse (2.3 and 1.6);
+    \draw[thick,accent,dashed] (0.25,0.12) ellipse (2.31 and 1.58);
+    \fill[uptblue] (0,0) circle (1.5pt) node[below left,font=\scriptsize]{qendra e masës};
+    \fill[accent] (0.25,0.12) circle (1.5pt);
+    \draw[decorate,decoration={snake,amplitude=1.2pt,segment length=6pt}] (-1.4,1.3) .. controls (0,1.7) .. (1.6,1.25);
+    \node[font=\scriptsize] at (0,1.95) {Shqipëria};
+    \node[font=\scriptsize,uptblue] at (-3.4,-0.9) {gjeocentrik (WGS 84)};
+    \node[font=\scriptsize,accent] at (3.5,-0.9) {lokal (Albanian 1987)};
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Elipsoidi lokal përputhet mirë me Shqipërinë, por jo me pjesën tjetër të globit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Transformimi i datumit: Helmert me 7 parametra}
+  \begin{itemize}
+    \item<1-> Kalojmë në koordinata kartezian 3D $(X,Y,Z)$ (gjeocentrike, në metra).
+    \item<2-> $\mathbf{X}_{\text{WGS}}=\mathbf{t}+(1+s)\,\mathbf{R}\,\mathbf{X}_{\text{lokal}}$.
+    \item<3-> 3 zhvendosje $\mathbf{t}$, 3 rrotullime të vogla në $\mathbf{R}$, 1 faktor shkalle $s$.
+    \item<4-> Pastaj kthehemi në $(\lambda,\varphi)$ mbi elipsoidin e ri.
+  \end{itemize}
+  \onslide<5->{\begin{Keshille}Ky është një regres linear: parametrat vlerësohen me katrorët më të vegjël nga pika të njohura në të dy sistemet.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[fragile]{Albanian 1987 në PROJ}
+<<h2-a87>>=
+library(sf)
+st_crs(4191)$Name
+st_crs(4191)$proj4string
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{+ellps=krass}: elipsoidi Krasovsky.
+    \item<2-> \texttt{+towgs84=}: 7 parametrat Helmert drejt WGS 84 (3 zhvendosje në m, 3 rrotullime në sekonda harku, shkalla në ppm).
+    \item<3-> PROJ i zbaton automatikisht kur bëjmë \texttt{st\_transform()}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeDat102]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Marrim numrat e Tiranës $(19.819, 41.328)$ dhe i shpallim njëherë në WGS 84, njëherë në Albanian 1987.
+    Sa larg janë dy pikat në terren?
+    \begin{enumerate}[A.]
+      \item 0 m \quad B. rreth 1 m \quad C. rreth 150 m \quad D. rreth 15 km
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjDat102}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Të njëjtët numra, dy datume}
+<<h2-shift>>=
+xy  <- c(19.819, 41.328)
+p84 <- st_sfc(st_point(xy), crs = 4326)
+p87 <- st_transform(st_sfc(st_point(xy), crs = 4191), 4326)
+st_coordinates(p87)
+st_distance(p84, p87)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pika në Albanian 1987, e shprehur në WGS 84, del në $(19.8174, 41.3275)$.
+    \item<2-> Distanca: $\approx141$ m. Mjaft për të ``zhvendosur'' një ndërtesë në rrugën fqinje.
+    \item<3-> Datumi \textbf{nuk} është detaj teknik: pa të, koordinatat janë të paqarta.
+  \end{itemize}
+  \pause[4]
+  \begin{Gabim}Mos përdorni \texttt{st\_set\_crs()} për të ``ndryshuar'' sistemin: ai vetëm ndërron etiketën. Për të ndryshuar sistemin: \texttt{st\_transform()}.\end{Gabim}
+\end{frame}
+
+\begin{frame}{Datumet në Shqipëri sot}
+  \begin{itemize}
+    \item<1-> Sistemi i vjetër: Albanian 1987 (Krasovsky) + Gauss--Krüger (EPSG:2462).
+    \item<2-> Sistemi zyrtar aktual: ETRS89 (realizimi KRGJSH-2010) + projeksioni Albania TM 2010 (EPSG:6870).
+    \item<3-> ETRS89 është i ``ngjitur'' në pllakën euroaziatike; WGS 84 jo. Diferenca rritet $\approx2.5$ cm/vit.
+    \item<4-> Për harta tematike: ETRS89 $\approx$ WGS 84. Për kadastër: jo.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC102]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Cili pohim është i saktë?
+    \begin{enumerate}[A.]
+      \item Datumi dhe projeksioni janë e njëjta gjë.
+      \item EPSG:4326 dhe EPSG:4191 japin të njëjtën pikë për të njëjtët numra.
+      \item Një datum përcakton elipsoidin dhe vendosjen e tij në raport me Tokën.
+      \item Gjeoidi është elipsoidi me $f=0$.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC102}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Distanca mbi sferë}
+% ------------------------------------------------------------
+
+\begin{frame}{Pika si vektor njësi}
+  \begin{itemize}
+    \item<1-> Në sferën njësi, pika $(\lambda,\varphi)$ ka koordinata
+      $\mathbf{u}=(\cos\varphi\cos\lambda,\ \cos\varphi\sin\lambda,\ \sin\varphi)$.
+    \item<2-> Këndi qendror $c$ midis dy pikave: $\cos c=\mathbf{u}_1\cdot\mathbf{u}_2$.
+    \item<3-> Distanca mbi rrethin e madh (\emph{great circle}): $d=R\,c$.
+    \item<4-> Pse rreth i madh? Është rruga më e shkurtër mbi sferë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Ligji sferik i kosinusit}
+  \begin{align*}
+    \cos c &= \cos\varphi_1\cos\varphi_2(\cos\lambda_1\cos\lambda_2+\sin\lambda_1\sin\lambda_2)+\sin\varphi_1\sin\varphi_2 \\
+    \uncover<2->{&= \cos\varphi_1\cos\varphi_2\cos\Delta\lambda+\sin\varphi_1\sin\varphi_2}
+  \end{align*}
+  \begin{itemize}
+    \item<3-> $\Delta\lambda=\lambda_2-\lambda_1$; përdorëm $\cos(\lambda_2-\lambda_1)=\cos\lambda_1\cos\lambda_2+\sin\lambda_1\sin\lambda_2$.
+    \item<4-> Pastaj $d=R\arccos(\cdot)$. E saktë matematikisht.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Nga kosinusi te haversine}
+  Shënojmë $\operatorname{hav}\theta=\sin^2(\theta/2)=(1-\cos\theta)/2$.
+  \begin{align*}
+    \uncover<2->{\sin\varphi_1\sin\varphi_2 &= \cos\Delta\varphi-\cos\varphi_1\cos\varphi_2}\\
+    \uncover<3->{1-\cos c &= (1-\cos\Delta\varphi)+\cos\varphi_1\cos\varphi_2\,(1-\cos\Delta\lambda)}\\
+    \uncover<4->{\operatorname{hav}c &= \operatorname{hav}\Delta\varphi+\cos\varphi_1\cos\varphi_2\operatorname{hav}\Delta\lambda}
+  \end{align*}
+  \onslide<5->{\begin{Teoreme}[(Formula haversine)]
+    $d=2R\arcsin\sqrt{\operatorname{hav}\Delta\varphi+\cos\varphi_1\cos\varphi_2\operatorname{hav}\Delta\lambda}$
+  \end{Teoreme}}
+\end{frame}
+
+\begin{frame}{Shembull pa ndihmën e PC}
+  \begin{itemize}
+    \item<1-> Dy pika në meridianin $20^\circ$: $(20,40)$ dhe $(20,42)$. $\Delta\lambda=0$.
+    \item<2-> $\operatorname{hav}c=\operatorname{hav}(2^\circ)$ $\Rightarrow$ $c=2^\circ=0.034907$ rad.
+    \item<3-> $d=6371\cdot0.034907\approx222.4$ km.
+    \item<4-> Kontroll: $2\times111.2=222.4$ km. \checkmark
+    \item<5-> Dy pika në ekuator, $90^\circ$ larg: $d=6371\cdot\pi/2\approx10\,007.5$ km.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Haversine në R, nga zero}
+<<h2-hav>>=
+haversine <- function(lon1, lat1, lon2, lat2, R = 6371) {
+  r <- pi / 180                                  # degrees -> radians
+  h <- sin((lat2 - lat1) * r / 2)^2 +
+       cos(lat1 * r) * cos(lat2 * r) * sin((lon2 - lon1) * r / 2)^2
+  2 * R * asin(sqrt(h))
+}
+c(meridian = haversine(20, 40, 20, 42),
+  equator  = haversine(0, 0, 90, 0),
+  tir_dur  = haversine(19.819, 41.328, 19.455, 41.324))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 222.39 km dhe 10\,007.54 km: përputhen me llogaritjen pa ndihmën e PC.
+    \item<2-> Tiranë--Durrës: 30.40 km, i njëjti numër si \texttt{st\_distance()} në Orën 1.
+    \item<3-> Funksioni është i vektorizuar: punon me vektorë koordinatash pa \texttt{for}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeStab102]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Për dy pika shumë afër (disa cm), cila formulë jep rezultat më të besueshëm në aritmetikën me presje lëvizëse?
+    \begin{enumerate}[A.]
+      \item ligji i kosinusit (\texttt{acos}) \quad B. haversine (\texttt{asin}) \quad C. njësoj
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjStab102}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Stabiliteti numerik}
+<<h2-stab>>=
+law_cos <- function(lon1, lat1, lon2, lat2, R = 6371) {
+  r <- pi / 180
+  R * acos(sin(lat1 * r) * sin(lat2 * r) +
+           cos(lat1 * r) * cos(lat2 * r) * cos((lon2 - lon1) * r))
+}
+dlon <- c(1e-3, 1e-5, 1e-6, 1e-7)                # degrees
+cm <- 1e5                                        # km -> cm
+data.frame(dlon = format(dlon),
+  haversine_cm = round(haversine(19.819, 41.328, 19.819 + dlon, 41.328) * cm, 2),
+  law_cos_cm   = round(law_cos(19.819, 41.328, 19.819 + dlon, 41.328) * cm, 2))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Për $10^{-3}$ gradë (83.5 m) të dyja përputhen.
+    \item<2-> Për $10^{-6}$ gradë (8.4 cm) ligji i kosinusit jep 13.4 cm; për $10^{-7}$: 9.5 cm në vend të 0.84 cm.
+    \item<3-> Pse? $\cos c\approx1$; \texttt{acos} pranë 1 humb shifra (\emph{catastrophic cancellation}).
+    \item<4-> Haversine punon me $\sin^2(c/2)\approx(c/2)^2$, i vogël por i saktë.
+  \end{itemize}
+  \LO{S1}
+\end{frame}
+
+\begin{frame}[label=gjejGabim102,fragile]{Gjej gabimin}
+<<h2-bug>>=
+hav_bad <- function(lon1, lat1, lon2, lat2, R = 6371) {
+  h <- sin((lat2 - lat1) / 2)^2 +
+       cos(lat1) * cos(lat2) * sin((lon2 - lon1) / 2)^2
+  2 * R * asin(sqrt(h))
+}
+hav_bad(19.819, 41.328, 19.455, 41.324)
+@
+  Pse del $\approx2\,049$ km në vend të 30 km?
+  \shkoTe{zgjGabim102}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Sferë kundrejt elipsoidit në \texttt{sf}}
+<<h2-s2>>=
+cities <- read.csv(file.path(W10DATA, "al_cities.csv"))
+pts <- st_as_sf(cities, coords = c("lon", "lat"), crs = 4326)
+d_sphere <- st_distance(pts[1, ], pts[c(2, 5), ])  # s2: sphere
+sf_use_s2(FALSE)                                   # geodesic on ellipsoid
+d_ellips <- st_distance(pts[1, ], pts[c(2, 5), ])
+sf_use_s2(TRUE)
+round(rbind(sphere = d_sphere[1, ], ellipsoid = d_ellips[1, ]) / 1000, 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Tiranë--Durrës: sferë 30.399 km, elipsoid 30.477 km (+0.26\%).
+    \item<2-> Tiranë--Shkodër: 86.117 kundrejt 86.046 km ($-0.08\%$): shenja varet nga drejtimi (L--P apo V--J).
+    \item<3-> \texttt{s2}: shpejt dhe i qëndrueshëm; gjeodezik mbi elipsoid: më i saktë.
+  \end{itemize}
+  \begin{Keshille}Për analizë statistike, sfera mjafton. Për inxhinieri, përdorni elipsoidin ose një projeksion lokal (Ora 4).\end{Keshille}
+\end{frame}
+
+\begin{frame}[label=ushPar102]{Ndrysho parametrin dhe shiko}
+  \begin{Ushtrim}[(5 minuta)]
+    \begin{enumerate}
+      \item Ekzekutoni \texttt{haversine()} për Tiranë--Durrës me $R=6378.137$ (ekuatoriale) dhe $R=6356.752$ (polare).
+      \item Sa ndryshon distanca në metra?
+      \item Cila $R$ i afrohet më shumë rezultatit gjeodezik 30.477 km? Pse jo plotësisht?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjPar102}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=ushTPS102]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    Një bashki ka shtresë rrugësh në Albanian 1987 dhe pika GPS të kontejnerëve në WGS 84.
+    \begin{enumerate}
+      \item Çfarë do të shihni nëse i vizatoni bashkë pa transformim?
+      \item Si e zbuloni problemin pa e ditur paraprakisht?
+      \item Cilin funksion të \texttt{sf} përdorni për ta zgjidhur?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS102}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja e orës}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp102]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 2}
+  \begin{enumerate}
+    \item Cilat dy parametra përcaktojnë një elipsoid? Llogaritni $b$ nga to.
+    \item Çfarë shton datumi mbi elipsoidin?
+    \item Shkruani formulën haversine dhe shpjegoni pse preferohet ndaj \texttt{acos}.
+  \end{enumerate}
+  \shkoTe{zgjCp102}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 2}
+  \begin{itemize}
+    \item Gjeoid (lartësitë), elipsoid (koordinatat), sferë (përafrim).
+    \item WGS 84: $a=6\,378\,137$ m, $1/f=298.257$; $a-b\approx21.4$ km.
+    \item Datum = elipsoid + vendosje; Albanian 1987 $\to$ WGS 84: $\approx141$ m zhvendosje.
+    \item Haversine: $d=2R\arcsin\sqrt{\operatorname{hav}\Delta\varphi+\cos\varphi_1\cos\varphi_2\operatorname{hav}\Delta\lambda}$.
+    \item Sferë kundrejt elipsoidit: ndryshim $<0.3\%$ për distancat në Shqipëri.
+  \end{itemize}
+  \begin{Keshille}Ora 3 (Lab I): \texttt{sf} nga zero: pika, vija, poligone, CRS, distanca dhe sipërfaqe.\end{Keshille}
+\end{frame}

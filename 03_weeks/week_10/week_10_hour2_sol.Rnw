@@ -1,0 +1,86 @@
+% ============================================================
+%  Java 10 · Ora 2 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjAB102]{Zgjidhja: Parashiko ($a-b$)}
+  \begin{itemize}
+    \item $a-b=a f\approx 6\,378\,137/298.26\approx 21\,385$ m.
+    \item Përgjigjja: \textbf{C}, $\approx21$ km.
+    \item Ide: $6\,400/300\approx21.3$, llogaritje mendore e mjaftueshme.
+  \end{itemize}
+  \vfill\kthehu{pyetjeAB102}
+\end{frame}
+
+\begin{frame}[label=zgjDMS102]{Zgjidhja: Radha jote! (DMS)}
+  \begin{enumerate}
+    \item $42.068^\circ$: $0.068\cdot60=4.08 \Rightarrow 4'$; $0.08\cdot60=4.8''$: $42^\circ04'04.8''$ V.
+      \; $19.513^\circ$: $0.513\cdot60=30.78\Rightarrow30'$; $0.78\cdot60=46.8''$: $19^\circ30'46.8''$ L.
+    \item $40+28/60+8/3600=40+0.46667+0.00222=40.4689^\circ$: Vlora (40.469).
+    \item $0.00001^\circ\approx1.1$ m $\Rightarrow$ 5 shifra dhjetore.
+  \end{enumerate}
+  \vfill\kthehu{ushDMS102}
+\end{frame}
+
+\begin{frame}[label=zgjDat102]{Zgjidhja: Parashiko (datumi)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}, $\approx141$ m.
+    \item Shkak: qendra dhe forma e elipsoidit Krasovsky janë të vendosura ndryshe nga WGS 84.
+    \item Rendi i madhësisë: datume lokale në Evropë zakonisht ndryshojnë nga WGS 84 me dhjetëra deri qindra metra.
+  \end{itemize}
+  \vfill\kthehu{pyetjeDat102}
+\end{frame}
+
+\begin{frame}[label=zgjMC102]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}.
+    \item A: datumi i përket modelit të Tokës; projeksioni e shtrin atë në plan (Ora 4).
+    \item B: e pamë, 141 m larg.
+    \item D: gjeoidi është sipërfaqe gravitacionale e parregullt, jo sferë.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC102}
+\end{frame}
+
+\begin{frame}[label=zgjStab102]{Zgjidhja: Parashiko (stabiliteti)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}, haversine.
+    \item \texttt{acos(x)} me $x\approx1-10^{-16}$: gabimi i rrumbullakimit në $x$ ($\approx10^{-16}$) bëhet gabim $\approx\sqrt{2\cdot10^{-16}}\approx1.4\cdot10^{-8}$ rad në kënd, pra $\approx9$ cm.
+    \item \texttt{asin} pranë 0 është pothuajse lineare; nuk e zmadhon gabimin.
+  \end{itemize}
+  \vfill\kthehu{pyetjeStab102}
+\end{frame}
+
+\begin{frame}[label=zgjGabim102]{Zgjidhja: Gjej gabimin}
+  \begin{itemize}
+    \item \texttt{sin()} dhe \texttt{cos()} në R presin \textbf{radianë}; funksioni u jep gradë.
+    \item $41.328$ rad nuk ka kuptim gjeografik; rezultati 2\,049 km është rastësor.
+    \item Korrigjim: shumëzoni çdo kënd me \texttt{pi/180}, si te \texttt{haversine()}.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim102}
+\end{frame}
+
+\begin{frame}[label=zgjPar102]{Zgjidhja: Ndrysho parametrin}
+  \begin{enumerate}
+    \item $R=6378.137$: 30.433 km; $R=6356.752$: 30.331 km; ($R=6371$: 30.398 km).
+    \item Ndryshimi: $\approx102$ m (0.34\%, njësoj si $f$).
+    \item Asnjëra. Drejtimi Tiranë--Durrës është pothuajse L--P; atje rrezja e lakimit është $N(41.3^\circ)\approx6\,387.5$ km, më e madhe se $a$. Me $R=N$: $30.398\cdot6\,387.5/6\,371\approx30.477$ km. Për V--J (Shkodra) vlen $M\approx6\,363$ km, prandaj distanca del më e shkurtër.
+  \end{enumerate}
+  \vfill\kthehu{ushPar102}
+\end{frame}
+
+\begin{frame}[label=zgjTPS102]{Zgjidhja: Think--pair--share}
+  \begin{enumerate}
+    \item Kontejnerët do të dalin të zhvendosur sistematikisht $\approx140$ m nga rrugët, të gjithë në të njëjtin drejtim.
+    \item Zhvendosje konstante e të gjitha pikave $\Rightarrow$ problem datumi, jo gabim GPS (që do të ishte i rastësishëm).
+    \item \texttt{st\_transform(rruget, 4326)} pasi \texttt{st\_crs(rruget)} është vendosur saktë në 4191.
+  \end{enumerate}
+  \vfill\kthehu{ushTPS102}
+\end{frame}
+
+\begin{frame}[label=zgjCp102]{Përgjigjet: Checkpoint Ora 2}
+  \begin{enumerate}
+    \item $a$ dhe $f$ (ose $a$ dhe $b$); $b=a(1-f)$.
+    \item Vendosjen e elipsoidit në raport me Tokën: qendra, orientimi, shkalla.
+    \item $d=2R\arcsin\sqrt{\operatorname{hav}\Delta\varphi+\cos\varphi_1\cos\varphi_2\operatorname{hav}\Delta\lambda}$; shmang \texttt{acos} pranë 1, ku humbasin shifrat.
+  \end{enumerate}
+  \vfill\kthehu{cp102}
+\end{frame}
