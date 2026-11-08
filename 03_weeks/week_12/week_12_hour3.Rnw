@@ -1,0 +1,444 @@
+% ============================================================
+%  Java 12 · Ora 3 — Lab I: metodat deterministe në R
+%  Rezultatet: S4, K3, S3
+%  Burimi: Pebesma & Bivand (2023), kap. 12; dokumentacioni i sf dhe gstat;
+%          Burrough & McDonnell (meuse)
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Lab I]{Lab I: metodat deterministe në R}
+
+\begin{frame}{Ora 3: Lab I --- metodat deterministe në R}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Përgatitja}
+% ------------------------------------------------------------
+
+\begin{frame}{Çfarë do të ndërtojmë sot}
+  \begin{enumerate}
+    \item<1-> Poligonet Thiessen me \texttt{sf::st\_voronoi()} dhe mesataren me pesha sipërfaqeje.
+    \item<2-> Sipërfaqet e trendit (rendi 1--3) dhe LOOCV me formulën PRESS.
+    \item<3-> IDW nga zero, kundrejt \texttt{gstat::idw()}.
+    \item<4-> LOOCV nga zero, kundrejt \texttt{gstat::krige.cv()}; zgjedhja e $p$ dhe e \texttt{nmax}.
+    \item<5-> Tabela përfundimtare: cila metodë fiton te Meuse?
+  \end{enumerate}
+  \LO{S4, K3, S3}
+\end{frame}
+
+\begin{frame}[fragile]{Të dhënat dhe zona e studimit}
+<<h3-data>>=
+library(sf); library(gstat); library(terra); library(ggplot2)
+meuse <- read.csv(file.path(W12DATA, "meuse.csv"))       # real (Burrough & McDonnell)
+grid  <- read.csv(file.path(W12DATA, "meuse_grid.csv"))  # real, 40 m cells
+ms <- st_as_sf(meuse, coords = c("x", "y"), crs = 28992, remove = FALSE)
+gs <- st_as_sf(grid,  coords = c("x", "y"), crs = 28992, remove = FALSE)
+r_area <- rast(grid[, c("x", "y", "dist")], type = "xyz", crs = "EPSG:28992")
+area <- st_union(st_as_sf(as.polygons(r_area > -1)))     # study-area polygon
+c(samples = nrow(ms), cells = nrow(gs), km2 = as.numeric(st_area(area)) / 1e6)
+z <- log(meuse$zinc)                                      # we model log(zinc)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 155 mostra, 3103 qeliza, zona 4.96 km$^2$ (si në Orën 1).
+    \item<2-> Poligoni i zonës: nga rasteri i rrjetës (\texttt{as.polygons()}) dhe \texttt{st\_union()}.
+    \item<3-> \texttt{remove = FALSE}: ruajmë kolonat \texttt{x}, \texttt{y}; do të na duhen për \texttt{lm()}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Thiessen me sf}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Poligonet Voronoi}
+<<h3-vor>>=
+env <- st_as_sfc(st_bbox(area))
+vor <- st_voronoi(st_union(ms), envelope = env)       # one GEOMETRYCOLLECTION
+vor <- st_sf(geometry = st_collection_extract(vor, "POLYGON"))
+vor <- st_join(vor, ms["zinc"])                       # each cell gets its sample
+st_agr(vor) <- "constant"                             # zinc is constant per polygon
+vc  <- st_intersection(vor, area)                     # clip to the study area
+vc$A <- as.numeric(st_area(vc))
+c(polygons = nrow(vc), total_km2 = sum(vc$A) / 1e6)
+summary(vc$A / 1e4)                                   # hectares
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 155 poligone, një për çdo mostër; pas prerjes mbulojnë saktësisht 4.96 km$^2$.
+    \item<2-> Sipërfaqet: nga 0.68 ha deri në 13.9 ha; mesatarja 3.2 ha.
+    \item<3-> \texttt{st\_voronoi()} kthen një \emph{koleksion}; \texttt{st\_collection\_extract()} e kthen në poligone.
+    \item<4-> \texttt{st\_union()} para Voronoi: pikat duhen bashkuar në një \texttt{MULTIPOINT}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Harta Thiessen: kodi}
+<<h3-vormap, eval=FALSE>>=
+ggplot() +
+  geom_sf(data = vc, aes(fill = log(zinc)), colour = "white", linewidth = 0.1) +
+  geom_sf(data = ms, size = 0.3) +
+  scale_fill_viridis_c(name = "log(zinc)") +
+  coord_sf(datum = NA) + theme_void(base_size = 8)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Harta Thiessen: rezultati}
+  \centering
+<<h3-vormap-fig, ref.label="h3-vormap", echo=FALSE, fig.height=3.2, fig.width=3.6, out.width="0.5\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}[label=pyetjeDecl123]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Mostrat janë më të dendura pranë lumit, ku zinku është i lartë. Mesatarja e zinkut me pesha Thiessen ($A_i/A$) do të jetë:
+    \begin{enumerate}[A.]
+      \item më e madhe se mesatarja e thjeshtë;
+      \item e barabartë;
+      \item më e vogël.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjDecl123}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Mesatarja e zonës: e thjeshtë kundrejt Thiessen}
+<<h3-decl>>=
+c(simple   = mean(meuse$zinc),
+  thiessen = weighted.mean(vc$zinc, vc$A))     # ppm
+@
+  \begin{itemize}
+    \item<2-> Peshat Thiessen: $\lambda_i=A_i/A$; një formë e thjeshtë \termi{shpërgrumbullimi}{declustering}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 470 ppm $\to$ 400 ppm: mesatarja e thjeshtë e mbivlerëson zonën me 17\%.
+    \item<2-> Mostrimi i Meuse u përqendrua aty ku pritej ndotje (pranë lumit).
+    \item<3-> Lidhja me statistikat zyrtare (Java 2): mostër jo e balancuar $\Rightarrow$ pesha.
+  \end{itemize}
+  \begin{Keshille}Kjo mesatare është ende në shkallën e ppm; për hartën përdorim $\log$ (shpërndarje asimetrike, Java 10).\end{Keshille}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGabim123]{Gjej gabimin}
+<<h3-bug>>=
+v0 <- st_collection_extract(st_voronoi(st_union(ms)), "POLYGON")
+v0 <- st_join(st_sf(geometry = v0), ms["zinc"])
+weighted.mean(v0$zinc, as.numeric(st_area(v0)))
+@
+  \begin{itemize}
+    \item Pse del 626 ppm dhe jo 400?
+  \end{itemize}
+  \shkoTe{zgjGabim123}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Thiessen $=$ IDW me \texttt{nmax = 1}?}
+<<h3-same>>=
+nn <- idw(log(zinc) ~ 1, ms, gs, nmax = 1, debug.level = 0)
+th <- st_join(gs, vc["zinc"])                      # point-in-polygon
+th <- th[!duplicated(th$geometry), ]               # cells on a border
+c(cells = nrow(th), max_diff = max(abs(log(th$zinc) - nn$var1.pred)))
+@
+  \begin{itemize}
+    \item<2-> Dy rrugë, e njëjta hartë: poligone (vektor) ose qeliza (raster).
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Sipërfaqet e trendit}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Rendet 1--3 në rrjetë}
+<<h3-trend>>=
+trend <- do.call(rbind, lapply(1:3, function(p) {
+  f <- lm(log(zinc) ~ poly(x, y, degree = p), data = meuse)
+  data.frame(grid[, c("x", "y")], z = predict(f, grid), order = paste("order", p))
+}))
+aggregate(z ~ order, data = trend, FUN = range)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hartat e trendit: kodi}
+<<h3-trendmap, eval=FALSE>>=
+ggplot(trend) + geom_raster(aes(x, y, fill = z)) +
+  geom_sf(data = ms, size = 0.2, inherit.aes = FALSE) +
+  facet_wrap(~ order) + scale_fill_viridis_c(name = "log(zinc)") +
+  coord_sf(crs = 28992, datum = NA) + labs(x = NULL, y = NULL) +
+  theme_void(base_size = 8)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hartat e trendit: rezultati}
+  \centering
+<<h3-trendmap-fig, ref.label="h3-trendmap", echo=FALSE, fig.height=2.7, fig.width=6, out.width="0.92\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Rendi 1: një plan; zinku bie nga perëndimi (lumi) në lindje.
+    \item<2-> Rendi 2: kurbë që ndjek shtratin e lumit.
+    \item<3-> Rendi 3: më shumë detaje, por skajet dalin jashtë të dhënave (4.38 dhe 7.60).
+    \item<4-> Asnjëra nuk i ``nderon'' mostrat: sipërfaqe të lëmuara, jo interpolim.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{LOOCV për polinomin: lak kundrejt PRESS}
+<<h3-press>>=
+t(sapply(1:4, function(p) {
+  X <- model.matrix(~ poly(x, y, degree = p), data = meuse)
+  loop <- sapply(1:nrow(X), function(i)                  # refit 155 times
+    z[i] - sum(X[i, ] * lm.fit(X[-i, ], z[-i])$coefficients))
+  f <- lm(z ~ X - 1)
+  press <- resid(f) / (1 - hatvalues(f))                 # one fit only
+  c(order = p, loop = sqrt(mean(loop^2)), PRESS = sqrt(mean(press^2)))
+}))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Laku dhe formula japin të njëjtin RMSE: $e_{(-i)}=e_i/(1-h_{ii})$ (Java 6--7).
+    \item<2-> Rendi 2 fiton: 0.538. Rendi 3 ka $R^2$ më të lartë, por CV më të keq (0.649).
+    \item<3-> Rendi 4 (0.585) është sërish më mirë se 3: CV nuk ndryshon në mënyrë monotone.
+    \item<4-> \texttt{lm.fit()} me matricën e plotë: shmang \texttt{poly()} mbi një rresht të vetëm.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{I njëjti trend me \texttt{gstat}}
+<<h3-degree>>=
+t1 <- krige(log(zinc) ~ 1, ms, gs, degree = 1, debug.level = 0)
+f1 <- lm(log(zinc) ~ x + y, data = meuse)
+max(abs(t1$var1.pred - predict(f1, grid)))
+@
+  \begin{itemize}
+    \item<2-> \texttt{degree = 1}: \texttt{gstat} shton $x$ dhe $y$ si parashikues; pa model variogrami $=$ OLS.
+    \item<3-> Do ta ripërdorim në Orën 5: e njëjta thirrje, por me variogram.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{IDW nga zero}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Funksioni ynë IDW}
+<<h3-myidw>>=
+S <- as.matrix(meuse[, c("x", "y")]); G <- as.matrix(grid[, c("x", "y")])
+my_idw <- function(s0, s, z, p = 2, nmax = Inf) {
+  D <- sqrt(outer(s0[, 1], s[, 1], "-")^2 + outer(s0[, 2], s[, 2], "-")^2)
+  apply(D, 1, function(d) {
+    if (any(d == 0)) return(z[which(d == 0)[1]])          # exact at samples
+    k <- order(d)[seq_len(min(nmax, length(d)))]          # neighbourhood
+    w <- d[k]^-p; sum(w * z[k]) / sum(w)
+  })
+}
+@
+  \begin{itemize}
+    \item \texttt{outer()}: matrica $3103\times155$ e distancave, pa lak.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli: funksioni ynë kundrejt \texttt{gstat::idw()}}
+<<h3-idwcheck>>=
+z_my <- my_idw(G, S, z, p = 2)
+z_gs <- idw(log(zinc) ~ 1, ms, gs, idp = 2, debug.level = 0)$var1.pred
+c(max_abs_diff = max(abs(z_my - z_gs)))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Ndryshimi $\approx10^{-14}$: gabim rrumbullakimi. E njëjta formulë.
+    \item<2-> 12 rreshta kod $=$ \texttt{gstat::idw()} për rastin global.
+    \item<3-> Tani e dimë \emph{çfarë} bën paketa; mund t'ia besojmë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeTie123]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Përsërisim kontrollin me \texttt{nmax = 10} (vetëm 10 fqinjët më të afërt). A do të përputhen sërish të 3103 qelizat?
+  \end{Parashiko}
+  \shkoTe{zgjTie123}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me \texttt{nmax = 10}}
+<<h3-tie>>=
+z_my10 <- my_idw(G, S, z, p = 2, nmax = 10)
+z_gs10 <- idw(log(zinc) ~ 1, ms, gs, idp = 2, nmax = 10, debug.level = 0)$var1.pred
+bad <- which(abs(z_my10 - z_gs10) > 1e-9); length(bad)
+d1 <- sqrt((S[, 1] - G[bad[1], 1])^2 + (S[, 2] - G[bad[1], 2])^2)
+sort(d1)[9:12]                                   # 10th and 11th neighbours
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 4 qeliza ndryshojnë (maksimumi 0.024 në $\log$).
+    \item<2-> Shkaku: \textbf{barazim}. Fqinji i 10-të dhe i 11-të janë të dy në 277.35 m.
+    \item<3-> \texttt{order()} dhe \texttt{gstat} zgjedhin ndryshe kur distancat janë të barabarta.
+  \end{itemize}
+  \begin{Keshille}Rrjetë e rregullt + koordinata të rrumbullakëta $\Rightarrow$ barazimet nuk janë të rralla. Asnjëra nuk është ``gabim''.\end{Keshille}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{LOOCV dhe zgjedhja e parametrave}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{LOOCV nga zero}
+<<h3-loo>>=
+Dss <- as.matrix(dist(S)); diag(Dss) <- Inf          # a sample never sees itself
+loo_idw <- function(p = 2, nmax = Inf) {
+  pred <- sapply(1:nrow(Dss), function(i) {
+    d <- Dss[i, ]; k <- order(d)[seq_len(min(nmax, length(d) - 1))]
+    w <- d[k]^-p; sum(w * z[k]) / sum(w)
+  })
+  sqrt(mean((z - pred)^2))
+}
+loo_idw(p = 2)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Kontrolli me \texttt{krige.cv()}}
+<<h3-krigecv>>=
+cv2 <- krige.cv(log(zinc) ~ 1, ms, set = list(idp = 2), verbose = FALSE)
+c(RMSE = sqrt(mean(cv2$residual^2)), mean_res = mean(cv2$residual))
+@
+  \begin{itemize}
+    \item<2-> \texttt{krige.cv()} pa \texttt{model}: LOOCV për IDW; \texttt{set = list(idp = ...)} jep fuqinë.
+    \item<3-> \texttt{residual} $=$ e vëzhguara $-$ e parashikuara.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> RMSE 0.514 në të dyja: funksioni ynë është i saktë.
+    \item<2-> Mesatarja e mbetjeve afër 0: pa zhvendosje sistematike.
+    \item<3-> Funksioni ynë është shumë më i shpejtë, sepse matrica $155\times155$ llogaritet një herë; kjo na lejon të provojmë shumë vlera $p$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeP123]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Provojmë $p=0.5,\ 1,\ 1.5,\ 2,\ 2.5,\ 3,\ 4,\ 6$. Ku pritet RMSE më i vogël?
+    \begin{enumerate}[A.]
+      \item $p=0.5$ (pothuajse mesatarja);
+      \item $p=2$ (parazgjedhja);
+      \item diku mes 3 dhe 4;
+      \item $p=6$ (pothuajse Thiessen).
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjP123}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Fuqia $p$: kurba e CV}
+<<h3-psweep>>=
+ps <- c(0.5, 1, 1.5, 2, 2.5, 3, 4, 6)
+cvp <- data.frame(p = ps, RMSE = sapply(ps, loo_idw))
+round(t(cvp), 4)
+@
+<<h3-pplot, eval=FALSE>>=
+ggplot(cvp, aes(p, RMSE)) + geom_line() + geom_point() +
+  labs(x = "power p", y = "LOOCV RMSE, log(zinc)") + theme_minimal(base_size = 9)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Fuqia $p$: grafiku}
+  \centering
+<<h3-pplot-fig, ref.label="h3-pplot", echo=FALSE, fig.height=2.4, fig.width=4.2, out.width="0.68\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Minimumi: $p=4$, RMSE 0.457 (kundrejt 0.514 me $p=2$).
+    \item<2-> $p=0.5$: 0.694, afër mesatares; $p=6$: kurba ngrihet sërish drejt Thiessen.
+    \item<3-> Kurba është e sheshtë mes 3 dhe 4: nuk ka kuptim të ``optimizojmë'' me 3 shifra.
+  \end{itemize}
+  \begin{Gabim}RMSE 0.457 është pak optimist: e zgjodhëm $p$ me të njëjtat të dhëna. Për një vlerësim të ndershëm duhet CV e jashtme (Java 6).\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=ushNmax123]{Radha jote! Ndrysho parametrin}
+  \begin{Ushtrim}[(7 minuta)]
+    Me \texttt{loo\_idw()} dhe $p=2$:
+    \begin{enumerate}
+      \item Llogaritni RMSE për \texttt{nmax} $=1,\ 5,\ 10,\ 20,\ 50,\ 154$.
+      \item Cila \texttt{nmax} fiton? Krahasojeni me $p=4$ pa \texttt{nmax}.
+      \item Pse \texttt{nmax = 154} jep pikërisht 0.514?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjNmax123}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Krahasimi përfundimtar}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Të gjitha metodat, një tabelë}
+<<h3-table>>=
+n <- length(z); X2 <- model.matrix(~ poly(x, y, degree = 2), data = meuse)
+f2 <- lm(z ~ X2 - 1)
+res <- c(mean_only   = sqrt(mean(((z - mean(z)) * n / (n - 1))^2)),
+         thiessen    = loo_idw(p = 2, nmax = 1),
+         trend_order2 = sqrt(mean((resid(f2) / (1 - hatvalues(f2)))^2)),
+         idw_p2      = loo_idw(p = 2),
+         idw_p4      = loo_idw(p = 4),
+         idw_p2_nmax5 = loo_idw(p = 2, nmax = 5))
+round(sort(res), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Çdo metodë hapësinore mund mesataren (0.724).
+    \item<2-> Trendi global (0.538) dhe Thiessen (0.565) janë në mes.
+    \item<3-> IDW lokal fiton: $p=2$ me 5 fqinjë (0.442) $\approx$ $p=4$ global (0.457). Të dyja e bëjnë IDW-në ``më lokale''.
+    \item<4-> \textbf{Pyetja e Orës 4}: a mund të bëjmë më mirë me një model për korrelacionin hapësinor?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabim i zakonshëm: shkalla e RMSE-së}
+  \begin{Gabim}
+    RMSE 0.44 është në shkallën $\log$(ppm). Nuk është ``0.44 ppm''.
+  \end{Gabim}
+  \begin{itemize}
+    \item<2-> Në $\log$, gabimi është afërsisht relativ: $e^{0.44}\approx1.55$, pra faktor $\times1.55$ ose $\div1.55$ ``tipik''.
+    \item<3-> Krahasoni metodat gjithmonë në të njëjtën shkallë dhe me të njëjtat mostra.
+    \item<4-> Për raportim në ppm: CV me $\exp(\hat z)$; kujdes nga zhvendosja e kthimit (Ora 5).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC123]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Thiessen ka RMSE 0.565, por mesatarja me pesha Thiessen (400 ppm) quhet ``më e mirë'' se mesatarja e thjeshtë. Pse nuk ka kontradiktë?
+    \begin{enumerate}[A.]
+      \item RMSE dhe mesatarja e zonës janë dy synime të ndryshme.
+      \item RMSE i Thiessen është gabim i \texttt{krige.cv()}.
+      \item Mesatarja Thiessen llogaritet në $\log$.
+      \item Sepse \texttt{nmax = 1} nuk është Thiessen.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC123}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=cp123]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 3}
+  \begin{enumerate}
+    \item Cilat tre hapa duhen pas \texttt{st\_voronoi()} për të marrë poligone me vlera brenda zonës?
+    \item Pse PRESS jep të njëjtin RMSE si laku LOOCV për polinomin?
+    \item Pse funksioni ynë dhe \texttt{gstat} ndryshojnë në 4 qeliza me \texttt{nmax = 10}?
+  \end{enumerate}
+  \shkoTe{zgjCp123}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 3}
+  \begin{itemize}
+    \item Voronoi: \texttt{st\_union} $\to$ \texttt{st\_voronoi(envelope)} $\to$ \texttt{st\_collection\_extract} $\to$ \texttt{st\_join} $\to$ \texttt{st\_intersection}.
+    \item Mesatarja me pesha Thiessen: 400 ppm kundrejt 470 ppm.
+    \item Trendi: rendi 2 fiton në LOOCV (0.538); PRESS $=$ lak.
+    \item IDW nga zero $=$ \texttt{gstat::idw()} (përveç barazimeve me \texttt{nmax}).
+    \item LOOCV: $p=4$ (0.457); $p=2$, \texttt{nmax = 5} (0.442); mesatarja 0.724.
+  \end{itemize}
+  \begin{Keshille}Ora 4: variogrami dhe Kriging-u: peshat nga një model i korrelacionit hapësinor.\end{Keshille}
+\end{frame}

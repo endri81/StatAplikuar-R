@@ -1,0 +1,73 @@
+% ============================================================
+%  Java 12 · Ora 3 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjDecl123]{Zgjidhja: Parashiko (shpërgrumbullimi)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}, më e vogël (400 kundrejt 470 ppm).
+    \item Mostrat e dendura pranë lumit kanë poligone të vogla, pra pesha të vogla.
+    \item Mostrat e rralla larg lumit (zink i ulët) përfaqësojnë sipërfaqe të mëdha.
+    \item Mesatarja e thjeshtë i jep të njëjtën peshë çdo mostre, pra mbipërfaqëson zonën e ndotur.
+  \end{itemize}
+  \vfill\kthehu{pyetjeDecl123}
+\end{frame}
+
+\begin{frame}[label=zgjGabim123]{Zgjidhja: Gjej gabimin (poligonet pa prerje)}
+  \begin{itemize}
+    \item \texttt{st\_voronoi()} pa \texttt{envelope} dhe pa \texttt{st\_intersection()}: poligonet e skajeve shtrihen shumë jashtë zonës.
+    \item Sipërfaqja maksimale bëhet $\approx2294$ ha, kundrejt 13.9 ha pas prerjes.
+    \item Mostrat e skajeve marrin pesha të mëdha pa arsye; mesatarja kërcen në 626 ppm.
+    \item Rregulli: peshat duhen llogaritur \textbf{vetëm brenda zonës} për të cilën kërkojmë mesataren.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim123}
+\end{frame}
+
+\begin{frame}[label=zgjTie123]{Zgjidhja: Parashiko (\texttt{nmax = 10})}
+  \begin{itemize}
+    \item Jo të gjitha: 4 qeliza ndryshojnë.
+    \item Kur fqinji i 10-të dhe i 11-të janë në të njëjtën distancë, ``10 më të afërtit'' nuk janë të përcaktuar në mënyrë unike.
+    \item Pa \texttt{nmax}, të gjitha pikat hyjnë: nuk ka barazim për t'u zgjidhur, dhe përputhja është e plotë.
+  \end{itemize}
+  \vfill\kthehu{pyetjeTie123}
+\end{frame}
+
+\begin{frame}[label=zgjP123]{Zgjidhja: Parashiko (fuqia optimale)}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{C}. Minimumi në $p=4$ (0.457); $p=3$ jep 0.460.
+    \item $p=0.5$: 0.694, peshat pothuajse të barabarta.
+    \item $p=6$: 0.478, kurba ngrihet drejt Thiessen (0.565).
+    \item Te Meuse, korrelacioni hapësinor bie shpejt: fqinjët e afërt duhet të dominojnë më shumë se me $p=2$.
+  \end{itemize}
+  \vfill\kthehu{pyetjeP123}
+\end{frame}
+
+\begin{frame}[fragile,label=zgjNmax123]{Zgjidhja: Radha jote! (\texttt{nmax})}
+<<sol-nmax>>=
+nm <- c(1, 5, 10, 20, 50, 154)
+round(setNames(sapply(nm, function(k) loo_idw(p = 2, nmax = k)), nm), 4)
+@
+  \begin{itemize}
+    \item Fiton \texttt{nmax = 5} (0.442), pak më mirë se $p=4$ global (0.457).
+    \item \texttt{nmax = 154}: në LOOCV mbeten 154 pika, pra të gjitha; e njëjta si IDW globale (0.514).
+  \end{itemize}
+  \vfill\kthehu{ushNmax123}
+\end{frame}
+
+\begin{frame}[label=zgjMC123]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{A}.
+    \item RMSE mat gabimin e parashikimit \emph{në një pikë}; aty Thiessen është i dobët (konstante pjesë-pjesë).
+    \item Mesatarja e zonës kërkon pesha që korrigjojnë mostrimin jo të balancuar; aty sipërfaqet Thiessen janë të dobishme.
+    \item Një metodë mund të jetë e mirë për një synim dhe e dobët për tjetrin.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC123}
+\end{frame}
+
+\begin{frame}[label=zgjCp123]{Përgjigjet: Checkpoint Ora 3}
+  \begin{enumerate}
+    \item \texttt{st\_collection\_extract("POLYGON")}, \texttt{st\_join()} me pikat, \texttt{st\_intersection()} me zonën (dhe \texttt{envelope} që në fillim).
+    \item Për OLS, mbetja pa vëzhgimin $i$ është $e_i/(1-h_{ii})$: identitet algjebrik, jo përafrim.
+    \item Barazime në distancë: fqinji i 10-të dhe i 11-të në 277.35 m; secili program zgjedh ndryshe.
+  \end{enumerate}
+  \vfill\kthehu{cp123}
+\end{frame}
