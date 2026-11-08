@@ -1,0 +1,43 @@
+% ============================================================
+%  Java 8 · Ora 2 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjPoly]{Zgjidhja: Pyetje me zgjedhje (\texttt{poly})}
+  \begin{itemize}
+    \item E gabuara: \textbf{C}. Bazat janë të ndryshme, prandaj edhe koeficientët ndryshojnë.
+    \item A, B: e njëjta hapësirë kolonash $\Rightarrow$ e njëjta projeksion $Hy$.
+    \item D: kolonat ortogonale $\Rightarrow$ $X^\top X$ diagonale; çdo koeficient llogaritet veç.
+  \end{itemize}
+  \vfill\kthehu{pyetjePoly}
+\end{frame}
+
+\begin{frame}[label=zgjStep]{Zgjidhja: Radha jote! (prerje te $\pm1.5$)}
+  \begin{itemize}
+    \item Grupet: $\{-2\}$, $\{-1,0,1\}$, $\{2\}$; mesataret: $6$, $5/3\approx1.67$, $4$.
+    \item SSE $=0+\big[(2-\tfrac53)^2+(1-\tfrac53)^2+(2-\tfrac53)^2\big]+0=\tfrac19+\tfrac49+\tfrac19=\tfrac23\approx0.67$.
+    \item Prerjet tani izolojnë dy skajet e larta të formës U; grupi i mesëm kap fundin e U-së.
+    \item Me 3 parametra, afër kuadratikut (0.4), por vetëm sepse prerjet u zgjodhën ``me sy'' pasi pamë të dhënat.
+  \end{itemize}
+  \vfill\kthehu{ushStep}
+\end{frame}
+
+\begin{frame}[label=zgjDf]{Zgjidhja: Parashiko (numri i koeficientëve)}
+  \begin{enumerate}
+    \item $4+1=5$.
+    \item 4 intervale: $3$ dummy $+1=4$.
+    \item $K+4=3+4=7$.
+    \item \texttt{df = 6} $\Rightarrow$ 3 nyje, 6 kolona $+1=7$.
+    \item Spline lineare: $K+2=5$.
+  \end{enumerate}
+  \small Kontrolluar në R me \texttt{length(coef(fit))}: 5, 4, 7, 7, 5.
+  \vfill\kthehu{pyetjeDf}
+\end{frame}
+
+\begin{frame}[label=zgjCp82]{Përgjigjet: Checkpoint Ora 2}
+  \begin{enumerate}
+    \item Të dyja bazat gjenerojnë të njëjtën hapësirë kolonash; OLS projekton $y$ mbi atë hapësirë. Koeficientët varen nga baza.
+    \item $5+4=9$: $4(K+1)$ parametra të kubikëve të copëtuar, minus $3K$ kushte (vazhdueshmëri e $f,f',f''$).
+    \item Te $x=\xi$: $(x-\xi)^3$, $3(x-\xi)^2$ dhe $6(x-\xi)$ janë të gjitha 0, njësoj si nga ana e majtë.
+  \end{enumerate}
+  \vfill\kthehu{cp82}
+\end{frame}

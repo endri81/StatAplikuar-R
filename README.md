@@ -28,7 +28,7 @@ Titullari: Prof. Asoc. Dr. Endri Raço (eraco@fimif.edu.al)
 | 05 | Regresi i thjeshtë linear | K2, S2 | ✅ Gati (216 slide + 48 zgjidhje) |
 | 06 | Regresi i shumëfishtë, përzgjedhja, CV | K2, S2, S3 | ✅ Gati (184 slide + 45 zgjidhje) |
 | 07 | Kontrolli i hipotezave dhe diagnostikimi | S3, C1 | ✅ Gati (217 slide + 43 zgjidhje) |
-| 08 | Regresi jolinear dhe robust | K2, S2 | 🔄 Ora 1 gati (28 slide) |
+| 08 | Regresi jolinear dhe robust | K2, S2 | 🔄 Orët 1–2 gati (28+30 slide) |
 | 09 | Regresi logjistik dhe klasifikimi (+ Zgjerim: pemët, RF) | K2, S3, C1 | ⏳ |
 | 10 | Sistemet koordinative, projeksionet, datumet (`sf`) | K3 | ⏳ |
 | 11 | Raster dhe vektor, shapefile (`sf`, `terra`) | K3, S4 | ⏳ |
