@@ -1,0 +1,149 @@
+% ============================================================
+%  Java 12 · Ora 7 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=s12T1]{Zgjidhja: Teori 1}
+  \small
+  \begin{enumerate}
+    \item I saktë: $\hat z(s_i)=z(s_i)$ në çdo mostër (Thiessen, TIN, IDW, Kriging pa gabim matjeje). Zbutës: nuk kalon nëpër mostra (polinomi global, regresi, thin plate spline me $\rho>0$).
+    \item IDW: peshat pozitive me shumë 1, pra mesatare e ponderuar, brenda [min, max]. Polinomi: $\boldsymbol\lambda^\top=\mathbf x_0^\top(X^\top X)^{-1}X^\top$ ka pesha negative; ekstrapolon (Meuse, rendi 3: 7.60 $>$ 7.517).
+  \end{enumerate}
+  \vfill\kthehu{q12T1}
+\end{frame}
+
+\begin{frame}[label=s12T2]{Zgjidhja: Teori 2}
+  \small
+  \begin{enumerate}
+    \item $\gamma(h)=\tfrac12\mathrm E[(Z(s+h)-Z(s))^2]$; me stacionaritet të dytë: $\gamma(h)=C(0)-C(h)$.
+    \item Nugget $c_0$: kërcimi në origjinë (gabim matjeje $+$ variacion në shkallë të vogël). Sill $c_0+c$: niveli ku $\gamma$ stabilizohet ($=C(0)$). Range: distanca ku arrihet pragu (korrelacioni zhduket). Te Exp pragu arrihet vetëm asimptotikisht; range praktik $3a$ është distanca ku $\gamma$ arrin 95\% të pragut.
+  \end{enumerate}
+  \vfill\kthehu{q12T2}
+\end{frame}
+
+\begin{frame}[label=s12T3]{Zgjidhja: Teori 3}
+  \small
+  \begin{enumerate}
+    \item $\sum_j\lambda_j\gamma_{ij}+m=\gamma_{i0}$ ($i=1..n$), $\sum_j\lambda_j=1$; $\sigma^2_{OK}=\sum_i\lambda_i\gamma_{i0}+m$. $m$ është shumëzuesi i Lagrange-it për kushtin e pazhvendosjes $\sum\lambda_j=1$ ($\mu$ e panjohur).
+    \item UK: trend $\mathbf x(s)^\top\boldsymbol\beta$ (koordinata ose kovariatë); një kusht pazhvendosjeje për çdo term. Variogrami llogaritet mbi mbetjet e trendit.
+    \item Kriging-u është i saktë në stacione: RMSE atje $\approx0$ për ndërtim. LOOCV parashikon çdo stacion pa të, pra mat gabimin në vende pa të dhëna.
+  \end{enumerate}
+  \vfill\kthehu{q12T3}
+\end{frame}
+
+\begin{frame}[label=s12E1]{Zgjidhja: Ushtrimi 1}
+  \small
+  \begin{enumerate}
+    \item Fqinji më i afërt: $x=2$ ($d=0.5$), $\hat z=14$.
+    \item $d=(1.5,\ 0.5,\ 4.5)$, $d^{-1}=(\tfrac23,\ 2,\ \tfrac29)$, shuma $\tfrac{26}{9}$.\\
+      $\lambda=(0.231,\ 0.692,\ 0.077)$; $\hat z=\tfrac{124/3}{26/9}=\tfrac{124\cdot3}{26}\approx14.31$.
+    \item $d^{-2}=(\tfrac49,\ 4,\ \tfrac4{81})$; $\hat z=\tfrac{5016}{364}\approx13.78$. Me $p$ më të madh, fqinji më i afërt dominon ($\lambda_2=0.89$), pra afrohet me Thiessen.
+    \item $p\to0$: mesatarja $(10+14+30)/3=18$.
+  \end{enumerate}
+  \vfill\kthehu{q12E1}
+\end{frame}
+
+\begin{frame}[label=s12E2]{Zgjidhja: Ushtrimi 2}
+  \small
+  \begin{enumerate}
+    \item $h=1$: 5 çifte, diferencat $2,-1,4,-2,1$, katrorët $4,1,16,4,1$ (shuma 26): $\hat\gamma(1)=26/10=2.6$.\\
+      $h=2$: 4 çifte $(3,4),(5,8),(4,6),(8,7)$, katrorët $1,9,4,1$ (shuma 15): $\hat\gamma(2)=15/8=1.875$.
+    \item Me pak çifte, $\hat\gamma$ është shumë i zhurmshëm; ``zigzagu'' mes fqinjëve të afërt sugjeron variacion në shkallë shumë të vogël. Do të përshtatnim nugget të madh (varianca e mostrës është 3.5).
+  \end{enumerate}
+  \vfill\kthehu{q12E2}
+\end{frame}
+
+\begin{frame}[label=s12E3]{Zgjidhja: Ushtrimi 3}
+  \small
+  \begin{enumerate}
+    \item $h/a=0.5$: $\gamma(300)=0.1+0.5\,(0.75-0.0625)=0.1+0.34375\approx0.444$.\\
+      $h>a$: $\gamma(800)=c_0+c=0.6$.
+    \item $\gamma(600)=0.1+0.5\,(1-e^{-3})=0.1+0.5\cdot0.9502\approx0.575$. Range praktik $3a=600$ m.
+    \item \texttt{vgm(psill = 0.5, model = "Exp", range = 200, nugget = 0.1)}.
+  \end{enumerate}
+  \vfill\kthehu{q12E3}
+\end{frame}
+
+\begin{frame}[label=s12E4]{Zgjidhja: Ushtrimi 4}
+  \small
+  \begin{enumerate}
+    \item $s_0=2$: $\gamma_{10}=2$, $\gamma_{20}=3$, $\gamma_{12}=5$.\\
+      $5\lambda_2+m=2$; $5\lambda_1+m=3$; mbledhim: $5+2m=5\Rightarrow m=0$; $\lambda=(\tfrac35,\tfrac25)$.\\
+      $\hat z=6+8=14$; $\sigma^2_{OK}=\tfrac35\cdot2+\tfrac25\cdot3=2.4$.
+    \item $s_0=-1$: $\gamma_{10}=1$, $\gamma_{20}=6$. $5\lambda_2+m=1$; $5\lambda_1+m=6$ $\Rightarrow$ $\lambda_1-\lambda_2=1$, $\lambda=(1,0)$, $m=1$.\\
+      $\hat z=10$; $\sigma^2_{OK}=1+1=2$. Efekti i ekranit: $s_2$ fshihet pas $s_1$; ekstrapolim konstant.
+  \end{enumerate}
+  \vfill\kthehu{q12E4}
+\end{frame}
+
+\begin{frame}[label=s12E5]{Zgjidhja: Ushtrimi 5}
+  \small
+  \begin{enumerate}
+    \item Pragu $0.051+0.591=0.642$; nugget $0.051/0.642\approx7.9\%$. Mostrat më larg se $\approx900$ m janë praktikisht të pakorreluara.
+    \item UK: RMSE më i vogël (0.375); ME $\approx0$ te të dyja; MSDR më afër 1 (1.08 kundrejt 0.82). UK më e mirë në të tria.
+    \item Gabimet reale janë më të vogla se sa thotë $\sigma_{OK}$: harta e pasigurisë është pak pesimiste (konservative).
+  \end{enumerate}
+  \vfill\kthehu{q12E5}
+\end{frame}
+
+\begin{frame}[label=s12E6]{Zgjidhja: Ushtrimi 6}
+  \small
+  \begin{enumerate}
+    \item $\exp(5.8)\approx330$ ppm: afër mesores. $\exp(5.8+0.08)\approx358$ ppm: mesatarja (korrigjimi lognormal).
+    \item $\sigma=0.4$: $\exp(5.8\pm0.784)$, pra $[150.8;\ 723.4]$ ppm.
+    \item $\exp$ është jolineare: intervali simetrik në $\log$ bëhet asimetrik në ppm (faktor $\div2.19$ dhe $\times2.19$).
+  \end{enumerate}
+  \vfill\kthehu{q12E6}
+\end{frame}
+
+\begin{frame}[fragile,label=s12E7]{Zgjidhja: Ushtrimi 7}
+\begin{verbatim}
+v  <- variogram(rain ~ elev, pts)                 # residual variogram
+m  <- fit.variogram(v, vgm(1, "Exp", 20000, 0.1)) # start: plot(v)
+uk <- krige(rain ~ elev, pts, cells, model = m)   # pred + variance
+cv <- krige.cv(rain ~ elev, pts, model = m)
+c(RMSE = sqrt(mean(cv$residual^2)), MSDR = mean(cv$zscore^2))
+\end{verbatim}
+  \small
+  \begin{itemize}
+    \item Kontrolle: CRS i projektuar; çifte të mjaftueshme në variogram; ME $\approx0$, MSDR $\approx1$; \texttt{elev} në \texttt{cells} në të njëjtat njësi; harta e $\sigma$ krahas parashikimit.
+  \end{itemize}
+  \vfill\kthehu{q12E7}
+\end{frame}
+
+\begin{frame}[label=h12S1]{Udhëzime: shtëpi 1--2}
+  \small
+  \begin{enumerate}
+    \item \texttt{variogram(log(copper) \textasciitilde\ 1, ms)}; përshtatni Sph; krahasoni raportin nugget/prag dhe range-in me zinkun (0.079; 897 m).
+    \item \texttt{krige.cv(..., nfold = 5)} brenda një laku me \texttt{set.seed(s)}; raportoni mesataren dhe devijimin standard të RMSE-së.
+  \end{enumerate}
+  \vfill\kthehu{h12H1}
+\end{frame}
+
+\begin{frame}[label=h12S3]{Udhëzime: shtëpi 3--4}
+  \small
+  \begin{enumerate}
+    \setcounter{enumi}{2}
+    \item Ndryshoni \texttt{\$Jul} në \texttt{\$Jan}; përsëritni Orën 6 me të njëjtin seed. Krahasoni pjerrësinë e \texttt{lm(temp \textasciitilde\ elev)} dhe pragun e mbetjeve.
+    \item \texttt{low <- which(truth\$elev < 500)}; \texttt{idx <- sample(low, 80)}. Llogaritni RMSE-në e vërtetë veçmas për qelizat mbi 1000 m.
+  \end{enumerate}
+  \vfill\kthehu{h12H3}
+\end{frame}
+
+\begin{frame}[label=h12S5]{Udhëzime: shtëpi 5--6}
+  \small
+  \begin{enumerate}
+    \setcounter{enumi}{4}
+    \item Përdorni kodin e Orës 5 (\texttt{G}, \texttt{A}, \texttt{solve}); kontrolloni \texttt{max(abs(...))} $<10^{-8}$.
+    \item \texttt{variogram(log(zinc) \textasciitilde\ 1, ms, alpha = c(0, 45, 90, 135))}; krahasoni range-in sipas drejtimit; pastaj \texttt{vgm(..., anis = c(kendi, raporti))} dhe CV.
+  \end{enumerate}
+  \vfill\kthehu{h12H5}
+\end{frame}
+
+\begin{frame}[label=zgjCp127]{Përgjigjet: Checkpoint Ora 7}
+  \begin{enumerate}
+    \item Variogrami empirik $\to$ përshtatja e modelit $\to$ \texttt{krige()} (dhe vlerësimi me \texttt{krige.cv()}).
+    \item Kur ka shumë pak pika për një variogram të besueshëm, kur duhet shpejtësi, ose kur CV nuk tregon përmirësim nga Kriging-u.
+    \item Burimin dhe llojin e të dhënave, metodën, gabimin nga CV, hartën e pasigurisë, projeksionin, shkallën dhe veriun.
+  \end{enumerate}
+  \vfill\kthehu{cp127}
+\end{frame}

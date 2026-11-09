@@ -1,0 +1,373 @@
+% ============================================================
+%  Java 12 · Ora 7 — Konsolidimi dhe mbyllja e kursit
+%  Rezultatet: K3, C1 (dhe përmbledhje e K1--K3, S1--S4)
+% ============================================================
+
+\section[Konsolidimi]{Konsolidimi dhe mbyllja e kursit}
+
+\begin{frame}{Ora 7: Konsolidimi dhe mbyllja e kursit}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kuizi në stilin e provimit}
+% ------------------------------------------------------------
+
+\begin{frame}{Kuizi: si funksionon}
+  \begin{itemize}
+    \item<1-> Si në provim: \textbf{25\% teori, 75\% ushtrime}; 3 pyetje teorike (25 pikë) $+$ 7 ushtrime (75 pikë).
+    \item<2-> Koha: 45 minuta. Ushtrimet 1--4 dhe 6 bëhen pa ndihmën e PC.
+    \item<3-> Vlera të dobishme: $e^{-3}=0.0498$; $e^{1.96\cdot0.4}=e^{0.784}=2.190$; $e^{5.8}=330.3$.
+  \end{itemize}
+  \onslide<4->{\begin{Keshille}Shkruani gjithmonë njësinë: metra apo gradë, $\log$(ppm) apo ppm, $^\circ$C apo $(^\circ\text{C})^2$.\end{Keshille}}
+\end{frame}
+
+\begin{frame}[label=q12T1]{Teori 1 (8 pikë)}
+  \begin{Ushtrim}[(Teori 1)]
+    \begin{enumerate}
+      \item Dalloni interpolimin e saktë nga ai zbutës. Jepni nga një shembull.
+      \item Pse IDW nuk mund të japë vlerë mbi maksimumin e të dhënave, ndërsa polinomi global mundet?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s12T1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q12T2]{Teori 2 (8 pikë)}
+  \begin{Ushtrim}[(Teori 2)]
+    \begin{enumerate}
+      \item Përkufizoni semivariogramin dhe tregoni lidhjen e tij me kovariancën.
+      \item Shpjegoni nugget, sill dhe range. Çfarë do të thotë ``range praktik'' te modeli eksponencial?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s12T2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q12T3]{Teori 3 (9 pikë)}
+  \begin{Ushtrim}[(Teori 3)]
+    \begin{enumerate}
+      \item Shkruani sistemin e Kriging-ut të zakonshëm dhe variancën e tij. Nga vjen shumëzuesi $m$?
+      \item Si ndryshon Kriging-u universal nga ai i zakonshëm? Mbi çfarë llogaritet variogrami?
+      \item Pse LOOCV preferohet ndaj RMSE-së në stacione për të vlerësuar një hartë?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s12T3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q12E1]{Ushtrimi 1 (10 pikë): Thiessen dhe IDW}
+  \begin{Ushtrim}[(Ushtrimi 1, pa ndihmën e PC)]
+    Në 1D: $x=0,\ 2,\ 6$ me $z=10,\ 14,\ 30$. Parashikojmë në $x_0=1.5$.
+    \begin{enumerate}
+      \item Vlera me Thiessen.
+      \item IDW me $p=1$: peshat dhe $\hat z$.
+      \item IDW me $p=2$: $\hat z$. Pse është më afër vlerës së Thiessen?
+      \item Ku shkon IDW kur $p\to0$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s12E1}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q12E2]{Ushtrimi 2 (10 pikë): variogrami empirik}
+  \begin{Ushtrim}[(Ushtrimi 2, pa ndihmën e PC)]
+    Në 1D: $x=0,1,2,3,4,5$ me $z=3,\ 5,\ 4,\ 8,\ 6,\ 7$ (sintetike).
+    \begin{enumerate}
+      \item Llogaritni $\hat\gamma(1)$ dhe $\hat\gamma(2)$. Sa çifte ka secila?
+      \item Pse $\hat\gamma(2)<\hat\gamma(1)$? Çfarë do të përshtatnit: nugget i madh apo i vogël?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s12E2}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q12E3]{Ushtrimi 3 (10 pikë): modelet}
+  \begin{Ushtrim}[(Ushtrimi 3, pa ndihmën e PC)]
+    \begin{enumerate}
+      \item Sferik: $c_0=0.1$, $c=0.5$, $a=600$ m. Llogaritni $\gamma(300)$ dhe $\gamma(800)$.
+      \item Eksponencial: $c_0=0.1$, $c=0.5$, $a=200$ m. Llogaritni $\gamma(600)$. Sa është range-i praktik?
+      \item Te \texttt{gstat}: si shkruhet modeli i pikës 2 me \texttt{vgm()}?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s12E3}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q12E4]{Ushtrimi 4 (10 pikë): sistemi i OK}
+  \begin{Ushtrim}[(Ushtrimi 4, pa ndihmën e PC)]
+    $\gamma(h)=h$; $s_1=0$, $s_2=5$; $z_1=10$, $z_2=20$ (1D).
+    \begin{enumerate}
+      \item Parashikimi dhe $\sigma^2_{OK}$ në $s_0=2$.
+      \item Parashikimi dhe $\sigma^2_{OK}$ në $s_0=-1$. Çfarë efekti shihni?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s12E4}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[fragile,label=q12E5]{Ushtrimi 5 (10 pikë): lexo output-in}
+\begin{verbatim}
+  model      psill    range         RMSE    ME  MSDR
+1   Nug 0.05066    0.0      OK  0.392 0.000  0.82
+2   Sph 0.59061  896.9      UK  0.375 -0.003 1.08
+\end{verbatim}
+  \begin{Ushtrim}[(Ushtrimi 5)]
+    \begin{enumerate}
+      \item Sa është pragu dhe sa \% e tij është nugget? Çfarë do të thotë range 897 m?
+      \item Cila metodë është më e mirë? Përdorni të tria kolonat.
+      \item Çfarë do të thotë MSDR $=0.82$ për hartën e pasigurisë së OK?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s12E5}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q12E6]{Ushtrimi 6 (10 pikë): kthimi nga log}
+  \begin{Ushtrim}[(Ushtrimi 6, pa ndihmën e PC)]
+    Kriging-u i $\log(\text{zink})$ jep në një qelizë $\hat y=5.8$ dhe $\sigma^2=0.16$.
+    \begin{enumerate}
+      \item Llogaritni $\exp(\hat y)$ dhe $\exp(\hat y+\sigma^2/2)$. Cila është afër mesores, cila mesatares?
+      \item Ndërtoni intervalin 95\% në ppm.
+      \item Pse intervali nuk është simetrik rreth $\exp(\hat y)$?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s12E6}{Zgjidhja}
+\end{frame}
+
+\begin{frame}[label=q12E7]{Ushtrimi 7 (15 pikë): projekt i vogël}
+  \begin{Ushtrim}[(Ushtrimi 7)]
+    Keni \texttt{pts} (\texttt{sf}, EPSG:6870) me kolonat \texttt{rain} dhe \texttt{elev}, dhe \texttt{cells} (\texttt{sf}) me \texttt{elev}.
+    \begin{enumerate}
+      \item Shkruani kodin për UK me \texttt{elev}: variogrami, përshtatja, parashikimi.
+      \item Shkruani kodin për LOOCV dhe RMSE.
+      \item Përmendni dy kontrolle që do të bënit para se ta publikonit hartën.
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{s12E7}{Zgjidhja}
+\end{frame}
+
+\begin{frame}{Tabela e pikëve}
+  \centering
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Pjesa & Pyetjet & Pikët \\ \midrule
+    Teori (25\%) & T1, T2, T3 & 8 + 8 + 9 = 25 \\
+    Ushtrime (75\%) & U1--U6 & $6\times10=60$ \\
+     & U7 & 15 \\ \midrule
+    Gjithsej & 10 & 100 \\ \bottomrule
+  \end{tabular}
+  \vspace{6pt}
+  \begin{itemize}
+    \item Nën 50 pikë: përsëritni Orët 2 dhe 4 (teoria), pastaj Orën 5.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Ushtrime për shtëpi}
+% ------------------------------------------------------------
+
+\begin{frame}[label=h12H1]{Ushtrime për shtëpi 1--2}
+  \begin{enumerate}
+    \item Meuse: përsëritni Orën 5 për \texttt{log(copper)}. Krahasoni variogramin me atë të zinkut (nugget, range). Cili metal ka strukturë hapësinore më të fortë?
+    \item Meuse: bëni CV 5-fish (\texttt{nfold = 5}) në vend të LOOCV për OK dhe UK, me 10 seed-e. Sa ndryshon RMSE nga seed-i?
+  \end{enumerate}
+  \shkoTe{h12S1}{Udhëzime}
+\end{frame}
+
+\begin{frame}[label=h12H3]{Ushtrime për shtëpi 3--4}
+  \begin{enumerate}
+    \setcounter{enumi}{2}
+    \item Shqipëria: përsëritni Orën 6 për janarin. A ndryshon gradienti termik? Po pragu i mbetjeve?
+    \item Shqipëria: zgjidhni 80 stacione vetëm nën 500 m. Krahasoni RMSE-në e vërtetë dhe LOOCV për OK dhe UK. Lidheni me think--pair--share të Orës 6.
+  \end{enumerate}
+  \shkoTe{h12S3}{Udhëzime}
+\end{frame}
+
+\begin{frame}[label=h12H5]{Ushtrime për shtëpi 5--6}
+  \begin{enumerate}
+    \setcounter{enumi}{4}
+    \item Shkruani funksionin \texttt{ok\_predict(s, z, s0, model)} me matrica (Ora 5) dhe krahasojeni me \texttt{krige()} në 20 qeliza të rastit.
+    \item \Zgjerim\ Variograme drejtimore për zinkun (\texttt{alpha = c(0, 45, 90, 135)}). A ka anizotropi përgjatë lumit?
+  \end{enumerate}
+  \shkoTe{h12S5}{Udhëzime}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Gabimet e javës}
+% ------------------------------------------------------------
+
+\begin{frame}{Gabimet e zakonshme: interpolimi}
+  \begin{itemize}
+    \item Interpolim në gradë (lon/lat) me distanca euklidiane.
+    \item Zgjedhja e metodës ose e $p$ ``me sy'', jo me CV.
+    \item RMSE në stacione si masë e gabimit të hartës.
+    \item Polinom me koordinata të papërpunuara (\texttt{raw = TRUE}) në metra.
+    \item Peshat Thiessen pa e prerë Voronoi-n me zonën e studimit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gabimet e zakonshme: variogrami dhe Kriging-u}
+  \begin{itemize}
+    \item Klasa shumë të ngushta (pak çifte) ose \texttt{cutoff} shumë i madh.
+    \item \texttt{range} i \texttt{"Exp"} lexuar si range i vërtetë (është $a$; praktik $3a$).
+    \item UK me variogramin e $z$ në vend të atij të mbetjeve.
+    \item $\exp(\hat y)$ raportuar si mesatare.
+    \item Hartë parashikimi pa hartë pasigurie.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lista e kontrollit para publikimit}
+  \begin{enumerate}
+    \item CRS i projektuar, njësitë në metra.
+    \item Variogrami empirik: çifte të mjaftueshme në çdo klasë.
+    \item Modeli: krahasuar me CV (RMSE, ME, MSDR).
+    \item Kovariatët: të njohur në çdo qelizë, në të njëjtën rrjetë.
+    \item Hartat: parashikimi $+$ gabimi standard; shkalla, veriu, burimi.
+    \item Të dhënat: reale apo sintetike, shkruar qartë.
+  \end{enumerate}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Fletë-kujtesa}
+% ------------------------------------------------------------
+
+\begin{frame}{Fletë-kujtesa 1: formulat}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    IDW & $\lambda_i=d_i^{-p}/\sum_jd_j^{-p}$ \\
+    Polinomi & $\hat{\boldsymbol\beta}=(X^\top X)^{-1}X^\top\mathbf z$ \\
+    Variogrami empirik & $\hat\gamma(h)=\frac{1}{2N(h)}\sum(z_i-z_k)^2$ \\
+    Lidhja & $\gamma(h)=C(0)-C(h)$ \\
+    Sferik & $c_0+c\,[1.5\,h/a-0.5\,(h/a)^3]$, $h\le a$ \\
+    Eksponencial & $c_0+c\,(1-e^{-h/a})$, range praktik $3a$ \\
+    OK & $\sum_j\lambda_j\gamma_{ij}+m=\gamma_{i0}$, $\sum\lambda_j=1$ \\
+    Varianca OK & $\sigma^2_{OK}=\sum_i\lambda_i\gamma_{i0}+m$ \\
+    LOOCV & $\sqrt{\frac1n\sum(z_i-\hat z_{(-i)})^2}$ \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 2: funksionet R}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \texttt{sf::st\_voronoi()} & poligonet Thiessen (me \texttt{envelope}) \\
+    \texttt{gstat::idw()} & IDW (\texttt{idp}, \texttt{nmax}, \texttt{maxdist}) \\
+    \texttt{gstat::variogram()} & variogrami empirik (\texttt{width}, \texttt{cutoff}, \texttt{cloud}) \\
+    \texttt{gstat::vgm()} & modeli (\texttt{"Sph"}, \texttt{"Exp"}, \texttt{"Gau"}, \texttt{"Lin"}) \\
+    \texttt{gstat::fit.variogram()} & përshtatja WLS (\texttt{SSErr}) \\
+    \texttt{gstat::variogramLine()} & $\gamma(h)$ e modelit në distanca të dhëna \\
+    \texttt{gstat::krige()} & OK (\texttt{\textasciitilde\ 1}), UK (\texttt{\textasciitilde\ x}), blloqe \\
+    \texttt{gstat::krige.cv()} & LOOCV ose $k$-fish (\texttt{nfold}) \\
+    \texttt{terra::project()} & rasteri në CRS të ri \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fletë-kujtesa 3: cilën metodë kur}
+  \small
+  \begin{tabular}{@{}p{0.42\textwidth}p{0.5\textwidth}@{}}
+    \toprule
+    Situata & Zgjedhja \\ \midrule
+    Variabël kategorike & Thiessen (fqinji më i afërt) \\
+    Trend i madh, pa detaje & Polinom i rendit 1--2 \\
+    Shpejt, pa model, pak pika & IDW me $p$ nga CV \\
+    Duhet pasiguria & OK \\
+    Kovariat i fortë në çdo qelizë & UK / KED \\
+    Mesatare për njësi administrative & Kriging në blloqe \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Përmbledhja e kursit}
+% ------------------------------------------------------------
+
+\begin{frame}{12 javë në një tabelë}
+  \scriptsize
+  \begin{tabular}{@{}clc@{}}
+    \toprule
+    Java & Tema & LO \\ \midrule
+    1--2 & R, vizualizimi, statistikat përmbledhëse, EDA & S4, K1 \\
+    3 & Korrelacioni: Pearson, Spearman, Kendall & K1 \\
+    4 & ANOVA dhe krahasimet e shumëfishta & K1, S3 \\
+    5--6 & Regresi i thjeshtë dhe i shumëfishtë; CV & K2, S2, S3 \\
+    7 & Diagnostikimi i modelit & S3, C1 \\
+    8 & Regresi jolinear dhe i fortë & K2, S2 \\
+    9 & Regresi logjistik dhe klasifikimi & K2, S3, C1 \\
+    10--11 & Koordinatat, projeksionet, raster dhe vektor & K3, S4 \\
+    12 & Interpolimi hapësinor dhe Kriging-u & K3, C1 \\ \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Fijet që lidhin kursin}
+  \begin{itemize}
+    \item<1-> \textbf{Modeli $+$ gabimi}: nga $y=\beta_0+\beta_1x+\varepsilon$ (Java 5) te $Z(s)=\mathbf x(s)^\top\boldsymbol\beta+e(s)$ (Java 12).
+    \item<2-> \textbf{Katrorët më të vegjël}: OLS, WLS (variogrami), GLS (UK).
+    \item<3-> \textbf{Vlerësimi i ndershëm}: train/test, CV, LOOCV, PRESS --- e njëjta ide në çdo javë.
+    \item<4-> \textbf{Supozimet}: pavarësia e mbetjeve (Java 7) $\to$ autokorrelacioni hapësinor (Java 11) $\to$ Kriging-u (Java 12).
+  \end{itemize}
+  \LO{C1}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Projekti final}
+% ------------------------------------------------------------
+
+\begin{frame}{Projekti final: struktura}
+  \begin{enumerate}
+    \item<1-> \textbf{Pyetja}: një problem real (INSTAT, mjedisi, inxhinieria, biznesi).
+    \item<2-> \textbf{Të dhënat}: reale, me burim; ose sintetike me parametra të njohur (dhe vlerësimi kundrejt së vërtetës).
+    \item<3-> \textbf{EDA}: shpërndarjet, marrëdhëniet, të dhënat që mungojnë.
+    \item<4-> \textbf{Modelet}: të paktën dy, nga javët 5--12; justifikimi i zgjedhjes.
+    \item<5-> \textbf{Vlerësimi}: CV ose test i pavarur; diagnostikimi.
+    \item<6-> \textbf{Interpretimi}: çfarë thonë rezultatet për pyetjen; kufizimet.
+    \item<7-> \textbf{Riprodhueshmëria}: skript R ose \texttt{.Rnw}/\texttt{.Rmd} që ekzekutohet nga e para.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Projekti final: rubrika e shkurtër (propozim)}
+  \small
+  \begin{tabular}{@{}lc@{}}
+    \toprule
+    Kriteri & Pikë \\ \midrule
+    Pyetja dhe të dhënat (burimi, etiketimi real/sintetik) & 15 \\
+    Saktësia e metodave dhe e kodit & 25 \\
+    Vlerësimi i modeleve (CV, diagnostikimi) & 20 \\
+    Interpretimi dhe kufizimet & 15 \\
+    Riprodhueshmëria (ekzekutohet pa ndërhyrje) & 15 \\
+    Prezantimi (10 min $+$ 5 min pyetje) & 10 \\ \midrule
+    Gjithsej & 100 \\ \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item Sipas syllabusit, detyra e kursit vlen 15\% të notës; provimi 85\%.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Burime}
+  \footnotesize
+  \begin{itemize}
+    \item K.-T.~Chang, \emph{Introduction to Geographic Information Systems}, McGraw-Hill, 2012 (interpolimi hapësinor, Kriging).
+    \item N.~Cressie, \emph{Statistics for Spatial Data}, rev.\ ed., Wiley, 1993.
+    \item E.~Pebesma, R.~Bivand, \emph{Spatial Data Science: With Applications in R}, CRC, 2023.
+    \item E.~Pebesma (2004), Multivariable geostatistics in S: the gstat package, \emph{Computers \& Geosciences} 30.
+    \item A.~H.~Thiessen (1911), \emph{Monthly Weather Review} 39; D.~Shepard (1968), Proc.\ ACM National Conference; G.~Wahba, \emph{Spline Models for Observational Data}, SIAM, 1990.
+    \item Të dhënat: Meuse (Burrough \& McDonnell, paketa \texttt{sp}); WorldClim 2.1 (Fick \& Hijmans 2017); lartësia nga \texttt{geodata}; GADM 4.1.
+    \item Repo DS612 nuk mbulon të dhënat hapësinore: e gjithë java është \textbf{material plotësues}.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mbyllja}
+% ------------------------------------------------------------
+
+\begin{frame}[label=cp127]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 7}
+  \begin{enumerate}
+    \item Cilat janë tre hapat e Kriging-ut, nga të dhënat te harta?
+    \item Kur do të zgjidhnit IDW në vend të Kriging-ut?
+    \item Çfarë duhet të ketë çdo hartë e interpoluar që publikoni?
+  \end{enumerate}
+  \shkoTe{zgjCp127}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje e Javës 12}
+  \begin{itemize}
+    \item Metodat deterministe: Thiessen, TIN, polinomi global, IDW; zgjedhja me LOOCV.
+    \item Variogrami: nugget, sill, range; modelet Sph, Exp, Gau; përshtatja WLS.
+    \item OK: sistemi me Lagrange, varianca, ekrani; UK $=$ trend $+$ Kriging i mbetjeve.
+    \item Meuse: IDW 0.442 $\to$ OK 0.392 $\to$ UK 0.375.
+    \item Shqipëria: UK me lartësinë 0.33 $^\circ$C kundrejt OK 2.17 $^\circ$C.
+  \end{itemize}
+  \begin{Keshille}Faleminderit për 12 javët! Hapi tjetër: projekti final dhe prezantimet.\end{Keshille}
+\end{frame}
