@@ -1,0 +1,371 @@
+% ============================================================
+%  Java 12 · Ora 5 — Lab II: variogrami dhe Kriging-u me gstat
+%  Rezultatet: S4, S2, S3, K3
+%  Burimi: Pebesma & Bivand (2023), kap. 12; Pebesma (2004), gstat;
+%          dokumentacioni i gstat (variogram, fit.variogram, krige, krige.cv)
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Lab II]{Lab II: variogrami dhe Kriging-u me gstat}
+
+\begin{frame}{Ora 5: Lab II --- variogrami dhe Kriging-u me \texttt{gstat}}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Variogrami empirik}
+% ------------------------------------------------------------
+
+\begin{frame}{Rrjedha e punës}
+  \centering
+  \begin{tikzpicture}[node distance=1.9cm, font=\scriptsize,
+      box/.style={draw, rounded corners, fill=uptlight, minimum width=1.6cm, minimum height=0.8cm, align=center}]
+    \node[box] (a) {\texttt{variogram()}\\empirik};
+    \node[box, right of=a] (b) {\texttt{fit.}\\\texttt{variogram()}};
+    \node[box, right of=b] (c) {\texttt{krige()}\\hartat};
+    \node[box, right of=c] (d) {\texttt{krige.cv()}\\vlerësimi};
+    \node[box, right of=d, fill=accent!20] (e) {kthimi\\nga $\log$};
+    \draw[->, thick] (a) -- (b); \draw[->, thick] (b) -- (c);
+    \draw[->, thick] (c) -- (d); \draw[->, thick] (d) -- (e);
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Të dhënat: \texttt{ms}, \texttt{gs}, \texttt{z = log(zinc)} nga Ora 3 (Meuse, \textbf{reale}).
+    \item Krahasimi final me IDW më të mirë të Orës 3: RMSE 0.442.
+  \end{itemize}
+  \LO{S4, S2, S3}
+\end{frame}
+
+\begin{frame}[fragile]{Variogrami empirik me parazgjedhjet}
+<<h5-v>>=
+v <- variogram(log(zinc) ~ 1, ms)          # ~ 1: constant mean (OK)
+head(v[, c("np", "dist", "gamma")], 6)
+c(width = diff(attr(v, "boundaries"))[1], last_bin = max(v$dist),
+  sample_var = var(z))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Parazgjedhjet: \texttt{cutoff} $=1/3$ e diagonales së zonës; gjerësia $=$ \texttt{cutoff}/15 $=106.4$ m.
+    \item<2-> \texttt{np}: çiftet në klasë; klasa e parë ka 57, të tjerat qindra.
+    \item<3-> $\hat\gamma$ rritet nga 0.12 (80 m) në $\approx0.65$--0.70 rreth 900--1100 m.
+    \item<4-> Pragu del mbi variancën e mostrës (0.521): mostrat e grumbulluara dhe të korreluara e nënvlerësojnë variancën e procesit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Grafiku: kodi}
+<<h5-vplot, eval=FALSE>>=
+ggplot(v, aes(dist, gamma)) + geom_point(colour = "steelblue") +
+  geom_text(aes(label = np), vjust = -0.8, size = 2.2) +
+  expand_limits(y = 0) +
+  labs(x = "distance h (m)", y = "semivariance, log(zinc)") +
+  theme_minimal(base_size = 9)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Grafiku: rezultati}
+  \centering
+<<h5-vplot-fig, ref.label="h5-vplot", echo=FALSE, fig.height=2.6, fig.width=4.6, out.width="0.75\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}[fragile,label=ushW125]{Ndrysho parametrin dhe shiko}
+<<h5-width>>=
+v50 <- variogram(log(zinc) ~ 1, ms, width = 50)
+c(bins = nrow(v50)); head(v50[, c("np", "dist", "gamma")], 3)
+@
+  \begin{itemize}
+    \item Çfarë ndodh me klasën e parë? A mund t'i besojmë?
+    \item Provoni edhe \texttt{width = 200}: sa klasa mbeten?
+  \end{itemize}
+  \shkoTe{zgjW125}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Përshtatja e modelit}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Modeli sferik}
+<<h5-fit>>=
+m_sph <- fit.variogram(v, vgm(psill = 0.6, model = "Sph", range = 900, nugget = 0.05))
+m_sph
+c(SSErr = attr(m_sph, "SSErr"), sill = sum(m_sph$psill),
+  nugget_ratio = m_sph$psill[1] / sum(m_sph$psill))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Nugget 0.051, pjesa e strukturuar 0.591, range 897 m.
+    \item<2-> Pragu $0.051+0.591=0.642$; nugget-i është vetëm 7.9\% e tij: struktura hapësinore është e fortë.
+    \item<3-> Përtej $\approx900$ m, dy mostra janë praktikisht të pavarura.
+    \item<4-> Vlerat fillestare: lexuar ``me sy'' nga grafiku; \texttt{fit.variogram()} i përmirëson me WLS.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Modeli mbi variogramin empirik}
+<<h5-fitplot, eval=FALSE>>=
+line_sph <- variogramLine(m_sph, maxdist = 1600)
+ggplot(v, aes(dist, gamma)) + geom_point(colour = "steelblue") +
+  geom_line(data = line_sph, colour = "darkorange") +
+  expand_limits(y = 0) + labs(x = "h (m)", y = "semivariance") +
+  theme_minimal(base_size = 9)
+@
+\centering
+<<h5-fitplot-fig, ref.label="h5-fitplot", echo=FALSE, fig.height=1.9, fig.width=4.4, out.width="0.62\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}[label=ushFit125]{Radha jote!}
+  \begin{Ushtrim}[(7 minuta)]
+    \begin{enumerate}
+      \item Përshtatni \texttt{"Exp"} (fillestare: 0.6, 300, 0.05) dhe \texttt{"Gau"} (0.6, 500, 0.05).
+      \item Krahasoni nugget-in, range-in \emph{praktik} dhe \texttt{SSErr}.
+      \item Cili model ka SSErr më të vogël? A mjafton kjo për ta zgjedhur?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjFit125}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kriging-u i zakonshëm}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{OK në 3103 qeliza}
+<<h5-ok>>=
+ok <- krige(log(zinc) ~ 1, ms, gs, model = m_sph, debug.level = 0)
+ok$se <- sqrt(ok$var1.var)                       # kriging standard error
+summary(ok$var1.pred)
+summary(ok$se)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> \texttt{var1.pred}: $\hat y$ në $\log$; nga 4.78 në 7.44, brenda të dhënave (4.73--7.52).
+    \item<2-> \texttt{var1.var}: $\sigma^2_{OK}$; gabimi standard nga 0.29 në 0.71.
+    \item<3-> Gabimi standard minimal (0.29) nuk është 0 sepse qelizat nuk bien mbi mostra, dhe kemi nugget.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hartat: kodi}
+<<h5-maps, eval=FALSE>>=
+library(patchwork)
+map_layer <- function(obj, col, title) {
+  d <- data.frame(st_coordinates(obj), v = obj[[col]])
+  ggplot(d) + geom_raster(aes(X, Y, fill = v)) +
+    geom_sf(data = ms, size = 0.15, inherit.aes = FALSE) +
+    scale_fill_viridis_c(name = NULL) + coord_sf(crs = 28992, datum = NA) +
+    labs(title = title, x = NULL, y = NULL) + theme_void(base_size = 8)
+}
+map_layer(ok, "var1.pred", "OK: log(zinc)") + map_layer(ok, "se", "OK: standard error")
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hartat: rezultati}
+  \centering
+<<h5-maps-fig, ref.label="h5-maps", echo=FALSE, fig.height=2.7, fig.width=5.6, out.width="0.86\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Parashikimi: zinku i lartë përgjatë lumit (perëndim), i ulët në lindje; pa ``sy demi'' si te IDW.
+    \item<2-> Gabimi standard: i ulët te mostrat, i lartë në boshllëqe dhe në skajet.
+    \item<3-> Harta e gabimit varet vetëm nga \textbf{vendet} e mostrave dhe nga modeli (Ora 4).
+  \end{itemize}
+  \begin{Keshille}Publikoni gjithmonë të dyja hartat: parashikimi pa pasiguri është gjysmë informacioni.\end{Keshille}
+\end{frame}
+
+\begin{frame}[fragile]{Sistemi i OK me matrica, në një qelizë}
+<<h5-system>>=
+S <- as.matrix(meuse[, c("x", "y")]); k <- 1000
+s0 <- as.numeric(grid[k, c("x", "y")]); d0 <- sqrt(colSums((t(S) - s0)^2))
+gam <- function(h) variogramLine(m_sph, dist_vector = h)$gamma
+G <- matrix(gam(as.vector(as.matrix(dist(S)))), 155); diag(G) <- 0
+A <- rbind(cbind(G, 1), c(rep(1, 155), 0)); b <- c(gam(d0), 1)
+sol <- solve(A, b); lam <- sol[1:155]; m <- sol[156]
+c(pred_hand = sum(lam * z), pred_gstat = ok$var1.pred[k],
+  var_hand = sum(lam * b[1:155]) + m, var_gstat = ok$var1.var[k])
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Parashikimi 5.567 dhe varianca 0.164: identike me \texttt{gstat}.
+    \item<2-> \texttt{diag(G) <- 0}: $\gamma(0)=0$ edhe me nugget (kërcimi është vetëm për $h>0$).
+    \item<3-> Matrica $156\times156$; \texttt{gstat} zgjidh një të tillë për secilën nga 3103 qelizat.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Peshat e Kriging-ut kundrejt IDW}
+<<h5-weights>>=
+o <- order(d0); w_idw <- d0^-2 / sum(d0^-2)
+round(cbind(dist = d0[o], kriging = lam[o], idw_p2 = w_idw[o])[1:7, ], 3)
+c(sum = sum(lam), negative = sum(lam < 0), min = min(lam),
+  top5 = sum(sort(lam, decreasing = TRUE)[1:5]))
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 5 fqinjët e parë marrin $\approx100\%$ të peshës te Kriging-u; te IDW vetëm $\approx52\%$.
+    \item<2-> Shuma 1; 87 pesha negative, por të vogla (min $-0.021$).
+    \item<3-> Pesha \textbf{nuk} bie monotonisht me distancën: pika e 6-të (207 m) merr 0.002, e 7-ta (219 m) merr 0.029.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC125]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Pse pika e 6-të (207 m) merr peshë më të vogël se e 7-ta (219 m)?
+    \begin{enumerate}[A.]
+      \item Gabim numerik i \texttt{solve()}.
+      \item Pika e 6-të është ``e fshehur'' pas pikave më të afërta (efekti i ekranit).
+      \item Vlera e saj e zinkut është më e ulët.
+      \item Sepse nugget-i është 0.051.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC125}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Kriging-u universal}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Pse një kovariat? Distanca nga lumi}
+<<h5-trend>>=
+fit_d <- lm(log(zinc) ~ sqrt(dist), data = meuse)
+round(coef(fit_d), 3); summary(fit_d)$r.squared
+@
+  \begin{itemize}
+    \item<2-> \texttt{dist}: distanca e normalizuar (0--1) nga lumi; e njohur në \textbf{çdo} qelizë të rrjetës.
+    \item<3-> $\sqrt{\text{dist}}$ shpjegon 64\% të variancës së $\log$(zink).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Variogrami i mbetjeve}
+<<h5-vres>>=
+v_res <- variogram(log(zinc) ~ sqrt(dist), ms)     # residuals of the trend
+m_uk  <- fit.variogram(v_res, vgm(0.2, "Sph", 500, 0.05))
+m_uk
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pjesa e strukturuar bie nga 0.591 në 0.149: trendi ``merr'' pjesën më të madhe të strukturës.
+    \item<2-> Nugget 0.080; range 873 m (pothuajse si më parë).
+    \item<3-> Formula \texttt{log(zinc) \textasciitilde\ sqrt(dist)}: \texttt{variogram()} llogarit mbetjet e OLS dhe variogramin e tyre.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{UK në rrjetë}
+<<h5-uk>>=
+uk <- krige(log(zinc) ~ sqrt(dist), ms, gs, model = m_uk, debug.level = 0)
+uk$se <- sqrt(uk$var1.var)
+rbind(OK = summary(ok$var1.pred), UK = summary(uk$var1.pred))
+rbind(OK = summary(ok$se), UK = summary(uk$se))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hartat e UK}
+  \centering
+<<h5-ukmaps, echo=FALSE, fig.height=2.7, fig.width=5.6, out.width="0.86\\textwidth">>=
+map_layer(uk, "var1.pred", "UK: log(zinc)") + map_layer(uk, "se", "UK: standard error")
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Parashikimi ndjek formën e shtratit të lumit edhe aty ku nuk ka mostra.
+    \item<2-> Gabimi standard: mesatarisht 0.36 (OK: 0.42); maksimumi 0.46 (OK: 0.71).
+    \item<3-> Gabimi i UK përfshin edhe pasigurinë e $\hat{\boldsymbol\beta}$, por mbetjet kanë variancë shumë më të vogël.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGabim125]{Gjej gabimin}
+<<h5-bug>>=
+cv_bad <- krige.cv(log(zinc) ~ sqrt(dist), ms, model = m_sph, verbose = FALSE)
+c(RMSE = sqrt(mean(cv_bad$residual^2)), MSDR = mean(cv_bad$zscore^2))
+@
+  \begin{itemize}
+    \item RMSE duket mirë. Ku është gabimi dhe çfarë na tregon \texttt{MSDR}?
+  \end{itemize}
+  \shkoTe{zgjGabim125}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Vlerësimi dhe kthimi nga log}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{LOOCV: OK dhe UK}
+<<h5-cv>>=
+cv_ok <- krige.cv(log(zinc) ~ 1, ms, model = m_sph, verbose = FALSE)
+cv_uk <- krige.cv(log(zinc) ~ sqrt(dist), ms, model = m_uk, verbose = FALSE)
+cv_stats <- function(cv) c(RMSE = sqrt(mean(cv$residual^2)),
+  ME = mean(cv$residual), MSDR = mean(cv$zscore^2))
+round(rbind(OK = cv_stats(cv_ok), UK = cv_stats(cv_uk)), 3)
+@
+  \begin{itemize}
+    \item<2-> \texttt{zscore} $=$ mbetja$/\sigma$; \termi{MSDR}{mean squared deviation ratio} $\approx1$ do të thotë $\sigma$ e kalibruar mirë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \small
+  \begin{center}
+    \begin{tabular}{lccc}
+      \toprule
+      Metoda & RMSE (LOOCV) & ME & MSDR \\ \midrule
+      Mesatarja & 0.724 & -- & -- \\
+      IDW, $p=2$, 5 fqinjë & 0.442 & -- & -- \\
+      OK, Sph & 0.392 & 0.000 & 0.82 \\
+      UK, $\sqrt{\text{dist}}$ & 0.375 & $-0.003$ & 1.08 \\ \bottomrule
+    \end{tabular}
+  \end{center}
+  \begin{itemize}
+    \item<2-> Kriging-u mund IDW-në; kovariati e përmirëson më tej.
+    \item<3-> OK: MSDR $<1$, $\sigma$ pak pesimiste; UK: afër 1.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Kthimi në ppm}
+<<h5-back>>=
+c(median_scale = mean(exp(ok$var1.pred)),
+  mean_scale   = mean(exp(ok$var1.pred + ok$var1.var / 2)),
+  thiessen_Ora3 = 400.2)
+@
+  \begin{itemize}
+    \item<2-> $\exp(\hat y)$: afër mesores; e nënvlerëson mesataren.
+    \item<3-> $\exp(\hat y+\sigma^2/2)$: korrigjim i lognormalit (i saktë për SK, i përafërt për OK).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Mesatarja e zonës: 362 ppm (pa korrigjim) kundrejt 396 ppm (me korrigjim).
+    \item<2-> 396 ppm është shumë afër mesatares Thiessen të Orës 3 (400 ppm), e llogaritur krejt ndryshe.
+    \item<3-> Mesatarja e thjeshtë e mostrave (470 ppm) mbetet e fryrë nga mostrimi pranë lumit.
+  \end{itemize}
+  \begin{Gabim}Mos raportoni $\exp(\hat y)$ si ``përqendrimi mesatar''. Shkruani qartë: mesore apo mesatare.\end{Gabim}
+\end{frame}
+
+\begin{frame}[label=cp125]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 5}
+  \begin{enumerate}
+    \item Cili argument i \texttt{variogram()} ndryshon gjerësinë e klasave dhe çfarë rreziku ka një vlerë shumë e vogël?
+    \item Pse për UK variogrami llogaritet me \texttt{log(zinc) \textasciitilde\ sqrt(dist)}?
+    \item Çfarë tregon MSDR $\approx1$ në \texttt{krige.cv()}?
+  \end{enumerate}
+  \shkoTe{zgjCp125}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 5}
+  \begin{itemize}
+    \item \texttt{variogram()} $\to$ \texttt{fit.variogram()}: Sph, nugget 0.051, psill 0.591, range 897 m.
+    \item \texttt{krige()}: parashikimi dhe $\sigma$; sistemi me matrica $=$ \texttt{gstat}.
+    \item Peshat: ekran, pesha negative, 5 fqinjë $\approx100\%$.
+    \item UK me $\sqrt{\text{dist}}$: variogrami i mbetjeve (psill 0.149).
+    \item LOOCV: IDW 0.442, OK 0.392, UK 0.375; mesatarja e zonës $\approx396$ ppm.
+  \end{itemize}
+  \begin{Keshille}Ora 6: rasti i Shqipërisë --- temperatura nga 80 stacione, UK me lartësinë.\end{Keshille}
+\end{frame}

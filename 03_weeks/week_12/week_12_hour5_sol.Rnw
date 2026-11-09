@@ -1,0 +1,60 @@
+% ============================================================
+%  Java 12 · Ora 5 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[fragile,label=zgjW125]{Zgjidhja: Ndrysho parametrin (\texttt{width})}
+<<sol-w200>>=
+c(bins_w50 = nrow(v50), bins_w200 = nrow(variogram(log(zinc) ~ 1, ms, width = 200)))
+@
+  \begin{itemize}
+    \item Me \texttt{width = 50}, klasa e parë ka vetëm 2 çifte: $\hat\gamma=0.035$ nuk është i besueshëm.
+    \item Klasa të ngushta: më shumë detaje, por më shumë zhurmë; të gjera: më pak zhurmë, por humbet sjellja afër origjinës (që ka rëndësi për Kriging-un).
+    \item Rregulli i Orës 4: rreth 30+ çifte për klasë.
+  \end{itemize}
+  \vfill\kthehu{ushW125}
+\end{frame}
+
+\begin{frame}[fragile,shrink=8,label=zgjFit125]{Zgjidhja: Radha jote! (Exp dhe Gau)}
+<<sol-fit>>=
+m_exp <- fit.variogram(v, vgm(0.6, "Exp", 300, 0.05))
+m_gau <- fit.variogram(v, vgm(0.6, "Gau", 500, 0.05))
+rmse_cv <- function(mod) sqrt(mean(krige.cv(log(zinc) ~ 1, ms, model = mod,
+                                            verbose = FALSE)$residual^2))
+round(rbind(
+  Sph = c(nugget = m_sph$psill[1], range = m_sph$range[2], practical = m_sph$range[2],
+          SSErr = attr(m_sph, "SSErr") * 1e6, cv = rmse_cv(m_sph)),
+  Exp = c(m_exp$psill[1], m_exp$range[2], 3 * m_exp$range[2], attr(m_exp, "SSErr") * 1e6, rmse_cv(m_exp)),
+  Gau = c(m_gau$psill[1], m_gau$range[2], sqrt(3) * m_gau$range[2], attr(m_gau, "SSErr") * 1e6, rmse_cv(m_gau))), 3)
+@
+  \footnotesize SSErr $\times10^6$. Sph ka SSErr më të vogël; vendimi final: me CV (dhe me kuptimin fizik), jo vetëm me SSErr.
+  \vfill\kthehu{ushFit125}
+\end{frame}
+
+\begin{frame}[label=zgjMC125]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item Kriging-u merr parasysh edhe distancat mes mostrave: një pikë që ndodhet ``pas'' mostrave më të afërta sjell pak informacion të ri.
+    \item C nuk mund të jetë: peshat nuk varen nga vlerat $z$ (Ora 4).
+    \item A dhe D: jo; \texttt{gstat} jep të njëjtat pesha.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC125}
+\end{frame}
+
+\begin{frame}[label=zgjGabim125]{Zgjidhja: Gjej gabimin (variogrami i gabuar për UK)}
+  \begin{itemize}
+    \item UK me \texttt{m\_sph}: variogrami i $\log$(zink) \emph{para} trendit (prag 0.642), jo i mbetjeve (prag 0.229).
+    \item Parashikimet pothuajse nuk ndryshojnë (RMSE 0.377 kundrejt 0.375).
+    \item Por $\sigma$ del shumë e madhe: MSDR 0.76 $<1$. Hartat e pasigurisë do të ishin pesimiste.
+    \item Rregulli: formula e \texttt{variogram()} duhet të jetë e njëjtë me atë të \texttt{krige()}.
+  \end{itemize}
+  \vfill\kthehu{gjejGabim125}
+\end{frame}
+
+\begin{frame}[label=zgjCp125]{Përgjigjet: Checkpoint Ora 5}
+  \begin{enumerate}
+    \item \texttt{width} (dhe \texttt{cutoff}); klasa shumë të ngushta kanë pak çifte, pra $\hat\gamma$ të zhurmshme.
+    \item Sepse modeli i UK është trend $+$ mbetje; Kriging-u aplikohet mbi mbetjet, prandaj variogrami duhet të përshkruajë ato.
+    \item Që gabimet e LOOCV janë, mesatarisht, aq të mëdha sa thotë $\sigma$ e Kriging-ut: pasiguria e kalibruar mirë.
+  \end{enumerate}
+  \vfill\kthehu{cp125}
+\end{frame}
