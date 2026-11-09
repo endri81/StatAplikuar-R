@@ -1,0 +1,59 @@
+% ============================================================
+%  Java 12 · Ora 6 — Zgjidhjet (shtojca)
+% ============================================================
+
+\begin{frame}[label=zgjRank126]{Zgjidhja: Parashiko (renditja)}
+  \begin{itemize}
+    \item Renditja: \textbf{D} (UK, 0.33) $<$ \textbf{C} (regresi, 0.50) $<$ \textbf{B} (OK, 2.17) $<$ \textbf{A} (IDW, 2.25).
+    \item Befasia për shumëkënd: regresi i thjeshtë mund të dy metodat ``hapësinore'' me një faktor 4.
+    \item Arsyeja: temperatura përcaktohet kryesisht nga lartësia, dhe lartësinë e njohim në çdo qelizë.
+  \end{itemize}
+  \vfill\kthehu{pyetjeRank126}
+\end{frame}
+
+\begin{frame}[label=zgjGabim126]{Zgjidhja: Gjej gabimin (RMSE në stacione)}
+  \begin{itemize}
+    \item Kriging-u është interpolues i saktë: në vendin e një stacioni kthen vlerën e tij (nugget-i modelohet si variacion, jo si gabim matjeje).
+    \item RMSE $\approx0$ në stacione nuk thotë asgjë për qelizat e tjera.
+    \item E njëjta ide si gabimi në trajnim kundrejt gabimit në test (Java 6).
+    \item Vlerësim i ndershëm: LOOCV, ose të dhëna të pavarura (këtu: e vërteta në 28\,281 qeliza).
+  \end{itemize}
+  \vfill\kthehu{gjejGabim126}
+\end{frame}
+
+\begin{frame}[label=zgjN126]{Zgjidhja: Radha jote! (madhësia e rrjetit)}
+  \begin{enumerate}
+    \item IDW përmirësohet ngadalë (2.50 $\to$ 2.09): pa lartësinë, i duhen shumë pika për të ``parë'' relievin.
+    \item Regresi pothuajse nuk ndryshon ($\approx0.50$): gabimi i tij është gabim modeli. UK përmirësohet (0.38 $\to$ 0.31).
+    \item Në terma relativë: UK ($-19\%$) dhe IDW ($-17\%$) përfitojnë; regresi ($-3\%$) jo. Në terma absolutë, UK mbetet shumë më e mirë.
+  \end{enumerate}
+  \vfill\kthehu{ushN126}
+\end{frame}
+
+\begin{frame}[label=zgjMC126]{Zgjidhja: Pyetje me zgjedhje}
+  \begin{itemize}
+    \item Përgjigjja: \textbf{B}.
+    \item Me 160 stacione, $\hat\beta$ është shumë i saktë (A nuk vlen); gabimi që mbetet është sistematik në hapësirë.
+    \item Variogrami i mbetjeve (prag 0.227, range praktik $\approx51$ km) tregon pikërisht këtë strukturë.
+    \item UK e shfrytëzon; regresi jo.
+  \end{itemize}
+  \vfill\kthehu{pyetjeMC126}
+\end{frame}
+
+\begin{frame}[label=zgjTPS126]{Zgjidhja: Think--pair--share (mostrimi në ultësira)}
+  \begin{enumerate}
+    \item OK vuan më shumë: nuk ka asnjë informacion për malet dhe ekstrapolon temperaturat e ultësirave. UK ekstrapolon me gradientin termik, por gradienti vlerësohet nga një interval i ngushtë lartësish (rrezik).
+    \item Jo plotësisht: LOOCV teston vetëm aty ku ka stacione, pra në ultësira. Gabimi në male mbetet i padukshëm.
+    \item Stacione të reja në lartësi (aty ku $\sigma_{UK}$ është maksimale), ose të dhëna satelitore si kovariat shtesë.
+  \end{enumerate}
+  \vfill\kthehu{ushTPS126}
+\end{frame}
+
+\begin{frame}[label=zgjCp126]{Përgjigjet: Checkpoint Ora 6}
+  \begin{enumerate}
+    \item Korrelacioni temperaturë--lartësi është $-0.988$ dhe lartësia njihet në çdo qelizë; UK e përdor si trend dhe interpolon vetëm mbetjet e vogla (2\% e variancës).
+    \item Kriging-u është i saktë në stacione: RMSE atje është $\approx0$ për ndërtim. Duhet CV ose të dhëna të pavarura.
+    \item Mesataren e qarkut dhe gabimin standard të saj (0.08--0.22 $^\circ$C), drejtpërdrejt në njësinë e raportimit zyrtar.
+  \end{enumerate}
+  \vfill\kthehu{cp126}
+\end{frame}

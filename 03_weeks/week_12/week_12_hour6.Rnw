@@ -1,0 +1,400 @@
+% ============================================================
+%  Java 12 · Ora 6 — Rasti: temperatura e korrikut në Shqipëri
+%  Rezultatet: K3, S2, S3, C1
+%  Të dhënat: WorldClim 2.1 (Fick & Hijmans, 2017), 30"; lartësia SRTM (geodata);
+%             kufijtë e qarqeve GADM 4.1 (shkarkohen me skript, nuk shpërndahen)
+%  Material plotësues (jo në repo DS612)
+% ============================================================
+
+\section[Rasti: Shqipëria]{Rasti: temperatura e korrikut në Shqipëri}
+
+\begin{frame}{Ora 6: Rasti --- temperatura e korrikut në Shqipëri}
+  \tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Problemi dhe të dhënat}
+% ------------------------------------------------------------
+
+\begin{frame}{Problemi}
+  \begin{itemize}
+    \item<1-> Stacionet meteorologjike janë të pakta dhe kryesisht në ultësira; relievi ndryshon nga deti deri mbi 2500 m.
+    \item<2-> Pyetja: si ta ndërtojmë hartën e temperaturës mesatare të korrikut nga \textbf{80 pika}?
+    \item<3-> Plani i ``laboratorit'': marrim një hartë të njohur si ``e vërtetë'', nxjerrim 80 pika, interpolojmë dhe \textbf{krahasojmë me të vërtetën} në çdo qelizë.
+    \item<4-> Këtë nuk mund ta bëjmë me të dhëna reale: aty e vërteta mungon.
+  \end{itemize}
+  \LO{K3, S2, S3, C1}
+\end{frame}
+
+\begin{frame}{Të dhënat}
+  \begin{itemize}
+    \item<1-> ``E vërteta'': WorldClim 2.1, temperatura mesatare e korrikut 1970--2000, 30$''$ ($\approx1$ km) --- \textbf{reale (Fick \& Hijmans, 2017)}.
+    \item<2-> Kovariati: lartësia mbi nivelin e detit (\texttt{geodata}, 30$''$) --- \textbf{reale}.
+    \item<3-> 80 ``stacione'': mostër e rastit nga qelizat --- \textbf{sintetike} (pseudo-stacione).
+    \item<4-> Projeksioni: EPSG:6870 (Albania TM 2010, Java 10); distancat në metra.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kujdes: edhe ``e vërteta'' është model}
+  \begin{Gabim}
+    WorldClim është vetë një interpolim nga stacionet, me lartësinë dhe kovariatë satelitorë si parashikues. Lidhja temperaturë--lartësi është pjesërisht ``e ndërtuar'' brenda saj.
+  \end{Gabim}
+  \begin{itemize}
+    \item<2-> Prandaj avantazhi i metodave me lartësinë do të dalë \textbf{optimist}.
+    \item<3-> Krahasimi mes metodave mbetet i vlefshëm si ushtrim; numrat absolutë jo.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Rasteri në projeksionin shqiptar}
+<<h6-data>>=
+tjul <- rast(file.path(W12DATA, "alb_tavg_30s.tif"))$Jul
+elev <- resample(rast(file.path(W12DATA, "alb_elev_30s.tif")), tjul)
+stk  <- c(tjul, elev); names(stk) <- c("temp", "elev")
+stk_p <- project(stk, "EPSG:6870", res = 1000)        # 1 km cells, metres
+truth <- as.data.frame(stk_p, xy = TRUE, na.rm = TRUE)
+tg <- st_as_sf(truth, coords = c("x", "y"), crs = 6870, remove = FALSE)
+nrow(truth); round(cor(truth$temp, truth$elev), 3)
+round(sapply(truth[, c("temp", "elev")], range), 1)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> 28\,281 qeliza 1 km $\times$ 1 km brenda Shqipërisë.
+    \item<2-> Temperatura e korrikut: 9.1--25.8 $^\circ$C; lartësia: $-85$ deri 2522 m (vlerat negative: zbutje e rasterit pranë bregut).
+    \item<3-> Korrelacioni temperaturë--lartësi: $-0.988$. Lartësia është kovariati kryesor.
+    \item<4-> \texttt{resample()} para \texttt{c()}: dy rasterat duhet të kenë të njëjtën rrjetë.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{80 pseudo-stacione}
+<<h6-st>>=
+set.seed(2026)
+idx <- sample(nrow(truth), 80)
+st  <- tg[idx, ]                                      # synthetic stations
+round(rbind(stations = summary(st$temp), all_cells = summary(truth$temp)), 2)
+@
+  \begin{itemize}
+    \item<2-> Mostër e thjeshtë e rastit: çdo qelizë ka të njëjtin probabilitet.
+    \item<3-> Rrjetat reale nuk janë kështu (ultësira, qytete): do ta diskutojmë në fund.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=pyetjeRank126]{Parashiko para se ta ekzekutosh}
+  \begin{Parashiko}
+    Rendisni nga më e mira te më e dobëta (RMSE kundrejt së vërtetës, në 28\,281 qeliza):
+    \begin{enumerate}[A.]
+      \item IDW ($p=2$);
+      \item Kriging i zakonshëm (OK);
+      \item regres linear \texttt{temp \textasciitilde\ elev};
+      \item Kriging universal me lartësinë (UK).
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjRank126}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Modelet}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{Gradienti termik vertikal}
+<<h6-lm>>=
+fit_lm <- lm(temp ~ elev, data = st)
+round(coef(fit_lm), 5); round(summary(fit_lm)$r.squared, 3)
+1000 * coef(fit_lm)["elev"]                           # degrees C per km
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Temperatura bie $\approx5.95\ ^\circ$C për çdo 1000 m: \termi{gradienti termik vertikal}{lapse rate}.
+    \item<2-> Vlera tipike në atmosferë: rreth 6.5 $^\circ$C/km; jemi në rend të njëjtë madhësie.
+    \item<3-> Në nivelin e detit: $\approx24.9\ ^\circ$C.
+    \item<4-> $R^2=0.964$ nga 80 pika: modeli shpjegon pothuajse gjithçka. Çfarë mbetet për Kriging-un?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Variogrami i temperaturës (OK)}
+<<h6-vok>>=
+v_t  <- variogram(temp ~ 1, st)
+m_ok <- fit.variogram(v_t, vgm(10, "Sph", 80000, 1))
+m_ok
+round(range(v_t$gamma), 2)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pragu $\approx10.3\ (^\circ\text{C})^2$, nugget pothuajse 0, range 51.5 km.
+    \item<2-> $\hat\gamma$ kërcen lart e poshtë (1.3--14.0): fqinjët në distancë të njëjtë mund të jenë në fushë ose në mal.
+    \item<3-> Struktura ``hapësinore'' këtu është kryesisht struktura e \textbf{relievit}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Variogrami i mbetjeve (UK)}
+<<h6-vuk>>=
+v_r  <- variogram(temp ~ elev, st)                    # residuals of temp ~ elev
+m_uk6 <- fit.variogram(v_r, vgm(0.2, "Exp", 20000, 0.05))
+m_uk6
+c(sill = sum(m_uk6$psill), practical_range_km = 3 * m_uk6$range[2] / 1000)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Pragu i mbetjeve: 0.227, rreth 2\% e pragut të temperaturës (10.3).
+    \item<2-> Range praktik $\approx51$ km: mbetjet (efekti i detit, ekspozimi) janë ende të korreluara.
+    \item<3-> Kriging-u i mbetjeve shton atë që lartësia nuk e shpjegon.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Katër metoda, një e vërtetë}
+<<h6-pred>>=
+rmse_true <- function(p) sqrt(mean((truth$temp - p)^2))
+p_idw <- idw(temp ~ 1, st, tg, idp = 2, debug.level = 0)$var1.pred
+p_ok  <- krige(temp ~ 1, st, tg, model = m_ok, debug.level = 0)$var1.pred
+p_lm  <- predict(fit_lm, truth)
+uk6   <- krige(temp ~ elev, st, tg, model = m_uk6, debug.level = 0)
+round(c(mean_only = rmse_true(mean(st$temp)), IDW = rmse_true(p_idw),
+        OK = rmse_true(p_ok), LM = rmse_true(p_lm), UK = rmse_true(uk6$var1.pred)), 3)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> IDW (2.25) dhe OK (2.17) vetëm pak më mirë se mesatarja (3.22): 80 pika nuk e ``shohin'' relievin.
+    \item<2-> Regresi me lartësinë: 0.50 --- katër herë më mirë se OK.
+    \item<3-> UK: 0.33 --- edhe 1/3 më pak se regresi.
+    \item<4-> Mësimi: \textbf{kovariati i duhur} vlen më shumë se metoda e sofistikuar e interpolimit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hartat: kodi}
+<<h6-maps, eval=FALSE>>=
+map_df <- function(v, title, pal = "viridis") {
+  ggplot(data.frame(truth[, c("x", "y")], v = v)) + geom_raster(aes(x, y, fill = v)) +
+    scale_fill_viridis_c(option = pal, name = NULL) + coord_equal() +
+    labs(title = title) + theme_void(base_size = 7)
+}
+(map_df(truth$temp, "Truth (WorldClim)") + map_df(p_ok, "OK") +
+ map_df(uk6$var1.pred, "UK with elevation") +
+ map_df(uk6$var1.pred - truth$temp, "UK error", "magma")) + plot_layout(nrow = 1)
+@
+\end{frame}
+
+\begin{frame}[fragile]{Hartat: rezultati}
+  \centering
+<<h6-maps-fig, ref.label="h6-maps", echo=FALSE, fig.height=2.8, fig.width=6.4, out.width="0.97\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> OK: njolla të lëmuara rreth stacioneve; malet e Alpeve dhe të Korabit humbasin.
+    \item<2-> UK: pothuajse e padallueshme nga e vërteta; luginat dhe kreshtat duken qartë.
+    \item<3-> Gabimi i UK: i vogël dhe pa strukturë të fortë; më i madh në zonat malore pa stacione.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,label=gjejGabim126]{Gjej gabimin}
+<<h6-bug>>=
+rmse_at_stations <- sqrt(mean((st$temp - uk6$var1.pred[idx])^2))
+rmse_at_stations
+@
+  \begin{itemize}
+    \item Studenti shkruan: ``UK është perfekt: RMSE $=0$.'' Çfarë nuk shkon?
+  \end{itemize}
+  \shkoTe{zgjGabim126}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{A na thotë CV të vërtetën?}
+% ------------------------------------------------------------
+
+\begin{frame}[fragile]{LOOCV kundrejt RMSE-së së vërtetë}
+<<h6-cv>>=
+cv_ok6 <- krige.cv(temp ~ 1, st, model = m_ok, verbose = FALSE)
+cv_uk6 <- krige.cv(temp ~ elev, st, model = m_uk6, verbose = FALSE)
+round(rbind(
+  OK = c(LOOCV = sqrt(mean(cv_ok6$residual^2)), true = rmse_true(p_ok)),
+  UK = c(LOOCV = sqrt(mean(cv_uk6$residual^2)), true = rmse_true(uk6$var1.pred))), 3)
+round(mean(cv_uk6$zscore^2), 3)                       # MSDR for UK
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> LOOCV vlerëson gabimin vetëm nga 80 stacionet: OK 2.52 (e vërteta 2.17), UK 0.40 (e vërteta 0.33).
+    \item<2-> Pak pesimist (çdo stacion parashikohet nga 79, jo 80), por \textbf{renditja} e metodave është e saktë.
+    \item<3-> MSDR $\approx1.01$: $\sigma_{UK}$ e kalibruar mirë.
+    \item<4-> Kjo është arsyeja pse në praktikë besojmë CV: e vërteta nuk dihet.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Mbulimi i intervaleve 95\%}
+<<h6-cover>>=
+pos  <- uk6$var1.var > 0                     # drop cells with variance <= 0 (stations)
+zsc  <- (truth$temp - uk6$var1.pred)[pos] / sqrt(uk6$var1.var[pos])
+c(cells = sum(pos), coverage_95 = mean(abs(zsc) < 1.96))
+@
+  \begin{itemize}
+    \item<2-> 97\% e qelizave kanë temperaturën e vërtetë brenda $\hat y\pm1.96\,\sigma_{UK}$.
+    \item<3-> Pak më shumë se 95\%: intervalet janë pak konservative, jo optimiste.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=ushN126]{Radha jote! Ndrysho parametrin}
+  \begin{Ushtrim}[(5 minuta, para se ta ekzekutojmë)]
+    Përsërisim eksperimentin me 40, 80 dhe 160 stacione, 10 herë për secilin (mostra të ndryshme).
+    \begin{enumerate}
+      \item Si pritet të ndryshojë RMSE e IDW-së?
+      \item Po e regresit? Po e UK-së?
+      \item Cila metodë përfiton më shumë nga dyfishimi i rrjetit?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjN126}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[fragile]{Sa stacione na duhen? Kodi}
+<<h6-net>>=
+one_run <- function(n, rep) {
+  set.seed(1000 * n + rep); s <- tg[sample(nrow(tg), n), ]
+  mr <- suppressWarnings(fit.variogram(variogram(temp ~ elev, s),
+                                       vgm(0.2, "Exp", 20000, 0.05)))
+  c(n = n, IDW = rmse_true(idw(temp ~ 1, s, tg, idp = 2, debug.level = 0)$var1.pred),
+    LM = rmse_true(predict(lm(temp ~ elev, s), truth)),
+    UK = rmse_true(krige(temp ~ elev, s, tg, model = mr, debug.level = 0)$var1.pred))
+}
+net <- as.data.frame(do.call(rbind, lapply(c(40, 80, 160), function(n)
+  t(sapply(1:10, function(r) one_run(n, r))))))
+@
+\end{frame}
+
+\begin{frame}[fragile]{Sa stacione na duhen? Rezultati}
+<<h6-net-out>>=
+round(aggregate(cbind(IDW, LM, UK) ~ n, data = net, FUN = median), 3)
+@
+  \begin{itemize}
+    \item<2-> Mesorja e 10 përsëritjeve për çdo madhësi rrjeti.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> IDW: 2.50 $\to$ 2.29 $\to$ 2.09. Përmirësohet ngadalë; mbetet larg.
+    \item<2-> Regresi: 0.52 $\to$ 0.50 $\to$ 0.50. \textbf{Nuk} përmirësohet: gabimi vjen nga modeli (mbetjet e korreluara), jo nga pak të dhëna.
+    \item<3-> UK: 0.38 $\to$ 0.36 $\to$ 0.31. Përfiton nga dendësia, sepse interpolon mbetjet.
+  \end{itemize}
+  \begin{Keshille}Më shumë të dhëna nuk e rregullojnë një model të gabuar; një model më i mirë po.\end{Keshille}
+\end{frame}
+
+\begin{frame}[label=pyetjeMC126]{Pyetje me zgjedhje}
+  \begin{Parashiko}
+    Pse RMSE e regresit \texttt{temp \textasciitilde\ elev} mbetet $\approx0.50$ edhe me 160 stacione?
+    \begin{enumerate}[A.]
+      \item Sepse $\hat\beta$ ka ende shumë pasiguri.
+      \item Sepse pjesa që nuk varet nga lartësia (deti, ekspozimi) është hapësinore dhe regresi e injoron.
+      \item Sepse 160 stacione janë shumë pak për një regres të thjeshtë.
+      \item Sepse RMSE llogaritet gabim.
+    \end{enumerate}
+  \end{Parashiko}
+  \shkoTe{zgjMC126}{Shiko zgjidhjen}
+\end{frame}
+
+% ------------------------------------------------------------
+\subsection{Mesataret sipas qarqeve}
+% ------------------------------------------------------------
+
+\begin{frame}{\Zgjerim Kriging-u në blloqe: qarqet}
+  \begin{itemize}
+    \item<1-> Statistika zyrtare raportohet sipas njësive administrative (qarku, bashkia), jo sipas qelizave.
+    \item<2-> Kriging në blloqe (Ora 4): parashikon mesataren e qarkut dhe jep gabimin standard të \emph{mesatares}.
+    \item<3-> Në \texttt{gstat}: \texttt{newdata} $=$ poligonet; kovariati $=$ lartësia mesatare e qarkut.
+    \item<4-> Kufijtë: GADM 4.1 (shkarkohen me \texttt{get\_data\_week12.R}; licenca nuk lejon rishpërndarjen).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,shrink=14]{Kriging në blloqe për 12 qarqet}
+<<h6-block>>=
+qk <- st_transform(st_read(file.path(W12DATA, "gadm41_ALB_1.gpkg"), quiet = TRUE), 6870)
+qk$elev <- terra::extract(stk_p$elev, vect(qk), fun = mean, na.rm = TRUE)[, 2]
+qk$true <- terra::extract(stk_p$temp, vect(qk), fun = mean, na.rm = TRUE)[, 2]
+bk <- krige(temp ~ elev, st, qk, model = m_uk6, debug.level = 0)
+tab <- data.frame(qark = qk$qark, true = qk$true, block = bk$var1.pred,
+                  se_block = sqrt(bk$var1.var))
+tab$err <- tab$block - tab$true
+print(format(tab, digits = 3), row.names = FALSE)
+@
+\end{frame}
+
+\begin{frame}{Çfarë na tregon?}
+  \begin{itemize}
+    \item<1-> Gabimi i mesatares së qarkut: më i madhi $\approx0.22\ ^\circ$C (Kukës); shumica nën 0.1.
+    \item<2-> Gabimi standard i bllokut: 0.08--0.22 $^\circ$C; i qelizës: $\approx0.40$. Mesatarizimi e ul pasigurinë.
+    \item<3-> Kujdes: \texttt{qark} në ASCII (pa ë/ç) për grafikët; emrat zyrtarë në tabela.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Harta për publikim: kodi}
+<<h6-pub, eval=FALSE>>=
+library(ggspatial)
+ggplot() +
+  geom_raster(data = data.frame(truth[, c("x", "y")], t = uk6$var1.pred), aes(x, y, fill = t)) +
+  geom_sf(data = qk, fill = NA, colour = "white", linewidth = 0.3) +
+  geom_sf(data = st, shape = 21, fill = "white", size = 0.8) +
+  scale_fill_viridis_c(option = "inferno", name = "July mean\ntemp (C)") +
+  annotation_scale(location = "bl", text_cex = 0.6) +
+  annotation_north_arrow(location = "tr", height = unit(0.7, "cm"), width = unit(0.5, "cm")) +
+  coord_sf(crs = 6870, datum = NA) + labs(x = NULL, y = NULL,
+  caption = "UK with elevation, 80 synthetic stations\nTruth: WorldClim 2.1") +
+  theme_minimal(base_size = 8) + theme(plot.caption.position = "plot")
+@
+\end{frame}
+
+\begin{frame}[fragile]{Harta për publikim: rezultati}
+  \centering
+<<h6-pub-fig, ref.label="h6-pub", echo=FALSE, fig.height=3.3, fig.width=4, out.width="0.52\\textwidth">>=
+@
+\end{frame}
+
+\begin{frame}{Çfarë duhet të raportojë një hartë e interpoluar}
+  \begin{enumerate}
+    \item<1-> Burimi i të dhënave dhe numri i stacioneve (reale apo sintetike).
+    \item<2-> Metoda dhe kovariatët (UK me lartësinë), modeli i variogramit.
+    \item<3-> Gabimi i vlerësuar me CV (RMSE, MSDR).
+    \item<4-> Harta e pasigurisë ose të paktën gabimi standard tipik.
+    \item<5-> Projeksioni, shkalla, shigjeta e veriut, data e të dhënave.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[label=ushTPS126]{Mendo -- diskuto në çift -- ndaj}
+  \begin{Ushtrim}[(5 minuta)]
+    Stacionet reale janë kryesisht në qytete dhe në ultësira (nën 500 m).
+    \begin{enumerate}
+      \item Cila metodë vuan më shumë nga ky mostrim: OK apo UK? Pse?
+      \item A do ta vinte re LOOCV këtë problem?
+      \item Çfarë do t'i propozonit shërbimit meteorologjik?
+    \end{enumerate}
+  \end{Ushtrim}
+  \shkoTe{zgjTPS126}{Shiko zgjidhjen}
+\end{frame}
+
+\begin{frame}[label=cp126]{\textcolor{accent}{$\checkmark$} Checkpoint: Ora 6}
+  \begin{enumerate}
+    \item Pse UK me lartësinë fiton kaq shumë ndaj OK në këtë rast?
+    \item Pse RMSE në stacione nuk është vlerësim i gabimit të hartës?
+    \item Çfarë fitojmë me Kriging-un në blloqe për qarqet?
+  \end{enumerate}
+  \shkoTe{zgjCp126}{Përgjigjet}
+\end{frame}
+
+\begin{frame}{Përmbledhje: Ora 6}
+  \begin{itemize}
+    \item 80 pseudo-stacione nga WorldClim; e vërteta në 28\,281 qeliza.
+    \item RMSE: mesatarja 3.22, IDW 2.25, OK 2.17, regresi 0.50, UK 0.33.
+    \item Gradienti termik $\approx-5.95\ ^\circ$C/km; pragu i mbetjeve vetëm 2\% e pragut total.
+    \item LOOCV pak pesimist, por rendit drejt; intervalet 95\% mbulojnë 97\%.
+    \item Më shumë stacione ndihmojnë UK-në, jo regresin; blloqet japin mesataret e qarqeve.
+  \end{itemize}
+  \begin{Keshille}Ora 7: përmbledhja e javës dhe e kursit, projekti final.\end{Keshille}
+\end{frame}
